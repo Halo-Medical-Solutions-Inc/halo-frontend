@@ -49,48 +49,32 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "./ui/input";
 import { AudioVisualizer } from "./ui/audio-visualizer";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { languages } from "@/store/types";
 
 export default function RecordComponent() {
-  const selectedVisit = {
-    _id: "visit1",
-    name: "Patient Consultation",
-    created_at: "2023-07-14T14:30:00.000Z",
-    modified_at: "2023-07-14T14:45:00.000Z",
-    status: "NOT_STARTED", // Can be "NOT_STARTED", "RECORDING", "PAUSED", or "FINISHED"
-    recording_duration: "00:32",
-    additional_context:
-      "42 year old male with a history of hypertension and diabetes",
-    language: "en",
-    template_id: "template1",
-  };
+  const selectedVisit = useSelector(
+    (state: RootState) => state.visit.selectedVisit,
+  );
+  const templates = useSelector((state: RootState) => state.template.templates);
 
-  const templates = [
-    { _id: "template1", name: "SOAP Note" },
-    { _id: "template2", name: "Progress Note" },
-    { _id: "template3", name: "Consultation" },
-  ];
-
-  const languages = [
-    { language_id: "en", name: "English" },
-    { language_id: "es", name: "Spanish" },
-    { language_id: "fr", name: "French" },
-  ];
 
   const showTextArea = true;
   const validationErrors = {
     template: "",
   };
 
-  const [name, setName] = useState(selectedVisit.name);
-  const [template, setTemplate] = useState(selectedVisit.template_id);
-  const [language, setLanguage] = useState(selectedVisit.language);
+  const [name, setName] = useState(selectedVisit?.name);
+  const [template, setTemplate] = useState(selectedVisit?.template_id);
+  const [language, setLanguage] = useState(selectedVisit?.language);
   const [additionalContext, setAdditionalContext] = useState(
-    selectedVisit.additional_context,
+    selectedVisit?.additional_context,
   );
 
   return (
     <>
-      {selectedVisit.status === "RECORDING" && (
+      {selectedVisit?.status === "RECORDING" && (
         <div
           className="fixed inset-0 bg-background/10 backdrop-blur-[4px] z-40"
           style={{ pointerEvents: "all" }}
@@ -98,7 +82,7 @@ export default function RecordComponent() {
       )}
       <SidebarInset>
         <header
-          className={`flex h-14 shrink-0 items-center gap-2 relative ${selectedVisit.status === "RECORDING" ? "z-30" : "z-50"}`}
+          className={`flex h-14 shrink-0 items-center gap-2 relative ${selectedVisit?.status === "RECORDING" ? "z-30" : "z-50"}`}
         >
           <div className="flex flex-1 items-center gap-2 px-3">
             <SidebarTrigger />
@@ -107,7 +91,7 @@ export default function RecordComponent() {
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbPage className="line-clamp-1">
-                    {selectedVisit.name || "New Visit"}
+                    {selectedVisit?.name || "New Visit"}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
@@ -117,7 +101,7 @@ export default function RecordComponent() {
             <div className="flex items-center gap-2 text-sm">
               <div className="flex items-center">
                 <span className="font-normal text-muted-foreground md:inline-block">
-                  {selectedVisit.recording_duration || "Not started"}
+                  {selectedVisit?.recording_duration || "Not started"}
                 </span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -163,7 +147,7 @@ export default function RecordComponent() {
           </div>
         </header>
         <div
-          className={`flex flex-1 flex-col items-center justify-center gap-4 px-4 py-10 relative ${selectedVisit.status === "RECORDING" ? "z-50" : ""}`}
+          className={`flex flex-1 flex-col items-center justify-center gap-4 px-4 py-10 relative ${selectedVisit?.status === "RECORDING" ? "z-50" : ""}`}
         >
           <div className="mx-auto w-[320px] max-w-3xl rounded-xl space-y-4">
             <div className="relative group flex justify-center items-center">
@@ -183,8 +167,8 @@ export default function RecordComponent() {
                 value={template}
                 onValueChange={(value) => setTemplate(value)}
                 disabled={
-                  selectedVisit.status === "RECORDING" ||
-                  selectedVisit.status === "PAUSED"
+                  selectedVisit?.status === "RECORDING" ||
+                  selectedVisit?.status === "PAUSED"
                 }
               >
                 <SelectTrigger
@@ -196,7 +180,7 @@ export default function RecordComponent() {
                   <SelectGroup>
                     <SelectLabel>Templates</SelectLabel>
                     {templates.map((template) => (
-                      <SelectItem key={template._id} value={template._id}>
+                      <SelectItem key={template._id} value={template._id || ""}>
                         {template.name}
                       </SelectItem>
                     ))}
@@ -219,8 +203,8 @@ export default function RecordComponent() {
                 value={language}
                 onValueChange={(value) => setLanguage(value)}
                 disabled={
-                  selectedVisit.status === "RECORDING" ||
-                  selectedVisit.status === "PAUSED"
+                  selectedVisit?.status === "RECORDING" ||
+                  selectedVisit?.status === "PAUSED"
                 }
               >
                 <SelectTrigger className="min-w-[50px] max-w-[160px] w-auto">
@@ -274,7 +258,7 @@ export default function RecordComponent() {
             <AudioVisualizer />
 
             {additionalContext?.trim() &&
-              selectedVisit.status === "NOT_STARTED" && (
+              selectedVisit?.status === "NOT_STARTED" && (
                 <div className="flex items-center justify-between w-full gap-2">
                   <Button variant="outline" className="flex-1">
                     <CheckCircle className="h-4 w-4" />
@@ -287,7 +271,7 @@ export default function RecordComponent() {
                 </div>
               )}
 
-            {selectedVisit.status === "RECORDING" && (
+            {selectedVisit?.status === "RECORDING" && (
               <div className="flex items-center justify-between w-full gap-2">
                 <Button
                   variant="outline"
@@ -303,7 +287,7 @@ export default function RecordComponent() {
               </div>
             )}
 
-            {selectedVisit.status === "PAUSED" && (
+            {selectedVisit?.status === "PAUSED" && (
               <div className="flex items-center justify-between w-full gap-2">
                 <Button
                   variant="outline"
@@ -320,7 +304,7 @@ export default function RecordComponent() {
             )}
 
             {!additionalContext?.trim() &&
-              selectedVisit.status === "NOT_STARTED" && (
+              selectedVisit?.status === "NOT_STARTED" && (
                 <Button className="w-full">
                   <Mic className="h-4 w-4" />
                   Start recording

@@ -30,45 +30,17 @@ import {
 import { MoreHorizontal, Trash2, ArrowLeft, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ExpandingTextarea } from "@/components/ui/textarea";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 export default function TemplateComponent() {
-  const selectedTemplate = {
-    _id: "template2",
-    name: "Progress Note",
-    instructions: `## Chief Complaint ##
-{Describe the patient's main complaint in their words}
+  const selectedTemplate = useSelector(
+    (state: RootState) => state.template.selectedTemplate,
+  );
 
-## History of Present Illness ##
-{Detailed chronological description of the development of the patient's illness}
-
-## Past Medical History ##
-{List relevant medical conditions, previous surgeries, and hospitalizations}
-
-## Medications ##
-{List current medications including dosage and frequency}
-
-## Allergies ##
-{List medication allergies and reactions}
-
-## Review of Systems ##
-{Document pertinent positive and negative findings from systems review}
-
-## Physical Examination ##
-{Document findings from the physical examination}
-
-## Assessment ##
-{List diagnoses and clinical impressions}
-
-## Plan ##
-{Document the treatment plan, follow-up instructions, and patient education}`,
-    status: "READY",
-    created_at: "2023-06-20T11:15:00.000Z",
-    modified_at: "2023-07-05T16:45:00.000Z",
-  };
-
-  const [name, setName] = useState(selectedTemplate.name);
+  const [name, setName] = useState(selectedTemplate?.name);
   const [instructions, setInstructions] = useState(
-    selectedTemplate.instructions,
+    selectedTemplate?.instructions,
   );
 
   return (
@@ -81,7 +53,7 @@ export default function TemplateComponent() {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbPage className="line-clamp-1">
-                  {selectedTemplate.name || "New Template"}
+                  {selectedTemplate?.name || "New Template"}
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
@@ -92,10 +64,10 @@ export default function TemplateComponent() {
             <div className="flex items-center">
               <span className="font-normal text-muted-foreground md:inline-block">
                 Last saved{" "}
-                {selectedTemplate.modified_at
+                {selectedTemplate?.modified_at
                   ? (() => {
                       const now = new Date();
-                      const modified = new Date(selectedTemplate.modified_at);
+                      const modified = new Date(selectedTemplate?.modified_at);
                       const diffMs = now.getTime() - modified.getTime();
                       const diffMinutes = Math.floor(diffMs / 60000);
                       const diffHours = Math.floor(diffMs / 3600000);

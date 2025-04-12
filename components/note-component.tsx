@@ -50,41 +50,14 @@ import {
 import { ExpandingTextarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 export default function NoteComponent() {
-  const selectedVisit = {
-    _id: "visit1",
-    name: "John Doe - Annual Checkup",
-    created_at: "2023-08-15T14:30:00.000Z",
-    modified_at: "2023-08-15T15:00:00.000Z",
-    status: "FINISHED",
-    recording_duration: 1800,
-    template_id: "template1",
-    template_modified_at: "2023-08-10T12:00:00.000Z",
-    note: "",
-    additional_context:
-      "Patient reports occasional headaches and mild insomnia",
-    transcript:
-      "Doctor: How are you feeling today?\nPatient: I've been having headaches occasionally and sometimes trouble sleeping.\nDoctor: How long has this been going on?\nPatient: For about two weeks now...",
-  };
-
-  const templates = [
-    {
-      _id: "template1",
-      name: "SOAP Note",
-      modified_at: "2023-08-10T12:00:00.000Z",
-    },
-    {
-      _id: "template2",
-      name: "Progress Note",
-      modified_at: "2023-08-11T12:00:00.000Z",
-    },
-    {
-      _id: "template3",
-      name: "Consultation",
-      modified_at: "2023-07-20T12:00:00.000Z",
-    },
-  ];
+  const selectedVisit = useSelector(
+    (state: RootState) => state.visit.selectedVisit,
+  );
+  const templates = useSelector((state: RootState) => state.template.templates);
 
   const noteSections = [
     {
@@ -108,8 +81,8 @@ export default function NoteComponent() {
   const transcriptView = false;
   const displaySections = !transcriptView ? noteSections : [];
 
-  const [name, setName] = useState(selectedVisit.name);
-  const [template, setTemplate] = useState(selectedVisit.template_id);
+  const [name, setName] = useState(selectedVisit?.name);
+  const [template, setTemplate] = useState(selectedVisit?.template_id);
   const [note, setNote] = useState(noteSections);
 
   return (
@@ -122,7 +95,7 @@ export default function NoteComponent() {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbPage className="line-clamp-1">
-                  {selectedVisit.name}
+                  {selectedVisit?.name}
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
@@ -132,7 +105,7 @@ export default function NoteComponent() {
           <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center">
               <span className="font-normal text-muted-foreground md:inline-block">
-                {Math.floor(selectedVisit.recording_duration / 60)} minutes
+                {Math.floor(selectedVisit?.recording_duration || 0 / 60)} minutes
               </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -209,8 +182,11 @@ export default function NoteComponent() {
                     <SelectLabel>Templates</SelectLabel>
                     <SelectItem value="transcript">Transcript</SelectItem>
                     {templates.map((template) => (
-                      <SelectItem key={template._id} value={template._id}>
-                        {template.name}
+                      <SelectItem 
+                        key={template._id} 
+                        value={template._id || ""}
+                      >
+                        {template.name || "Unnamed Template"}
                       </SelectItem>
                     ))}
                   </SelectGroup>
@@ -223,12 +199,12 @@ export default function NoteComponent() {
             </div>
           </div>
 
-          {selectedVisit.template_modified_at &&
-            templates.find((t) => t._id === selectedVisit.template_id)
+          {selectedVisit?.template_modified_at &&
+            templates.find((t) => t._id === selectedVisit?.template_id)
               ?.modified_at &&
-            new Date(selectedVisit.template_modified_at) <
+            new Date(selectedVisit?.template_modified_at) <
               new Date(
-                templates.find((t) => t._id === selectedVisit.template_id)
+                templates.find((t) => t._id === selectedVisit?.template_id)
                   ?.modified_at || "",
               ) &&
             transcriptView && (
@@ -273,7 +249,7 @@ export default function NoteComponent() {
                       id={`transcript`}
                       minHeight={0}
                       maxHeight={10000}
-                      value={selectedVisit.transcript}
+                      value={selectedVisit?.transcript}
                       disabled={true}
                       className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none"
                     />
@@ -302,7 +278,7 @@ export default function NoteComponent() {
                       id={`additional-context`}
                       minHeight={0}
                       maxHeight={10000}
-                      value={selectedVisit.additional_context}
+                      value={selectedVisit?.additional_context}
                       disabled={true}
                       className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none"
                     />

@@ -38,46 +38,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Trash2 } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 export default function TemplatesComponent() {
-  // Fake user data
-  const user = {
-    name: "Dr. John Smith",
-    email: "john.smith@example.com",
-    default_template_id: "template2", // Template ID marked as default
-  };
-
-  // Fake templates data
-  const templates = [
-    {
-      _id: "template1",
-      name: "SOAP Note",
-      status: "DEFAULT",
-      created_at: "2023-05-10T09:30:00.000Z",
-      modified_at: "2023-05-15T14:20:00.000Z",
-    },
-    {
-      _id: "template2",
-      name: "Progress Note",
-      status: "READY",
-      created_at: "2023-06-20T11:15:00.000Z",
-      modified_at: "2023-07-05T16:45:00.000Z",
-    },
-    {
-      _id: "template3",
-      name: "Consultation",
-      status: "READY",
-      created_at: "2023-07-30T10:00:00.000Z",
-      modified_at: "2023-08-02T13:30:00.000Z",
-    },
-    {
-      _id: "template4",
-      name: "Physical Examination",
-      status: "READY",
-      created_at: "2023-08-10T09:00:00.000Z",
-      modified_at: "2023-08-10T09:00:00.000Z",
-    },
-  ];
+  const user = useSelector((state: RootState) => state.user.user);
+  const templates = useSelector((state: RootState) => state.template.templates);
 
   return (
     <SidebarInset>
@@ -146,7 +112,7 @@ export default function TemplatesComponent() {
                             <span className="pt-0.5">
                               {template.name || "New Template"}{" "}
                             </span>
-                            {template._id === user.default_template_id && (
+                            {template._id === user?.default_template_id && (
                               <Badge
                                 variant="outline"
                                 className="border-success-border bg-success-secondary text-success px-1.5 py-0.5 rounded"

@@ -31,38 +31,23 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { languages } from "@/store/types";
 
 export default function AccountComponent() {
-  // Fake data
-  const user = {
-    name: "Dr. John Smith",
-    email: "john.smith@halomedical.com",
-    default_template_id: "template1",
-    default_language: "en",
-  };
+  const user = useSelector((state: RootState) => state.user.user);
+  const templates = useSelector((state: RootState) => state.template.templates);
 
-  const templates = [
-    { _id: "template1", name: "SOAP Note" },
-    { _id: "template2", name: "Progress Note" },
-    { _id: "template3", name: "Consultation" },
-  ];
-
-  const languages = [
-    { language_id: "en", name: "English" },
-    { language_id: "es", name: "Spanish" },
-    { language_id: "fr", name: "French" },
-  ];
-
-  // Fake validation error for demonstration
   const emailError = "";
   const nameError = "";
 
-  const [name, setName] = useState(user.name);
-  const [email, setEmail] = useState(user.email);
+  const [name, setName] = useState(user?.name);
+  const [email, setEmail] = useState(user?.email);
   const [defaultTemplate, setDefaultTemplate] = useState(
-    user.default_template_id,
+    user?.default_template_id,
   );
-  const [defaultLanguage, setDefaultLanguage] = useState(user.default_language);
+  const [defaultLanguage, setDefaultLanguage] = useState(user?.default_language);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [retypePassword, setRetypePassword] = useState("");
@@ -162,7 +147,7 @@ export default function AccountComponent() {
                   <SelectGroup>
                     <SelectLabel>Templates</SelectLabel>
                     {templates.map((template) => (
-                      <SelectItem key={template._id} value={template._id}>
+                      <SelectItem key={template._id} value={template._id || ""}>
                         {template.name}
                       </SelectItem>
                     ))}

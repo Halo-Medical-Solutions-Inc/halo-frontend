@@ -45,85 +45,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
+import { RootState } from "@/store/store";
+import { useSelector } from "react-redux";
+import { groupVisitsByDate } from "@/lib/utils";
 export default function SidebarComponent() {
-  const user = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    default_language: "en",
-    default_template_id: "template1",
-  };
-
   const isMobile = false;
 
-  const groupedVisits = [
-    {
-      date: "Today",
-      visits: [
-        {
-          _id: "visit1",
-          created_at: "2023-07-14T14:30:00.000Z",
-          modified_at: "2023-07-14T14:45:00.000Z",
-          status: "FINISHED",
-          name: "Patient Consultation",
-          additional_context: "First visit, chronic pain",
-          language: "en",
-          template_id: "template1",
-        },
-        {
-          _id: "visit2",
-          created_at: "2023-07-14T10:15:00.000Z",
-          modified_at: "2023-07-14T10:35:00.000Z",
-          status: "FINISHED",
-          name: "Follow-up Appointment",
-          additional_context: "Treatment review",
-          language: "en",
-          template_id: "template2",
-        },
-      ],
-    },
-    {
-      date: "Yesterday",
-      visits: [
-        {
-          _id: "visit3",
-          created_at: "2023-07-13T09:00:00.000Z",
-          modified_at: "2023-07-13T09:25:00.000Z",
-          status: "FINISHED",
-          name: "Annual Check-up",
-          additional_context: "Routine examination",
-          language: "en",
-          template_id: "template1",
-        },
-      ],
-    },
-    {
-      date: "Last Week",
-      visits: [
-        {
-          _id: "visit4",
-          created_at: "2023-07-07T13:45:00.000Z",
-          modified_at: "2023-07-07T14:15:00.000Z",
-          status: "RECORDING",
-          name: "Emergency Consultation",
-          additional_context: "Acute symptoms",
-          language: "en",
-          template_id: "template3",
-        },
-      ],
-    },
-  ];
-
-  const selectedVisit = {
-    _id: "visit1",
-    created_at: "2023-07-14T14:30:00.000Z",
-    modified_at: "2023-07-14T14:45:00.000Z",
-    status: "FINISHED",
-    name: "Patient Consultation",
-    additional_context: "First visit, chronic pain",
-    language: "en",
-    template_id: "template1",
-  };
+  const user = useSelector((state: RootState) => state.user.user);
+  const visits = useSelector((state: RootState) => state.visit.visits);
+  const groupedVisits = groupVisitsByDate(visits);
+  const selectedVisit = useSelector(
+    (state: RootState) => state.visit.selectedVisit,
+  );
 
   return (
     <>
@@ -183,11 +116,11 @@ export default function SidebarComponent() {
                               {visit.name || "New Visit"}
                             </span>
                             <span className="text-muted-foreground ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-normal outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0">
-                              {new Date(visit.created_at).getHours()}:
+                              {visit.created_at ? new Date(visit.created_at).getHours() : 0}:
                               {String(
-                                new Date(visit.created_at).getMinutes(),
+                                visit.created_at ? new Date(visit.created_at).getMinutes() : 0
                               ).padStart(2, "0")}{" "}
-                              {new Date(visit.created_at).getHours() >= 12
+                              {visit.created_at && new Date(visit.created_at).getHours() >= 12
                                 ? "PM"
                                 : "AM"}
                             </span>

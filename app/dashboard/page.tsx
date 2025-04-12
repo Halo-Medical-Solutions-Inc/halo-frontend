@@ -38,8 +38,8 @@ export default function Page() {
       <SidebarComponent />
       {/* <AccountComponent /> */}
       {/* <NoteComponent /> */}
-      {/* <RecordComponent /> */}
-      <TemplateComponent />
+      <RecordComponent />
+      {/* <TemplateComponent /> */}
       {/* <TemplatesComponent /> */}
       <AskAIComponent />
     </Application>
