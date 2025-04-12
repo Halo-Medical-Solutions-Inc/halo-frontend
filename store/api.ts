@@ -2,7 +2,10 @@ import { Session, Template, User, Visit } from "./types";
 
 const API_URL = process.env.API_URL || "http://127.0.0.1:8000";
 
-export async function signinUser(email: string, password: string): Promise<Session> {
+export async function signinUser(
+  email: string,
+  password: string,
+): Promise<Session> {
   const response = await fetch(`${API_URL}/user/signin`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -12,7 +15,11 @@ export async function signinUser(email: string, password: string): Promise<Sessi
   return response.json();
 }
 
-export async function signupUser(name: string, email: string, password: string): Promise<Session> {
+export async function signupUser(
+  name: string,
+  email: string,
+  password: string,
+): Promise<Session> {
   const response = await fetch(`${API_URL}/user/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -86,7 +93,10 @@ export async function getUserVisits(sessionId: string): Promise<Visit[]> {
   return response.json();
 }
 
-export async function getTemplate(sessionId: string, templateId: string): Promise<Template> {
+export async function getTemplate(
+  sessionId: string,
+  templateId: string,
+): Promise<Template> {
   const response = await fetch(`${API_URL}/template/get`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -130,7 +140,10 @@ export async function updateTemplate(
   return response.json();
 }
 
-export async function deleteTemplate(sessionId: string, templateId: string): Promise<void> {
+export async function deleteTemplate(
+  sessionId: string,
+  templateId: string,
+): Promise<void> {
   const response = await fetch(`${API_URL}/template/delete`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -163,7 +176,10 @@ export async function askAITemplate(sessionId: string): Promise<any> {
 }
 
 // Visit API functions
-export async function getVisit(sessionId: string, visitId: string): Promise<Visit> {
+export async function getVisit(
+  sessionId: string,
+  visitId: string,
+): Promise<Visit> {
   const response = await fetch(`${API_URL}/visit/get`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -214,7 +230,10 @@ export async function updateVisit(
   return response.json();
 }
 
-export async function deleteVisit(sessionId: string, visitId: string): Promise<void> {
+export async function deleteVisit(
+  sessionId: string,
+  visitId: string,
+): Promise<void> {
   const response = await fetch(`${API_URL}/visit/delete`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

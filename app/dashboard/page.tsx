@@ -8,16 +8,38 @@ import RecordComponent from "@/components/record-component";
 import TemplateComponent from "@/components/template-component";
 import TemplatesComponent from "@/components/templates-component";
 import AskAIComponent from "@/components/ask-ai-component";
+import {
+  initialUserState,
+  initialTemplateState,
+  initialVisitState,
+} from "@/store/types";
+import { setUser } from "@/store/slices/userSlice";
+import { setTemplates } from "@/store/slices/templateSlice";
+import { setVisits } from "@/store/slices/visitSlice";
+import { useDispatch } from "react-redux";
+import { useEffect } from "react";
 
 export default function Page() {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if (initialUserState.user) {
+      dispatch(setUser(initialUserState.user));
+    }
+    if (initialTemplateState.templates) {
+      dispatch(setTemplates(initialTemplateState.templates));
+    }
+    if (initialVisitState.visits) {
+      dispatch(setVisits(initialVisitState.visits));
+    }
+  }, []);
 
   return (
     <Application>
       <SidebarComponent />
       {/* <AccountComponent /> */}
-      <NoteComponent />
+      {/* <NoteComponent /> */}
       {/* <RecordComponent /> */}
-      {/* <TemplateComponent /> */}
+      <TemplateComponent />
       {/* <TemplatesComponent /> */}
       <AskAIComponent />
     </Application>

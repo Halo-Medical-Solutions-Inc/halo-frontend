@@ -22,7 +22,12 @@ interface Visit {
   user_id?: string;
   created_at?: string;
   modified_at?: string;
-  status?: "NOT_STARTED" | "PAUSED" | "RECORDING" | "GENERATING_NOTE" | "FINISHED";
+  status?:
+    | "NOT_STARTED"
+    | "PAUSED"
+    | "RECORDING"
+    | "GENERATING_NOTE"
+    | "FINISHED";
   name?: string;
   template_modified_at?: string;
   template_id?: string;
@@ -193,9 +198,13 @@ export const initialVisitState: VisitState = {
       template_id: "template-3",
       language: "en",
       additional_context: "Child's annual checkup",
-      recording_started_at: new Date(Date.now() - 24 * 60 * 60 * 1000 - 45 * 60 * 1000).toISOString(),
+      recording_started_at: new Date(
+        Date.now() - 24 * 60 * 60 * 1000 - 45 * 60 * 1000,
+      ).toISOString(),
       recording_duration: 30 * 60,
-      recording_finished_at: new Date(Date.now() - 24 * 60 * 60 * 1000 - 15 * 60 * 1000).toISOString(),
+      recording_finished_at: new Date(
+        Date.now() - 24 * 60 * 60 * 1000 - 15 * 60 * 1000,
+      ).toISOString(),
       transcript: "Pediatric consultation transcript",
       note: `<note>
 <note_section>
@@ -227,9 +236,13 @@ export const initialVisitState: VisitState = {
       template_id: "template-2",
       language: "en",
       additional_context: "Patient has eczema",
-      recording_started_at: new Date(Date.now() - 24 * 60 * 60 * 1000 - 120 * 60 * 1000).toISOString(),
+      recording_started_at: new Date(
+        Date.now() - 24 * 60 * 60 * 1000 - 120 * 60 * 1000,
+      ).toISOString(),
       recording_duration: 30 * 60,
-      recording_finished_at: new Date(Date.now() - 24 * 60 * 60 * 1000 - 90 * 60 * 1000).toISOString(),
+      recording_finished_at: new Date(
+        Date.now() - 24 * 60 * 60 * 1000 - 90 * 60 * 1000,
+      ).toISOString(),
       transcript: "Dermatology consultation transcript",
       note: `<note>
 <note_section>
@@ -261,9 +274,13 @@ export const initialVisitState: VisitState = {
       template_id: "template-2",
       language: "en",
       additional_context: "Post-heart attack follow-up",
-      recording_started_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 - 60 * 60 * 1000).toISOString(),
+      recording_started_at: new Date(
+        Date.now() - 2 * 24 * 60 * 60 * 1000 - 60 * 60 * 1000,
+      ).toISOString(),
       recording_duration: 30 * 60,
-      recording_finished_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 - 30 * 60 * 1000).toISOString(),
+      recording_finished_at: new Date(
+        Date.now() - 2 * 24 * 60 * 60 * 1000 - 30 * 60 * 1000,
+      ).toISOString(),
       transcript: "Cardiology follow-up transcript",
       note: `<note>
 <note_section>
@@ -295,9 +312,13 @@ export const initialVisitState: VisitState = {
       template_id: "template-2",
       language: "en",
       additional_context: "Knee pain evaluation",
-      recording_started_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 - 75 * 60 * 1000).toISOString(),
+      recording_started_at: new Date(
+        Date.now() - 3 * 24 * 60 * 60 * 1000 - 75 * 60 * 1000,
+      ).toISOString(),
       recording_duration: 30 * 60,
-      recording_finished_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000).toISOString(),
+      recording_finished_at: new Date(
+        Date.now() - 3 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000,
+      ).toISOString(),
       transcript: "Orthopedic assessment transcript",
       note: `<note>
 <note_section>
@@ -329,9 +350,13 @@ export const initialVisitState: VisitState = {
       template_id: "template-2",
       language: "en",
       additional_context: "Depression screening",
-      recording_started_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 - 180 * 60 * 1000).toISOString(),
+      recording_started_at: new Date(
+        Date.now() - 3 * 24 * 60 * 60 * 1000 - 180 * 60 * 1000,
+      ).toISOString(),
       recording_duration: 60 * 60,
-      recording_finished_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 - 120 * 60 * 1000).toISOString(),
+      recording_finished_at: new Date(
+        Date.now() - 3 * 24 * 60 * 60 * 1000 - 120 * 60 * 1000,
+      ).toISOString(),
       transcript: "Psychiatric evaluation transcript",
       note: `<note>
 <note_section>
@@ -363,9 +388,13 @@ export const initialVisitState: VisitState = {
       template_id: "template-2",
       language: "en",
       additional_context: "Migraine assessment",
-      recording_started_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000 - 90 * 60 * 1000).toISOString(),
+      recording_started_at: new Date(
+        Date.now() - 5 * 24 * 60 * 60 * 1000 - 90 * 60 * 1000,
+      ).toISOString(),
       recording_duration: 45 * 60,
-      recording_finished_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000).toISOString(),
+      recording_finished_at: new Date(
+        Date.now() - 5 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000,
+      ).toISOString(),
       transcript: "Neurology consultation transcript",
       note: `<note>
 <note_section>
@@ -397,9 +426,13 @@ export const initialVisitState: VisitState = {
       template_id: "template-2",
       language: "en",
       additional_context: "Child's annual checkup",
-      recording_started_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000).toISOString(),
+      recording_started_at: new Date(
+        Date.now() - 6 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000,
+      ).toISOString(),
       recording_duration: 30 * 60,
-      recording_finished_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000 - 15 * 60 * 1000).toISOString(),
+      recording_finished_at: new Date(
+        Date.now() - 6 * 24 * 60 * 60 * 1000 - 15 * 60 * 1000,
+      ).toISOString(),
       transcript: "Pediatric consultation transcript",
       note: `<note>
 <note_section>
@@ -431,9 +464,13 @@ export const initialVisitState: VisitState = {
       template_id: "template-2",
       language: "en",
       additional_context: "Child's annual checkup",
-      recording_started_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000).toISOString(),
+      recording_started_at: new Date(
+        Date.now() - 7 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000,
+      ).toISOString(),
       recording_duration: 30 * 60,
-      recording_finished_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 - 15 * 60 * 1000).toISOString(),
+      recording_finished_at: new Date(
+        Date.now() - 7 * 24 * 60 * 60 * 1000 - 15 * 60 * 1000,
+      ).toISOString(),
       transcript: "Pediatric consultation transcript",
       note: `<note>
 <note_section>
@@ -465,9 +502,13 @@ export const initialVisitState: VisitState = {
       template_id: "template-2",
       language: "en",
       additional_context: "Child's annual checkup",
-      recording_started_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000).toISOString(),
+      recording_started_at: new Date(
+        Date.now() - 8 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000,
+      ).toISOString(),
       recording_duration: 30 * 60,
-      recording_finished_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000 - 15 * 60 * 1000).toISOString(),
+      recording_finished_at: new Date(
+        Date.now() - 8 * 24 * 60 * 60 * 1000 - 15 * 60 * 1000,
+      ).toISOString(),
       transcript: "Pediatric consultation transcript",
       note: `<note>
 <note_section>
@@ -499,9 +540,13 @@ export const initialVisitState: VisitState = {
       template_id: "template-2",
       language: "en",
       additional_context: "Child's annual checkup",
-      recording_started_at: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000).toISOString(),
+      recording_started_at: new Date(
+        Date.now() - 9 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000,
+      ).toISOString(),
       recording_duration: 30 * 60,
-      recording_finished_at: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000 - 15 * 60 * 1000).toISOString(),
+      recording_finished_at: new Date(
+        Date.now() - 9 * 24 * 60 * 60 * 1000 - 15 * 60 * 1000,
+      ).toISOString(),
       transcript: "Pediatric consultation transcript",
       note: `<note>
 <note_section>

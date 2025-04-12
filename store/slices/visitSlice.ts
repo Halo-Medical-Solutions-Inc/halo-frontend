@@ -21,7 +21,9 @@ const visitSlice = createSlice({
   reducers: {
     setSelectedVisit: (state: VisitState, action: PayloadAction<Visit>) => {
       state.selectedVisit = action.payload;
-      const index = state.visits.findIndex((visit) => visit._id === action.payload._id);
+      const index = state.visits.findIndex(
+        (visit) => visit._id === action.payload._id,
+      );
       if (index !== -1) {
         state.visits[index] = action.payload;
       }
@@ -44,5 +46,12 @@ const visitSlice = createSlice({
   },
 });
 
-export const { setSelectedVisit, clearSelectedVisit, setVisits, clearVisits, setLoading, setError } = visitSlice.actions;
+export const {
+  setSelectedVisit,
+  clearSelectedVisit,
+  setVisits,
+  clearVisits,
+  setLoading,
+  setError,
+} = visitSlice.actions;
 export default visitSlice.reducer;

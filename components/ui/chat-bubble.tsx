@@ -13,8 +13,23 @@ interface ChatBubbleProps {
   children: React.ReactNode;
 }
 
-export function ChatBubble({ variant = "received", layout = "default", className, children }: ChatBubbleProps) {
-  return <div className={cn("text-sm flex items-start gap-2 mb-4", variant === "sent" && "flex-row-reverse", className)}>{children}</div>;
+export function ChatBubble({
+  variant = "received",
+  layout = "default",
+  className,
+  children,
+}: ChatBubbleProps) {
+  return (
+    <div
+      className={cn(
+        "text-sm flex items-start gap-2 mb-4",
+        variant === "sent" && "flex-row-reverse",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
 interface ChatBubbleMessageProps {
@@ -24,9 +39,20 @@ interface ChatBubbleMessageProps {
   children?: React.ReactNode;
 }
 
-export function ChatBubbleMessage({ variant = "received", isLoading, className, children }: ChatBubbleMessageProps) {
+export function ChatBubbleMessage({
+  variant = "received",
+  isLoading,
+  className,
+  children,
+}: ChatBubbleMessageProps) {
   return (
-    <div className={cn("rounded-lg p-3", variant === "sent" ? "bg-primary text-primary-foreground" : "bg-muted", className)}>
+    <div
+      className={cn(
+        "rounded-lg p-3",
+        variant === "sent" ? "bg-primary text-primary-foreground" : "bg-muted",
+        className,
+      )}
+    >
       {isLoading ? (
         <div className="flex items-center space-x-2">
           <MessageLoading />
@@ -44,7 +70,11 @@ interface ChatBubbleAvatarProps {
   className?: string;
 }
 
-export function ChatBubbleAvatar({ src, fallback = "AI", className }: ChatBubbleAvatarProps) {
+export function ChatBubbleAvatar({
+  src,
+  fallback = "AI",
+  className,
+}: ChatBubbleAvatarProps) {
   return (
     <Avatar className={cn("h-8 w-8", className)}>
       {src && <AvatarImage src={src} />}
@@ -59,14 +89,33 @@ interface ChatBubbleActionProps {
   className?: string;
 }
 
-export function ChatBubbleAction({ icon, onClick, className }: ChatBubbleActionProps) {
+export function ChatBubbleAction({
+  icon,
+  onClick,
+  className,
+}: ChatBubbleActionProps) {
   return (
-    <Button variant="ghost" size="icon" className={cn("h-6 w-6", className)} onClick={onClick}>
+    <Button
+      variant="ghost"
+      size="icon"
+      className={cn("h-6 w-6", className)}
+      onClick={onClick}
+    >
       {icon}
     </Button>
   );
 }
 
-export function ChatBubbleActionWrapper({ className, children }: { className?: string; children: React.ReactNode }) {
-  return <div className={cn("flex items-center gap-1 mt-2", className)}>{children}</div>;
+export function ChatBubbleActionWrapper({
+  className,
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={cn("flex items-center gap-1 mt-2", className)}>
+      {children}
+    </div>
+  );
 }
