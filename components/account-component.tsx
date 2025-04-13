@@ -26,16 +26,7 @@ export default function AccountComponent() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [retypePassword, setRetypePassword] = useState("");
-
-  const [validationErrors, setValidationErrors] = useState({
-    name: "",
-    email: "",
-    defaultTemplate: "",
-    defaultLanguage: "",
-    currentPassword: "",
-    newPassword: "",
-    retypePassword: "",
-  });
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setName(user?.name);
@@ -59,18 +50,18 @@ export default function AccountComponent() {
 
   const saveAccount = () => {
     //TODO: Implement save account
-  }
+  };
 
   const saveDefault = () => {
     //TODO: Implement save default
-  }
+  };
   const savePassword = () => {
     //TODO: Implement save password
-  }
+  };
 
   const deleteAccount = () => {
     //TODO: Implement delete account
-  }
+  };
 
   return (
     <SidebarInset>
@@ -110,7 +101,9 @@ export default function AccountComponent() {
               {validationErrors.email && <p className="text-xs text-destructive">{validationErrors.email}</p>}
             </div>
             <div className="flex items-center gap-2">
-              <Button type="submit" onClick={saveAccount}>Save Changes</Button>
+              <Button type="submit" onClick={saveAccount}>
+                Save Changes
+              </Button>
             </div>
           </div>
           <Separator />
@@ -162,7 +155,9 @@ export default function AccountComponent() {
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" onClick={saveDefault}>Save</Button>
+            <Button type="submit" onClick={saveDefault}>
+              Save
+            </Button>
           </div>
           <Separator className="my-6" />
           <div className="space-y-4">
@@ -194,7 +189,9 @@ export default function AccountComponent() {
               <Input id="retypePassword" type="password" placeholder="********" value={retypePassword} onChange={(e) => setRetypePassword(e.target.value)} className={validationErrors.retypePassword ? "!border-destructive !ring-destructive" : ""} />
               {validationErrors.retypePassword && <p className="text-xs text-destructive">{validationErrors.retypePassword}</p>}
             </div>
-            <Button type="submit" onClick={savePassword} >Update Password</Button>
+            <Button type="submit" onClick={savePassword}>
+              Update Password
+            </Button>
           </div>
           <Separator className="my-6" />
           <div className="space-y-4">

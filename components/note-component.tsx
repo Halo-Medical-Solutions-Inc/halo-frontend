@@ -48,31 +48,31 @@ export default function NoteComponent() {
 
   const polishNote = () => {
     // TODO: Implement polish note
-  }
+  };
 
   const selectTemplate = (template: Template) => {
     // TODO: Implement select template
-  }
+  };
 
   const deleteVisit = () => {
     // TODO: Implement delete visit
-  }
+  };
 
   const regenerateNote = () => {
     // TODO: Implement regenerate note
-  }
+  };
 
   const printNote = () => {
     // TODO: Implement print note
-  }
+  };
 
   const downloadNote = () => {
     // TODO: Implement download note
-  }
+  };
 
   const copyAllNote = () => {
     // TODO: Implement copy all note
-  }
+  };
 
   return (
     <SidebarInset>
@@ -142,23 +142,24 @@ export default function NoteComponent() {
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-left" />
             </div>
             <div className="flex items-center gap-2">
-              <Select value={transcriptView ? "transcript" : templateId} onValueChange={(value) => {
-                if (value === "transcript") {
-                  setTranscriptView(true);
-                } else {
-                  setTranscriptView(false);
-                  setTemplateId(value);
-                }
-              }}>
+              <Select
+                value={transcriptView ? "transcript" : templateId}
+                onValueChange={(value) => {
+                  if (value === "transcript") {
+                    setTranscriptView(true);
+                  } else {
+                    setTranscriptView(false);
+                    setTemplateId(value);
+                  }
+                }}
+              >
                 <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
                 <SelectContent align="end">
                   <SelectGroup>
                     <SelectLabel>Templates</SelectLabel>
-                    <SelectItem value="transcript">
-                      Transcript
-                    </SelectItem>
+                    <SelectItem value="transcript">Transcript</SelectItem>
                     {templates.map((template) => (
                       <SelectItem key={template._id} value={template._id || ""}>
                         {template.name || "Unnamed Template"}

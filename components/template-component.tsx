@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { setSelectedTemplate } from "@/store/slices/templateSlice";
 import { setScreen } from "@/store/slices/sessionSlice";
+
 export default function TemplateComponent() {
   const dispatch = useDispatch();
 

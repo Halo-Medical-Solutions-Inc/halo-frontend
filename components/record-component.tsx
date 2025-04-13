@@ -32,10 +32,7 @@ export default function RecordComponent() {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isAdditionalContextFocused, setIsAdditionalContextFocused] = useState(false);
-
-  const [validationErrors, setValidationErrors] = useState({
-    template: "",
-  });
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setName(selectedVisit?.name);
@@ -65,19 +62,19 @@ export default function RecordComponent() {
 
   const startRecording = () => {
     // TODO: Implement start recording
-  }
+  };
 
   const pauseRecording = () => {
     // TODO: Implement pause recording
-  }
+  };
 
   const resumeRecording = () => {
     // TODO: Implement resume recording
-  }
+  };
 
   const finishRecording = () => {
     // TODO: Implement finish recording
-  }
+  };
 
   return (
     <>
@@ -185,11 +182,7 @@ export default function RecordComponent() {
             {!isAdditionalContextFocused ? (
               <div className="flex items-center justify-between w-full">
                 <Label className="text-sm font-normal text-muted-foreground">Additional context</Label>
-                <Button 
-                  className="min-w-[50px] max-w-[150px] w-auto" 
-                  variant="outline"
-                  onClick={() => setIsAdditionalContextFocused(true)}
-                >
+                <Button className="min-w-[50px] max-w-[150px] w-auto" variant="outline" onClick={() => setIsAdditionalContextFocused(true)}>
                   <Plus className="h-4 w-4" />
                   Add
                 </Button>
@@ -197,15 +190,7 @@ export default function RecordComponent() {
             ) : (
               <div className="flex flex-col w-full gap-2">
                 <Label className="text-sm font-normal text-muted-foreground">Additional context</Label>
-                <Textarea 
-                  placeholder="ex. 32 year old male with a history of hypertension and diabetes" 
-                  className="w-full h-28 resize-none" 
-                  value={additionalContext} 
-                  onChange={(e) => setAdditionalContext(e.target.value)}
-                  onFocus={() => setIsAdditionalContextFocused(true)}
-                  onBlur={() => additionalContext?.trim() ? setIsAdditionalContextFocused(true) : setIsAdditionalContextFocused(false)}
-                  ref={textareaRef}
-                />
+                <Textarea placeholder="ex. 32 year old male with a history of hypertension and diabetes" className="w-full h-28 resize-none" value={additionalContext} onChange={(e) => setAdditionalContext(e.target.value)} onFocus={() => setIsAdditionalContextFocused(true)} onBlur={() => (additionalContext?.trim() ? setIsAdditionalContextFocused(true) : setIsAdditionalContextFocused(false))} ref={textareaRef} />
               </div>
             )}
 
