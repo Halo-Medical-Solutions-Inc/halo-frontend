@@ -23,12 +23,9 @@ export function AudioVisualizer() {
 
         const updateVisualization = () => {
           if (!analyserRef.current) return;
-          const dataArray = new Uint8Array(
-            analyserRef.current.frequencyBinCount,
-          );
+          const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
           analyserRef.current.getByteFrequencyData(dataArray);
-          const average =
-            dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+          const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
           const normalizedLevel = Math.min(average / 128, 1);
           const newLevels = Array(8).fill(0);
           const activeBars = Math.ceil(normalizedLevel * 8);
@@ -36,8 +33,7 @@ export function AudioVisualizer() {
             newLevels[i] = 1;
           }
           setAudioLevels(newLevels);
-          animationFrameRef.current =
-            requestAnimationFrame(updateVisualization);
+          animationFrameRef.current = requestAnimationFrame(updateVisualization);
         };
         updateVisualization();
       } catch (error) {
@@ -59,15 +55,10 @@ export function AudioVisualizer() {
 
   return (
     <div className="flex items-center justify-between w-full">
-      <Label className="text-sm font-normal text-muted-foreground">
-        Microphone test
-      </Label>
+      <Label className="text-sm font-normal text-muted-foreground">Microphone test</Label>
       <div className="flex gap-1">
         {audioLevels.map((level, index) => (
-          <div
-            key={index}
-            className={`h-4 w-1 rounded transition-colors ${level ? "bg-primary" : "bg-primary/20"}`}
-          />
+          <div key={index} className={`h-4 w-1 rounded transition-colors ${level ? "bg-primary" : "bg-primary/20"}`} />
         ))}
       </div>
     </div>

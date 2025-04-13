@@ -28,10 +28,7 @@ const sessionSlice = createSlice({
   name: "session",
   initialState,
   reducers: {
-    setScreen: (
-      state: SessionState,
-      action: PayloadAction<SessionState["screen"]>,
-    ) => {
+    setScreen: (state: SessionState, action: PayloadAction<SessionState["screen"]>) => {
       state.screen = action.payload;
     },
     setSession: (state: SessionState, action: PayloadAction<any>) => {

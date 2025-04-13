@@ -8,19 +8,18 @@ import RecordComponent from "@/components/record-component";
 import TemplateComponent from "@/components/template-component";
 import TemplatesComponent from "@/components/templates-component";
 import AskAIComponent from "@/components/ask-ai-component";
-import {
-  initialUserState,
-  initialTemplateState,
-  initialVisitState,
-} from "@/store/types";
+import { initialUserState, initialTemplateState, initialVisitState } from "@/store/types";
 import { setUser } from "@/store/slices/userSlice";
 import { setTemplates } from "@/store/slices/templateSlice";
 import { setVisits } from "@/store/slices/visitSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
+import { RootState } from "@/store/store";
 
 export default function Page() {
   const dispatch = useDispatch();
+  const screen = useSelector((state: RootState) => state.session.screen);
+
   useEffect(() => {
     if (initialUserState.user) {
       dispatch(setUser(initialUserState.user));
@@ -36,11 +35,11 @@ export default function Page() {
   return (
     <Application>
       <SidebarComponent />
-      {/* <AccountComponent /> */}
-      {/* <NoteComponent /> */}
-      <RecordComponent />
-      {/* <TemplateComponent /> */}
-      {/* <TemplatesComponent /> */}
+      {screen === "ACCOUNT" && <AccountComponent />}
+      {screen === "NOTE" && <NoteComponent />}
+      {screen === "RECORD" && <RecordComponent />}
+      {screen === "TEMPLATE" && <TemplateComponent />}
+      {screen === "TEMPLATES" && <TemplatesComponent />}
       <AskAIComponent />
     </Application>
   );
