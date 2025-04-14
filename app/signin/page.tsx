@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { signinUser } from "@/store/api";
+import { apiSigninUser } from "@/store/api";
 import { useAppDispatch } from "@/store/hooks";
 import { setSession } from "@/store/slices/sessionSlice";
 
@@ -40,7 +40,7 @@ export default function Page() {
       setIsLoading(true);
 
       try {
-        const session = await signinUser(email, password);
+        const session = await apiSigninUser(email, password);
 
         if (session) {
           dispatch(setSession(session));

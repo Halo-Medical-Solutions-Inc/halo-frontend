@@ -9,49 +9,37 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ExpandingTextarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { setSelectedVisit } from "@/store/slices/visitSlice";
-import { parseNote } from "@/lib/utils";
-import { Template } from "@/store/types";
+
 export default function NoteComponent() {
   const dispatch = useDispatch();
 
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
-
-  const [name, setName] = useState(selectedVisit?.name);
-  const [templateId, setTemplateId] = useState(selectedVisit?.template_id);
-  const [note, setNote] = useState(parseNote(selectedVisit?.note || ""));
   const [transcriptView, setTranscriptView] = useState(false);
 
-  useEffect(() => {
-    setTranscriptView(false);
-  }, [selectedVisit]);
+  const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setSelectedVisit({ ...selectedVisit, name: e.target.value }));
+  };
 
-  useEffect(() => {
-    setName(selectedVisit?.name);
-  }, [selectedVisit?.name]);
+  const noteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    dispatch(setSelectedVisit({ ...selectedVisit, note: e.target.value }));
+  };
 
-  useEffect(() => {
-    setTemplateId(selectedVisit?.template_id);
-  }, [selectedVisit?.template_id]);
-
-  useEffect(() => {
-    setNote(parseNote(selectedVisit?.note || ""));
-  }, [selectedVisit?.note]);
-
-  useEffect(() => {
-    dispatch(setSelectedVisit({ ...selectedVisit, name, template_id: templateId, note: note.map((s) => `<title>${s.title}</title>${s.body}`).join("\n") }));
-  }, [name, templateId, note]);
+  const selectTemplate = (value: string) => {
+    if (value === "transcript") {
+      setTranscriptView(true);
+    } else {
+      setTranscriptView(false);
+      dispatch(setSelectedVisit({ ...selectedVisit, template_id: value }));
+    }
+  };
 
   const polishNote = () => {
     // TODO: Implement polish note
-  };
-
-  const selectTemplate = (template: Template) => {
-    // TODO: Implement select template
   };
 
   const deleteVisit = () => {
@@ -139,20 +127,10 @@ export default function NoteComponent() {
         <div className="mx-auto h-full w-full max-w-3xl rounded-xl space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-4">
             <div className="flex items-center gap-2 w-full">
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-left" />
+              <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-left" />
             </div>
             <div className="flex items-center gap-2">
-              <Select
-                value={transcriptView ? "transcript" : templateId}
-                onValueChange={(value) => {
-                  if (value === "transcript") {
-                    setTranscriptView(true);
-                  } else {
-                    setTranscriptView(false);
-                    setTemplateId(value);
-                  }
-                }}
-              >
+              <Select value={transcriptView ? "transcript" : selectedVisit?.template_id} onValueChange={selectTemplate}>
                 <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
@@ -228,44 +206,9 @@ export default function NoteComponent() {
                 </div>
               </>
             ) : (
-              // Note sections
-              note.map((section, index) => (
-                <div key={index} className="flex flex-col">
-                  <div className="flex items-center justify-between">
-                    <div className="w-full flex items-center relative group">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="text-sm font-bold text-primary truncate cursor-pointer hover:text-primary/80">{section.title}</span>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="flex items-center gap-1">
-                          Click to copy
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </div>
-                  <div className="relative group mt-2">
-                    <ExpandingTextarea
-                      id={`${index}`}
-                      minHeight={0}
-                      maxHeight={10000}
-                      value={note[index].body}
-                      onChange={(e) =>
-                        setNote(
-                          note.map((s, i) =>
-                            i === index
-                              ? {
-                                  ...s,
-                                  body: e.target.value,
-                                }
-                              : s
-                          )
-                        )
-                      }
-                      className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none"
-                    />
-                  </div>
-                </div>
-              ))
+              <div className="relative group">
+                <ExpandingTextarea id={`note`} minHeight={0} maxHeight={10000} value={selectedVisit?.note} onChange={noteChange} className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" />
+              </div>
             )}
           </div>
         </div>

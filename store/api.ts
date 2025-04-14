@@ -2,7 +2,7 @@ import { Session, Template, User, Visit } from "./types";
 
 const API_URL = process.env.API_URL || "http://127.0.0.1:8000";
 
-export async function signinUser(email: string, password: string): Promise<Session> {
+export async function apiSigninUser(email: string, password: string): Promise<Session> {
   const response = await fetch(`${API_URL}/user/signin`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -12,7 +12,7 @@ export async function signinUser(email: string, password: string): Promise<Sessi
   return response.json();
 }
 
-export async function signupUser(name: string, email: string, password: string): Promise<Session> {
+export async function apiSignupUser(name: string, email: string, password: string): Promise<Session> {
   const response = await fetch(`${API_URL}/user/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -22,7 +22,7 @@ export async function signupUser(name: string, email: string, password: string):
   return response.json();
 }
 
-export async function getUser(sessionId: string): Promise<User> {
+export async function apiGetUser(sessionId: string): Promise<User> {
   const response = await fetch(`${API_URL}/user/get`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -32,7 +32,7 @@ export async function getUser(sessionId: string): Promise<User> {
   return response.json();
 }
 
-export async function updateUser(
+export async function apiUpdateUser(
   sessionId: string,
   updates: {
     user_id: string;
@@ -57,7 +57,7 @@ export async function updateUser(
   return response.json();
 }
 
-export async function deleteUser(sessionId: string): Promise<void> {
+export async function apiDeleteUser(sessionId: string): Promise<void> {
   const response = await fetch(`${API_URL}/user/delete`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -66,7 +66,7 @@ export async function deleteUser(sessionId: string): Promise<void> {
   if (!response.ok) throw new Error("Failed to delete user");
 }
 
-export async function getUserTemplates(sessionId: string): Promise<Template[]> {
+export async function apiGetUserTemplates(sessionId: string): Promise<Template[]> {
   const response = await fetch(`${API_URL}/user/get_templates`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -76,7 +76,7 @@ export async function getUserTemplates(sessionId: string): Promise<Template[]> {
   return response.json();
 }
 
-export async function getUserVisits(sessionId: string): Promise<Visit[]> {
+export async function apiGetUserVisits(sessionId: string): Promise<Visit[]> {
   const response = await fetch(`${API_URL}/user/get_visits`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -86,7 +86,7 @@ export async function getUserVisits(sessionId: string): Promise<Visit[]> {
   return response.json();
 }
 
-export async function getTemplate(sessionId: string, templateId: string): Promise<Template> {
+export async function apiGetTemplate(sessionId: string, templateId: string): Promise<Template> {
   const response = await fetch(`${API_URL}/template/get`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -99,7 +99,7 @@ export async function getTemplate(sessionId: string, templateId: string): Promis
   return response.json();
 }
 
-export async function createTemplate(sessionId: string): Promise<Template> {
+export async function apiCreateTemplate(sessionId: string): Promise<Template> {
   const response = await fetch(`${API_URL}/template/create`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -109,7 +109,7 @@ export async function createTemplate(sessionId: string): Promise<Template> {
   return response.json();
 }
 
-export async function updateTemplate(
+export async function apiUpdateTemplate(
   sessionId: string,
   updates: {
     template_id: string;
@@ -130,7 +130,7 @@ export async function updateTemplate(
   return response.json();
 }
 
-export async function deleteTemplate(sessionId: string, templateId: string): Promise<void> {
+export async function apiDeleteTemplate(sessionId: string, templateId: string): Promise<void> {
   const response = await fetch(`${API_URL}/template/delete`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -142,7 +142,7 @@ export async function deleteTemplate(sessionId: string, templateId: string): Pro
   if (!response.ok) throw new Error("Failed to delete template");
 }
 
-export async function extractTemplate(sessionId: string): Promise<any> {
+export async function apiExtractTemplate(sessionId: string): Promise<any> {
   const response = await fetch(`${API_URL}/template/generate_notes`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -152,7 +152,7 @@ export async function extractTemplate(sessionId: string): Promise<any> {
   return response.json();
 }
 
-export async function askAITemplate(sessionId: string): Promise<any> {
+export async function apiAskAITemplate(sessionId: string): Promise<any> {
   const response = await fetch(`${API_URL}/template/ask_ai`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -163,7 +163,7 @@ export async function askAITemplate(sessionId: string): Promise<any> {
 }
 
 // Visit API functions
-export async function getVisit(sessionId: string, visitId: string): Promise<Visit> {
+export async function apiGetVisit(sessionId: string, visitId: string): Promise<Visit> {
   const response = await fetch(`${API_URL}/visit/get`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -176,7 +176,7 @@ export async function getVisit(sessionId: string, visitId: string): Promise<Visi
   return response.json();
 }
 
-export async function createVisit(sessionId: string): Promise<Visit> {
+export async function apiCreateVisit(sessionId: string): Promise<Visit> {
   const response = await fetch(`${API_URL}/visit/create`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -186,7 +186,7 @@ export async function createVisit(sessionId: string): Promise<Visit> {
   return response.json();
 }
 
-export async function updateVisit(
+export async function apiUpdateVisit(
   sessionId: string,
   updates: {
     visit_id: string;
@@ -214,7 +214,7 @@ export async function updateVisit(
   return response.json();
 }
 
-export async function deleteVisit(sessionId: string, visitId: string): Promise<void> {
+export async function apiDeleteVisit(sessionId: string, visitId: string): Promise<void> {
   const response = await fetch(`${API_URL}/visit/delete`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -226,7 +226,7 @@ export async function deleteVisit(sessionId: string, visitId: string): Promise<v
   if (!response.ok) throw new Error("Failed to delete visit");
 }
 
-export async function generateNotes(sessionId: string): Promise<any> {
+export async function apiGenerateNotes(sessionId: string): Promise<any> {
   const response = await fetch(`${API_URL}/visit/generate_notes`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -236,7 +236,7 @@ export async function generateNotes(sessionId: string): Promise<any> {
   return response.json();
 }
 
-export async function transcribeAudio(sessionId: string): Promise<any> {
+export async function apiTranscribeAudio(sessionId: string): Promise<any> {
   const response = await fetch(`${API_URL}/visit/transcribe_audio`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -246,7 +246,7 @@ export async function transcribeAudio(sessionId: string): Promise<any> {
   return response.json();
 }
 
-export async function askAIVisit(sessionId: string): Promise<any> {
+export async function apiAskAIVisit(sessionId: string): Promise<any> {
   const response = await fetch(`${API_URL}/visit/ask_ai`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -19,6 +19,13 @@ const templateSlice = createSlice({
   name: "template",
   initialState,
   reducers: {
+    setTemplate: (state: TemplateState, action: PayloadAction<string>) => {
+      const templateId = action.payload;
+      const template = state.templates.find((template) => template._id === templateId);
+      if (template) {
+        state.selectedTemplate = template;
+      }
+    },
     setSelectedTemplate: (state: TemplateState, action: PayloadAction<Template>) => {
       state.selectedTemplate = action.payload;
       const index = state.templates.findIndex((template) => template._id === action.payload._id);
@@ -44,5 +51,5 @@ const templateSlice = createSlice({
   },
 });
 
-export const { setSelectedTemplate, clearSelectedTemplate, setTemplates, clearTemplates, setLoading, setError } = templateSlice.actions;
+export const { setTemplate, setSelectedTemplate, clearSelectedTemplate, setTemplates, clearTemplates, setLoading, setError } = templateSlice.actions;
 export default templateSlice.reducer;

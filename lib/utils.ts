@@ -1,11 +1,23 @@
-import { Visit } from "@/store/types";
+import { Visit, WebSocketMessage } from "@/store/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format } from "date-fns";
+import { useCallback } from "react";
+import { debounce } from "lodash";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+// Custom hook for debounced WebSocket messages
+export const useDebouncedSend = (send: (data: WebSocketMessage) => void, delay = 500) => {
+  return useCallback(
+    debounce((data: WebSocketMessage) => {
+      send(data);
+    }, delay),
+    [send, delay]
+  );
+};
 
 export const groupVisitsByDate = (visits: Visit[]) => {
   const grouped: Record<string, Visit[]> = {};
@@ -20,40 +32,18 @@ export const groupVisitsByDate = (visits: Visit[]) => {
     grouped[dateKey].push(visit);
   });
 
-  return Object.entries(grouped).map(([date, visits]) => ({
-    date,
-    visits: visits.sort((a, b) => {
-      if (!a.created_at || !b.created_at) return 0;
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    }),
-  }));
-};
-
-export const parseNote = (noteContent: string): Array<{ title: string; body: string }> => {
-  if (!noteContent) return [];
-
-  const sections: Array<{ title: string; body: string }> = [];
-  const titleRegex = /<title>(.*?)<\/title>/g;
-  let match;
-  let lastIndex = 0;
-  let lastTitle = "";
-
-  while ((match = titleRegex.exec(noteContent)) !== null) {
-    if (lastTitle) {
-      const startPos = lastIndex;
-      const endPos = match.index;
-      const content = noteContent.substring(startPos, endPos).trim();
-      sections.push({ title: lastTitle, body: content });
-    }
-
-    lastTitle = match[1];
-    lastIndex = match.index + match[0].length;
-  }
-
-  if (lastTitle && lastIndex < noteContent.length) {
-    const content = noteContent.substring(lastIndex).trim();
-    sections.push({ title: lastTitle, body: content });
-  }
-
-  return sections;
+  // Sort the dates with most recent dates first
+  return Object.entries(grouped)
+    .sort((a, b) => {
+      // Sort dates in descending order (newest first)
+      return new Date(b[0]).getTime() - new Date(a[0]).getTime();
+    })
+    .map(([date, visits]) => ({
+      date,
+      visits: visits.sort((a, b) => {
+        if (!a.created_at || !b.created_at) return 0;
+        // Sort visits within each date in descending order (newest first)
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }),
+    }));
 };

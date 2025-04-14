@@ -15,50 +15,81 @@ import { Input } from "./ui/input";
 import { AudioVisualizer } from "./ui/audio-visualizer";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { languages } from "@/store/types";
+import { languages, WebSocketMessage } from "@/store/types";
 import { setSelectedVisit } from "@/store/slices/visitSlice";
 import { useDispatch } from "react-redux";
-import { setScreen } from "@/store/slices/sessionSlice";
+import useWebSocket from "@/lib/websocket";
+import { useDebouncedSend } from "@/lib/utils";
 
 export default function RecordComponent() {
   const dispatch = useDispatch();
+  const session = useSelector((state: RootState) => state.session.session);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
-
-  const [name, setName] = useState(selectedVisit?.name);
-  const [templateId, setTemplateId] = useState(selectedVisit?.template_id);
-  const [language, setLanguage] = useState(selectedVisit?.language);
-  const [additionalContext, setAdditionalContext] = useState(selectedVisit?.additional_context);
-
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isAdditionalContextFocused, setIsAdditionalContextFocused] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const { send } = useWebSocket();
+  const debouncedSend = useDebouncedSend(send);
 
   useEffect(() => {
-    setName(selectedVisit?.name);
-  }, [selectedVisit?.name]);
-
-  useEffect(() => {
-    setTemplateId(selectedVisit?.template_id);
-  }, [selectedVisit?.template_id]);
-
-  useEffect(() => {
-    setLanguage(selectedVisit?.language);
-  }, [selectedVisit?.language]);
-
-  useEffect(() => {
-    setAdditionalContext(selectedVisit?.additional_context);
-  }, [selectedVisit?.additional_context]);
-
-  useEffect(() => {
-    dispatch(setSelectedVisit({ ...selectedVisit, name, template_id: templateId, language, additional_context: additionalContext }));
-  }, [name, templateId, language, additionalContext]);
-
-  useEffect(() => {
+    if (selectedVisit?.additional_context?.trim() !== "") {
+      setIsAdditionalContextFocused(true);
+      textareaRef.current?.focus();
+      return;
+    }
     if (isAdditionalContextFocused && textareaRef.current) {
       textareaRef.current.focus();
     }
-  }, [isAdditionalContextFocused]);
+  }, [isAdditionalContextFocused, selectedVisit?.additional_context]);
+
+  const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setSelectedVisit({ ...selectedVisit, name: e.target.value }));
+    debouncedSend({
+      type: "update_visit",
+      session_id: session._id,
+      data: {
+        _id: selectedVisit?._id,
+        name: e.target.value,
+      },
+    });
+  };
+
+  const additionalContextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    dispatch(setSelectedVisit({ ...selectedVisit, additional_context: e.target.value }));
+    debouncedSend({
+      type: "update_visit",
+      session_id: session._id,
+      data: {
+        _id: selectedVisit?._id,
+        additional_context: e.target.value,
+      },
+    });
+  };
+
+  const selectTemplate = (value: string) => {
+    dispatch(setSelectedVisit({ ...selectedVisit, template_id: value }));
+    debouncedSend({
+      type: "update_visit",
+      session_id: session._id,
+      data: {
+        _id: selectedVisit?._id,
+        template_id: value,
+      },
+    });
+  };
+
+  const selectLanguage = (value: string) => {
+    dispatch(setSelectedVisit({ ...selectedVisit, language: value }));
+    debouncedSend({
+      type: "update_visit",
+      session_id: session._id,
+      data: {
+        _id: selectedVisit?._id,
+        language: value,
+      },
+    });
+  };
 
   const startRecording = () => {
     // TODO: Implement start recording
@@ -130,7 +161,7 @@ export default function RecordComponent() {
         <div className={`flex flex-1 flex-col items-center justify-center gap-4 px-4 py-10 relative ${selectedVisit?.status === "RECORDING" ? "z-50" : ""}`}>
           <div className="mx-auto w-[320px] max-w-3xl rounded-xl space-y-4">
             <div className="relative group flex justify-center items-center">
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-center" />
+              <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-center" />
             </div>
 
             <div className="flex items-center justify-between w-full">
@@ -138,7 +169,7 @@ export default function RecordComponent() {
                 Select template
                 <span className="text-destructive">*</span>
               </Label>
-              <Select value={templateId} onValueChange={(value) => setTemplateId(value)} disabled={selectedVisit?.status === "RECORDING" || selectedVisit?.status === "PAUSED"}>
+              <Select value={selectedVisit?.template_id} onValueChange={selectTemplate} disabled={selectedVisit?.status === "RECORDING" || selectedVisit?.status === "PAUSED"}>
                 <SelectTrigger className={`min-w-[50px] max-w-[160px] w-auto ${validationErrors.template ? "!border-destructive !ring-destructive" : ""}`}>
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
@@ -162,7 +193,7 @@ export default function RecordComponent() {
                 Select language
                 <span className="text-destructive">*</span>
               </Label>
-              <Select value={language} onValueChange={(value) => setLanguage(value)} disabled={selectedVisit?.status === "RECORDING" || selectedVisit?.status === "PAUSED"}>
+              <Select value={selectedVisit?.language} onValueChange={selectLanguage} disabled={selectedVisit?.status === "RECORDING" || selectedVisit?.status === "PAUSED"}>
                 <SelectTrigger className="min-w-[50px] max-w-[160px] w-auto">
                   <SelectValue placeholder="Select a language" />
                 </SelectTrigger>
@@ -190,7 +221,7 @@ export default function RecordComponent() {
             ) : (
               <div className="flex flex-col w-full gap-2">
                 <Label className="text-sm font-normal text-muted-foreground">Additional context</Label>
-                <Textarea placeholder="ex. 32 year old male with a history of hypertension and diabetes" className="w-full h-28 resize-none" value={additionalContext} onChange={(e) => setAdditionalContext(e.target.value)} onFocus={() => setIsAdditionalContextFocused(true)} onBlur={() => (additionalContext?.trim() ? setIsAdditionalContextFocused(true) : setIsAdditionalContextFocused(false))} ref={textareaRef} />
+                <Textarea placeholder="ex. 32 year old male with a history of hypertension and diabetes" className="w-full h-28 resize-none" value={selectedVisit?.additional_context} onChange={additionalContextChange} onFocus={() => setIsAdditionalContextFocused(true)} onBlur={() => (selectedVisit?.additional_context?.trim() ? setIsAdditionalContextFocused(true) : setIsAdditionalContextFocused(false))} ref={textareaRef} />
               </div>
             )}
 
@@ -198,7 +229,7 @@ export default function RecordComponent() {
 
             <AudioVisualizer />
 
-            {additionalContext?.trim() && selectedVisit?.status === "NOT_STARTED" && (
+            {selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
               <div className="flex items-center justify-between w-full gap-2">
                 <Button variant="outline" className="flex-1" onClick={finishRecording}>
                   <CheckCircle className="h-4 w-4" />
@@ -237,7 +268,7 @@ export default function RecordComponent() {
               </div>
             )}
 
-            {!additionalContext?.trim() && selectedVisit?.status === "NOT_STARTED" && (
+            {!selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
               <Button className="w-full" onClick={startRecording}>
                 <Mic className="h-4 w-4" />
                 Start recording

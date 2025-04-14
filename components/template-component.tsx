@@ -17,23 +17,15 @@ import { setScreen } from "@/store/slices/sessionSlice";
 
 export default function TemplateComponent() {
   const dispatch = useDispatch();
-
   const selectedTemplate = useSelector((state: RootState) => state.template.selectedTemplate);
 
-  const [name, setName] = useState(selectedTemplate?.name);
-  const [instructions, setInstructions] = useState(selectedTemplate?.instructions);
+  const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setSelectedTemplate({ ...selectedTemplate, name: e.target.value }));
+  };
 
-  useEffect(() => {
-    setName(selectedTemplate?.name);
-  }, [selectedTemplate?.name]);
-
-  useEffect(() => {
-    setInstructions(selectedTemplate?.instructions);
-  }, [selectedTemplate?.instructions]);
-
-  useEffect(() => {
-    dispatch(setSelectedTemplate({ ...selectedTemplate, name, instructions }));
-  }, [name, instructions]);
+  const instructionsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    dispatch(setSelectedTemplate({ ...selectedTemplate, instructions: e.target.value }));
+  };
 
   const deleteTemplate = () => {
     // TODO: Implement delete template
@@ -117,7 +109,7 @@ export default function TemplateComponent() {
         <div className="mx-auto h-full w-full max-w-3xl rounded-xl space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-4">
             <div className="flex items-center gap-2 w-full">
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="New Template" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-left" />
+              <Input value={selectedTemplate?.name} onChange={nameChange} placeholder="New Template" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-left" />
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Button variant="outline" onClick={() => dispatch(setScreen("TEMPLATES"))}>
@@ -134,8 +126,8 @@ export default function TemplateComponent() {
           <ExpandingTextarea
             minHeight={200}
             maxHeight={10000}
-            value={instructions}
-            onChange={(e) => setInstructions(e.target.value)}
+            value={selectedTemplate?.instructions}
+            onChange={instructionsChange}
             placeholder={`Create or insert you're EMR template here
 - Use ##Title Name## to define sections.
 - {Use curly braces} for providing AI instructions.

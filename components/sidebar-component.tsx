@@ -11,17 +11,36 @@ import { RootState } from "@/store/store";
 import { useSelector, useDispatch } from "react-redux";
 import { groupVisitsByDate } from "@/lib/utils";
 import { Visit } from "@/store/types";
-import { setSelectedVisit } from "@/store/slices/visitSlice";
+import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
 import { setScreen } from "@/store/slices/sessionSlice";
+import useWebSocket from "@/lib/websocket";
+import { useEffect } from "react";
 
 export default function SidebarComponent() {
   const dispatch = useDispatch();
   const isMobile = false;
-
+  const session = useSelector((state: RootState) => state.session.session);
   const user = useSelector((state: RootState) => state.user.user);
   const visits = useSelector((state: RootState) => state.visit.visits);
   const groupedVisits = groupVisitsByDate(visits);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
+  const { send, handle } = useWebSocket();
+
+  useEffect(() => {
+    handle("create_visit", (data) => {
+      dispatch(setVisits([...visits, data.data as Visit]));
+      dispatch(setSelectedVisit(data.data as Visit));
+    });
+
+    handle("delete_visit", (data) => {
+      dispatch(setVisits(visits.filter((visit) => visit._id !== data.data.visit_id)));
+      const remainingVisits = visits.filter((visit) => visit._id !== data.data.visit_id);
+      if (remainingVisits.length > 0) {
+        const latestVisit = [...remainingVisits].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())[0];
+        dispatch(setSelectedVisit(latestVisit));
+      }
+    });
+  }, [visits]);
 
   const selectVisit = (visit: Visit) => {
     dispatch(setSelectedVisit(visit));
@@ -33,11 +52,21 @@ export default function SidebarComponent() {
   };
 
   const createVisit = () => {
-    // TODO: Implement create visit
+    send({
+      type: "create_visit",
+      session_id: session._id,
+      data: {},
+    });
   };
 
   const deleteVisit = (visit: Visit) => {
-    // TODO: Implement delete visit
+    send({
+      type: "delete_visit",
+      session_id: session._id,
+      data: {
+        visit_id: visit._id,
+      },
+    });
   };
 
   const pauseVisit = (visit: Visit) => {
@@ -62,7 +91,7 @@ export default function SidebarComponent() {
             </SidebarMenuItem>
           </SidebarMenu>
           <div className="relative flex w-full min-w-0 flex-col p-2 rounded-md">
-            <Button className="font-normal">
+            <Button className="font-normal" onClick={createVisit}>
               <CirclePlus className="h-4 w-4" />
               New Visit
             </Button>
@@ -134,7 +163,9 @@ export default function SidebarComponent() {
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                                    <AlertDialogAction onClick={() => deleteVisit(visit)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                      Delete
+                                    </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
