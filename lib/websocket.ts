@@ -1,4 +1,4 @@
-const WEBSOCKET_URL = "ws://localhost:8000/user/ws";
+const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "ws://localhost:8000/user/ws";
 
 interface WebSocketMessage {
   type: "create_template" | "update_template" | "delete_template" | "create_visit" | "update_visit" | "delete_visit";
