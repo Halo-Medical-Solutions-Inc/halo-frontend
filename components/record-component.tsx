@@ -35,7 +35,6 @@ export default function RecordComponent() {
   useEffect(() => {
     if (selectedVisit?.additional_context?.trim() !== "") {
       setIsAdditionalContextFocused(true);
-      textareaRef.current?.focus();
       return;
     }
     if (isAdditionalContextFocused && textareaRef.current) {

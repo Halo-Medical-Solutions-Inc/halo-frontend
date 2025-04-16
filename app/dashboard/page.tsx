@@ -67,13 +67,29 @@ export default function Page() {
 
   useEffect(() => {
     handle("update_visit", (data) => {
-      dispatch(setVisit(data.data as Visit));
+      const updatedFields = data.data as Partial<Visit>;
+      const visitId = updatedFields._id;
+
+      if (visitId) {
+        // Find the current visit in the visits array
+        const currentVisit = visits.find((visit) => visit._id === visitId);
+
+        if (currentVisit) {
+          // Create a new visit object with updated fields
+          const updatedVisit = {
+            ...currentVisit,
+            ...updatedFields,
+          };
+
+          dispatch(setSelectedVisit(updatedVisit));
+        }
+      }
     });
 
     handle("update_template", (data) => {
       dispatch(setSelectedTemplate(data.data as Template));
     });
-  }, []);
+  }, [visits]);
 
   useEffect(() => {
     connect(session._id);
