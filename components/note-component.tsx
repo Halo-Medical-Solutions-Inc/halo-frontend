@@ -13,20 +13,38 @@ import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { setSelectedVisit } from "@/store/slices/visitSlice";
+import useWebSocket from "@/lib/websocket";
 
 export default function NoteComponent() {
   const dispatch = useDispatch();
-
+  const session = useSelector((state: RootState) => state.session.session);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
   const [transcriptView, setTranscriptView] = useState(false);
+  const { send } = useWebSocket();
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedVisit({ ...selectedVisit, name: e.target.value }));
+    send({
+      type: "update_visit",
+      session_id: session._id,
+      data: {
+        _id: selectedVisit?._id,
+        name: e.target.value,
+      },
+    });
   };
 
   const noteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     dispatch(setSelectedVisit({ ...selectedVisit, note: e.target.value }));
+    send({
+      type: "update_visit",
+      session_id: session._id,
+      data: {
+        _id: selectedVisit?._id,
+        note: e.target.value,
+      },
+    });
   };
 
   const selectTemplate = (value: string) => {
@@ -35,6 +53,14 @@ export default function NoteComponent() {
     } else {
       setTranscriptView(false);
       dispatch(setSelectedVisit({ ...selectedVisit, template_id: value }));
+      send({
+        type: "update_visit",
+        session_id: session._id,
+        data: {
+          _id: selectedVisit?._id,
+          template_id: value,
+        },
+      });
     }
   };
 

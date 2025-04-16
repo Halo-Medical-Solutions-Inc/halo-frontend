@@ -11,10 +11,9 @@ import { RootState } from "@/store/store";
 import { useSelector, useDispatch } from "react-redux";
 import { groupVisitsByDate } from "@/lib/utils";
 import { Visit } from "@/store/types";
-import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
+import { setSelectedVisit } from "@/store/slices/visitSlice";
 import { setScreen } from "@/store/slices/sessionSlice";
 import useWebSocket from "@/lib/websocket";
-import { useEffect } from "react";
 
 export default function SidebarComponent() {
   const dispatch = useDispatch();
@@ -24,23 +23,7 @@ export default function SidebarComponent() {
   const visits = useSelector((state: RootState) => state.visit.visits);
   const groupedVisits = groupVisitsByDate(visits);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
-  const { send, handle } = useWebSocket();
-
-  useEffect(() => {
-    handle("create_visit", (data) => {
-      dispatch(setVisits([...visits, data.data as Visit]));
-      dispatch(setSelectedVisit(data.data as Visit));
-    });
-
-    handle("delete_visit", (data) => {
-      dispatch(setVisits(visits.filter((visit) => visit._id !== data.data.visit_id)));
-      const remainingVisits = visits.filter((visit) => visit._id !== data.data.visit_id);
-      if (remainingVisits.length > 0) {
-        const latestVisit = [...remainingVisits].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())[0];
-        dispatch(setSelectedVisit(latestVisit));
-      }
-    });
-  }, [visits]);
+  const { send } = useWebSocket();
 
   const selectVisit = (visit: Visit) => {
     dispatch(setSelectedVisit(visit));

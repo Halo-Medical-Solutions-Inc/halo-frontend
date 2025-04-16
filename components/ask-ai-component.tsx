@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export default function AskAIComponent() {
-  // Static fake data
   const messages = [
     {
       id: 1,

@@ -17,11 +17,16 @@ import { setSelectedTemplate } from "@/store/slices/templateSlice";
 import { useDispatch } from "react-redux";
 import { Template } from "@/store/types";
 import { setScreen } from "@/store/slices/sessionSlice";
+import useWebSocket from "@/lib/websocket";
+import { useDebouncedSend } from "@/lib/utils";
 
 export default function TemplatesComponent() {
   const dispatch = useDispatch();
+  const session = useSelector((state: RootState) => state.session.session);
   const user = useSelector((state: RootState) => state.user.user);
   const templates = useSelector((state: RootState) => state.template.templates);
+  const { send } = useWebSocket();
+  const debouncedSend = useDebouncedSend(send);
 
   const selectTemplate = (template: Template) => {
     dispatch(setScreen("TEMPLATE"));
@@ -29,11 +34,21 @@ export default function TemplatesComponent() {
   };
 
   const createTemplate = () => {
-    // TODO: Implement create template
+    debouncedSend({
+      type: "create_template",
+      session_id: session._id,
+      data: {},
+    });
   };
 
   const deleteTemplate = (template: Template) => {
-    // TODO: Implement delete template
+    debouncedSend({
+      type: "delete_template",
+      session_id: session._id,
+      data: {
+        template_id: template._id,
+      },
+    });
   };
 
   const duplicateTemplate = (template: Template) => {
@@ -66,7 +81,7 @@ export default function TemplatesComponent() {
               <h2 className="text-xl md:text-xl font-bold">Template Center</h2>
             </div>
             <div className="flex items-center gap-2">
-              <Button>
+              <Button onClick={createTemplate}>
                 <Plus className="h-4 w-4" />
                 Create
               </Button>
@@ -161,6 +176,7 @@ export default function TemplatesComponent() {
                                       onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
+                                        deleteTemplate(template);
                                       }}
                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                     >
