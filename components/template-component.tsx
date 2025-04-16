@@ -14,21 +14,47 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { setSelectedTemplate } from "@/store/slices/templateSlice";
 import { setScreen } from "@/store/slices/sessionSlice";
+import useWebSocket from "@/lib/websocket";
+import { useDebouncedSend } from "@/lib/utils";
 
 export default function TemplateComponent() {
   const dispatch = useDispatch();
+  const session = useSelector((state: RootState) => state.session.session);
   const selectedTemplate = useSelector((state: RootState) => state.template.selectedTemplate);
+  const { send } = useWebSocket();
+  const debouncedSend = useDebouncedSend(send);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedTemplate({ ...selectedTemplate, name: e.target.value }));
+    debouncedSend({
+      type: "update_template",
+      session_id: session._id,
+      data: {
+        _id: selectedTemplate?._id,
+        name: e.target.value,
+      },
+    });
   };
-
   const instructionsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     dispatch(setSelectedTemplate({ ...selectedTemplate, instructions: e.target.value }));
+    debouncedSend({
+      type: "update_template",
+      session_id: session._id,
+      data: {
+        _id: selectedTemplate?._id,
+        instructions: e.target.value,
+      },
+    });
   };
 
   const deleteTemplate = () => {
-    // TODO: Implement delete template
+    send({
+      type: "delete_template",
+      session_id: session._id,
+      data: {
+        template_id: selectedTemplate?._id,
+      },
+    });
   };
 
   const polishTemplate = () => {
@@ -95,7 +121,9 @@ export default function TemplateComponent() {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                        <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={deleteTemplate}>
+                          Delete
+                        </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>

@@ -9,6 +9,7 @@ interface WebSocketMessage {
 interface WebSocketResponse {
   type: "create_template" | "update_template" | "delete_template" | "create_visit" | "update_visit" | "delete_visit";
   data: Record<string, any>;
+  was_requested: boolean;
 }
 
 type MessageHandler = (data: WebSocketResponse) => void;
