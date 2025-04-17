@@ -24,7 +24,6 @@ const visitSlice = createSlice({
       const index = state.visits.findIndex((visit) => visit._id === updatedVisit._id);
       if (index !== -1) {
         state.visits[index] = updatedVisit;
-        // If this is also the selected visit, update it too
         if (state.selectedVisit && state.selectedVisit._id === updatedVisit._id) {
           state.selectedVisit = updatedVisit;
         }

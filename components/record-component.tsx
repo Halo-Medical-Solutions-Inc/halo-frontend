@@ -91,19 +91,19 @@ export default function RecordComponent() {
   };
 
   const startRecording = () => {
-    // TODO: Implement start recording
+
   };
 
   const pauseRecording = () => {
-    // TODO: Implement pause recording
+
   };
 
   const resumeRecording = () => {
-    // TODO: Implement resume recording
+ 
   };
 
   const finishRecording = () => {
-    // TODO: Implement finish recording
+
   };
 
   return (

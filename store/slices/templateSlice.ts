@@ -19,11 +19,14 @@ const templateSlice = createSlice({
   name: "template",
   initialState,
   reducers: {
-    setTemplate: (state: TemplateState, action: PayloadAction<string>) => {
-      const templateId = action.payload;
-      const template = state.templates.find((template) => template._id === templateId);
-      if (template) {
-        state.selectedTemplate = template;
+    setTemplate: (state: TemplateState, action: PayloadAction<Template>) => {
+      const updatedTemplate = action.payload;
+      const index = state.templates.findIndex((template) => template._id === updatedTemplate._id);
+      if (index !== -1) {
+        state.templates[index] = updatedTemplate;
+        if (state.selectedTemplate && state.selectedTemplate._id === updatedTemplate._id) {
+          state.selectedTemplate = updatedTemplate;
+        }
       }
     },
     setSelectedTemplate: (state: TemplateState, action: PayloadAction<Template>) => {

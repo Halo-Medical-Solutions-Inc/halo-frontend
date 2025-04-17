@@ -10,7 +10,7 @@ import TemplatesComponent from "@/components/templates-component";
 import AskAIComponent from "@/components/ask-ai-component";
 import { Visit, Template } from "@/store/types";
 import { setUser } from "@/store/slices/userSlice";
-import { setSelectedTemplate, setTemplates } from "@/store/slices/templateSlice";
+import { setSelectedTemplate, setTemplate, setTemplates } from "@/store/slices/templateSlice";
 import { setVisit, setVisits } from "@/store/slices/visitSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
@@ -69,25 +69,26 @@ export default function Page() {
     handle("update_visit", (data) => {
       const updatedFields = data.data as Partial<Visit>;
       const visitId = updatedFields._id;
-
+      
       if (visitId) {
-        // Find the current visit in the visits array
-        const currentVisit = visits.find((visit) => visit._id === visitId);
-
+        const currentVisit = visits.find(visit => visit._id === visitId);
         if (currentVisit) {
-          // Create a new visit object with updated fields
-          const updatedVisit = {
-            ...currentVisit,
-            ...updatedFields,
-          };
-
-          dispatch(setSelectedVisit(updatedVisit));
+          dispatch(setVisit({ ...currentVisit, ...updatedFields }));
         }
       }
     });
 
     handle("update_template", (data) => {
-      dispatch(setSelectedTemplate(data.data as Template));
+      const updatedFields = data.data as Partial<Template>;
+      console.log('updatedFields', updatedFields)
+      const templateId = updatedFields._id;
+
+      if (templateId) {
+        const currentTemplate = templates.find(template => template._id === templateId);
+        if (currentTemplate) {
+          dispatch(setTemplate({ ...currentTemplate, ...updatedFields }));
+        }
+      }
     });
   }, [visits]);
 
