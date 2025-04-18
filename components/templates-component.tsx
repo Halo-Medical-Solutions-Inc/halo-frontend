@@ -1,32 +1,55 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Copy, MoreHorizontal, Plus } from "lucide-react";
+import { CheckCircle, Copy, MoreHorizontal, Plus, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Trash2 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { setSelectedTemplate } from "@/store/slices/templateSlice";
+import { clearSelectedTemplate, setSelectedTemplate, setTemplates } from "@/store/slices/templateSlice";
 import { useDispatch } from "react-redux";
 import { Template } from "@/store/types";
 import { setScreen } from "@/store/slices/sessionSlice";
-import useWebSocket from "@/lib/websocket";
+import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
 
 export default function TemplatesComponent() {
   const dispatch = useDispatch();
+  const { send } = useWebSocket();
+  const debouncedSend = useDebouncedSend(send);
+
+  const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
+  const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
+
   const session = useSelector((state: RootState) => state.session.session);
   const user = useSelector((state: RootState) => state.user.user);
   const templates = useSelector((state: RootState) => state.template.templates);
-  const { send } = useWebSocket();
-  const debouncedSend = useDebouncedSend(send);
+
+  useEffect(() => {
+    handle("create_template", "templates", (data) => {
+      setIsCreatingTemplate(false);
+      if (data.was_requested) {
+        dispatch(setTemplates([...templates, data.data as Template]));
+        dispatch(setSelectedTemplate(data.data as Template));
+        dispatch(setScreen("TEMPLATE"));
+      }
+    });
+
+    handle("delete_template", "templates", (data) => {
+      setIsDeletingTemplate(false);
+      if (data.was_requested) {
+        dispatch(setTemplates(templates.filter((template) => template._id !== data.data.template_id)));
+        dispatch(setScreen("TEMPLATES"));
+      }
+    });
+  }, [templates]);
 
   const selectTemplate = (template: Template) => {
     dispatch(setScreen("TEMPLATE"));
@@ -34,6 +57,7 @@ export default function TemplatesComponent() {
   };
 
   const createTemplate = () => {
+    setIsCreatingTemplate(true);
     debouncedSend({
       type: "create_template",
       session_id: session._id,
@@ -42,6 +66,7 @@ export default function TemplatesComponent() {
   };
 
   const deleteTemplate = (template: Template) => {
+    setIsDeletingTemplate(true);
     debouncedSend({
       type: "delete_template",
       session_id: session._id,
@@ -81,9 +106,15 @@ export default function TemplatesComponent() {
               <h2 className="text-xl md:text-xl font-bold">Template Center</h2>
             </div>
             <div className="flex items-center gap-2">
-              <Button onClick={createTemplate}>
-                <Plus className="h-4 w-4" />
-                Create
+              <Button onClick={createTemplate} disabled={isCreatingTemplate}>
+                {isCreatingTemplate ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    {" "}
+                    <Plus className="h-4 w-4" /> Create
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -165,7 +196,7 @@ export default function TemplatesComponent() {
                                     <span>Delete Template</span>
                                   </DropdownMenuItem>
                                 </AlertDialogTrigger>
-                                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                                <AlertDialogContent>
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                     <AlertDialogDescription>This will permanently delete the template. This action cannot be undone.</AlertDialogDescription>
@@ -180,7 +211,7 @@ export default function TemplatesComponent() {
                                       }}
                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                     >
-                                      Delete
+                                      {isDeletingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>

@@ -19,43 +19,37 @@ import useWebSocket, { handle } from "@/lib/websocket";
 import { apiGetUser, apiGetUserTemplates, apiGetUserVisits } from "@/store/api";
 import { setScreen } from "@/store/slices/sessionSlice";
 import { setSelectedVisit } from "@/store/slices/visitSlice";
-import { clearSelectedTemplate } from "@/store/slices/templateSlice";
 
 export default function Page() {
   const dispatch = useDispatch();
+  const { connect } = useWebSocket();
+
   const session = useSelector((state: RootState) => state.session.session);
   const screen = useSelector((state: RootState) => state.session.screen);
   const templates = useSelector((state: RootState) => state.template.templates);
   const visits = useSelector((state: RootState) => state.visit.visits);
-  const { connect } = useWebSocket();
 
   useEffect(() => {
-    handle("create_template", (data) => {
-      dispatch(setTemplates([...templates, data.data as Template]));
-      if (data.was_requested) {
-        dispatch(setSelectedTemplate(data.data as Template));
-        dispatch(setScreen("TEMPLATE"));
+    handle("create_template", "dashboard", (data) => {
+      if (!data.was_requested) {
+        dispatch(setTemplates([...templates, data.data as Template]));
       }
     });
-    handle("delete_template", (data) => {
-      dispatch(setTemplates(templates.filter((template) => template._id !== data.data.template_id)));
-      if (data.was_requested) {
-        dispatch(clearSelectedTemplate());
-        dispatch(setScreen("TEMPLATES"));
+    handle("delete_template", "dashboard", (data) => {
+      if (!data.was_requested) {
+        dispatch(setTemplates(templates.filter((template) => template._id !== data.data.template_id)));
       }
     });
   }, [templates]);
 
   useEffect(() => {
-    handle("create_visit", (data) => {
-      dispatch(setVisits([...visits, data.data as Visit]));
-      if (data.was_requested) {
-        dispatch(setSelectedVisit(data.data as Visit));
-        dispatch(setScreen("RECORD"));
+    handle("create_visit", "dashboard", (data) => {
+      if (!data.was_requested) {
+        dispatch(setVisits([...visits, data.data as Visit]));
       }
     });
 
-    handle("delete_visit", (data) => {
+    handle("delete_visit", "dashboard", (data) => {
       dispatch(setVisits(visits.filter((visit) => visit._id !== data.data.visit_id)));
       const remainingVisits = visits.filter((visit) => visit._id !== data.data.visit_id);
       if (remainingVisits.length > 0) {
@@ -66,31 +60,30 @@ export default function Page() {
   }, [visits]);
 
   useEffect(() => {
-    handle("update_visit", (data) => {
+    handle("update_visit", "dashboard", (data) => {
       const updatedFields = data.data as Partial<Visit>;
       const visitId = updatedFields._id;
-      
+
       if (visitId) {
-        const currentVisit = visits.find(visit => visit._id === visitId);
+        const currentVisit = visits.find((visit) => visit._id === visitId);
         if (currentVisit) {
           dispatch(setVisit({ ...currentVisit, ...updatedFields }));
         }
       }
     });
 
-    handle("update_template", (data) => {
+    handle("update_template", "dashboard", (data) => {
       const updatedFields = data.data as Partial<Template>;
-      console.log('updatedFields', updatedFields)
       const templateId = updatedFields._id;
 
       if (templateId) {
-        const currentTemplate = templates.find(template => template._id === templateId);
+        const currentTemplate = templates.find((template) => template._id === templateId);
         if (currentTemplate) {
           dispatch(setTemplate({ ...currentTemplate, ...updatedFields }));
         }
       }
     });
-  }, [visits]);
+  }, [visits, templates]);
 
   useEffect(() => {
     connect(session._id);
@@ -106,14 +99,13 @@ export default function Page() {
     apiGetUserVisits(session._id).then((visits) => {
       dispatch(setVisits(visits));
     });
+  }, []);
 
-    if (visits.length > 0) {
-      dispatch(setSelectedVisit(visits[visits.length - 1]));
-      dispatch(setScreen("RECORD"));
-    } else {
+  useEffect(() => {
+    if (visits.length < 1) {
       dispatch(setScreen("ACCOUNT"));
     }
-  }, []);
+  }, [visits]);
 
   return (
     <Application>

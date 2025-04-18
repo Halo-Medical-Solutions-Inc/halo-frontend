@@ -16,6 +16,7 @@ import { useDispatch } from "react-redux";
 
 export default function AccountComponent() {
   const dispatch = useDispatch();
+
   const user = useSelector((state: RootState) => state.user.user);
   const templates = useSelector((state: RootState) => state.template.templates);
 

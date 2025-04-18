@@ -15,7 +15,7 @@ import { Input } from "./ui/input";
 import { AudioVisualizer } from "./ui/audio-visualizer";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { languages, WebSocketMessage } from "@/store/types";
+import { languages } from "@/store/types";
 import { setSelectedVisit } from "@/store/slices/visitSlice";
 import { useDispatch } from "react-redux";
 import useWebSocket from "@/lib/websocket";
@@ -23,14 +23,16 @@ import { useDebouncedSend } from "@/lib/utils";
 
 export default function RecordComponent() {
   const dispatch = useDispatch();
+  const { send } = useWebSocket();
+  const debouncedSend = useDebouncedSend(send);
+
   const session = useSelector((state: RootState) => state.session.session);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isAdditionalContextFocused, setIsAdditionalContextFocused] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const { send } = useWebSocket();
-  const debouncedSend = useDebouncedSend(send);
 
   useEffect(() => {
     if (selectedVisit?.additional_context?.trim() !== "") {
@@ -68,7 +70,7 @@ export default function RecordComponent() {
 
   const selectTemplate = (value: string) => {
     dispatch(setSelectedVisit({ ...selectedVisit, template_id: value }));
-    debouncedSend({
+    send({
       type: "update_visit",
       session_id: session._id,
       data: {
@@ -80,7 +82,7 @@ export default function RecordComponent() {
 
   const selectLanguage = (value: string) => {
     dispatch(setSelectedVisit({ ...selectedVisit, language: value }));
-    debouncedSend({
+    send({
       type: "update_visit",
       session_id: session._id,
       data: {
@@ -91,19 +93,21 @@ export default function RecordComponent() {
   };
 
   const startRecording = () => {
+    const errors: Record<string, string> = !selectedVisit?.template_id ? { template: "Please select a template" } : {};
 
+    setValidationErrors(errors);
   };
 
   const pauseRecording = () => {
-
+    // TODO: pause recording
   };
 
   const resumeRecording = () => {
- 
+    // TODO: resume recording
   };
 
   const finishRecording = () => {
-
+    // TODO: finish recording
   };
 
   return (

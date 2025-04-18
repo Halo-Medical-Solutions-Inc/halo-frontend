@@ -7,10 +7,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { apiSigninUser } from "@/store/api";
+import { apiGetUser, apiGetUserTemplates, apiGetUserVisits, apiSigninUser } from "@/store/api";
 import { useAppDispatch } from "@/store/hooks";
 import { setSession } from "@/store/slices/sessionSlice";
-
+import { setTemplates } from "@/store/slices/templateSlice";
+import { setVisits } from "@/store/slices/visitSlice";
+import { setUser } from "@/store/slices/userSlice";
+import useWebSocket from "@/lib/websocket";
 export default function Page() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,6 +21,7 @@ export default function Page() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { connect } = useWebSocket();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +49,6 @@ export default function Page() {
         if (session) {
           dispatch(setSession(session));
           localStorage.setItem("session", JSON.stringify(session));
-          console.log("Session set:", session);
           router.push("/dashboard");
         }
       } catch (err: any) {

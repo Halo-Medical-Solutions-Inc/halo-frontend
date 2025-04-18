@@ -1,28 +1,50 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Trash2, ArrowLeft, Sparkles } from "lucide-react";
+import { MoreHorizontal, Trash2, ArrowLeft, Sparkles, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ExpandingTextarea } from "@/components/ui/textarea";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { setSelectedTemplate } from "@/store/slices/templateSlice";
+import { setSelectedTemplate, clearSelectedTemplate, setTemplates } from "@/store/slices/templateSlice";
 import { setScreen } from "@/store/slices/sessionSlice";
-import useWebSocket from "@/lib/websocket";
+import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
+import { Template } from "@/store/types";
 
 export default function TemplateComponent() {
   const dispatch = useDispatch();
-  const session = useSelector((state: RootState) => state.session.session);
-  const selectedTemplate = useSelector((state: RootState) => state.template.selectedTemplate);
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
+
+  const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
+
+  const session = useSelector((state: RootState) => state.session.session);
+  const selectedTemplate = useSelector((state: RootState) => state.template.selectedTemplate);
+  const templates = useSelector((state: RootState) => state.template.templates);
+
+  useEffect(() => {
+    handle("create_template", "template", (data) => {
+      if (data.was_requested) {
+        dispatch(setTemplates(templates.map((template: Template) => (template._id === selectedTemplate?._id ? (data.data as Template) : template))));
+        dispatch(clearSelectedTemplate());
+        dispatch(setScreen("TEMPLATES"));
+      }
+    });
+
+    handle("delete_template", "template", (data) => {
+      if (selectedTemplate?._id === data.data.template_id) {
+        dispatch(clearSelectedTemplate());
+        dispatch(setScreen("TEMPLATES"));
+      }
+    });
+  }, [selectedTemplate, templates]);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedTemplate({ ...selectedTemplate, name: e.target.value }));
@@ -48,6 +70,7 @@ export default function TemplateComponent() {
   };
 
   const deleteTemplate = () => {
+    setIsDeletingTemplate(true);
     send({
       type: "delete_template",
       session_id: session._id,
@@ -109,7 +132,16 @@ export default function TemplateComponent() {
                 <DropdownMenuContent className="w-auto" align="end">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <DropdownMenuItem className="text-destructive focus:text-destructive hover:text-destructive" onSelect={(e) => e.preventDefault()}>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive hover:text-destructive"
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                      >
                         <Trash2 className="h-4 w-4 text-destructive" />
                         <span>Delete Template</span>
                       </DropdownMenuItem>
@@ -121,8 +153,15 @@ export default function TemplateComponent() {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={deleteTemplate}>
-                          Delete
+                        <AlertDialogAction
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            deleteTemplate();
+                          }}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          {isDeletingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>

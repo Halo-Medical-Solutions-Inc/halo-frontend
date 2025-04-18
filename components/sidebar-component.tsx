@@ -5,25 +5,49 @@ import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, Si
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { CirclePlus, MoreHorizontal, StopCircle, Trash2, LogOut, Sparkles, BadgeCheck, ChevronsUpDown } from "lucide-react";
+import { CirclePlus, MoreHorizontal, StopCircle, Trash2, LogOut, Sparkles, BadgeCheck, ChevronsUpDown, Loader2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { RootState } from "@/store/store";
 import { useSelector, useDispatch } from "react-redux";
 import { groupVisitsByDate } from "@/lib/utils";
 import { Visit } from "@/store/types";
-import { setSelectedVisit } from "@/store/slices/visitSlice";
+import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
 import { setScreen } from "@/store/slices/sessionSlice";
-import useWebSocket from "@/lib/websocket";
+import useWebSocket, { handle } from "@/lib/websocket";
+import { useEffect, useState } from "react";
 
 export default function SidebarComponent() {
   const dispatch = useDispatch();
   const isMobile = false;
+  const { send } = useWebSocket();
+
+  const [isCreatingVisit, setIsCreatingVisit] = useState(false);
+  const [isDeletingVisit, setIsDeletingVisit] = useState(false);
+  const [isPausingVisit, setIsPausingVisit] = useState(false);
+
   const session = useSelector((state: RootState) => state.session.session);
   const user = useSelector((state: RootState) => state.user.user);
   const visits = useSelector((state: RootState) => state.visit.visits);
   const groupedVisits = groupVisitsByDate(visits);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
-  const { send } = useWebSocket();
+
+  useEffect(() => {
+    handle("create_visit", "sidebar", (data) => {
+      setIsCreatingVisit(false);
+      if (data.was_requested) {
+        dispatch(setVisits([...visits, data.data as Visit]));
+        dispatch(setSelectedVisit(data.data as Visit));
+        dispatch(setScreen("RECORD"));
+      }
+    });
+
+    handle("delete_visit", "sidebar", (data) => {
+      setIsDeletingVisit(false);
+      if (data.was_requested) {
+        dispatch(setVisits(visits.filter((visit) => visit._id !== data.data._id)));
+      }
+    });
+  }, [visits]);
 
   const selectVisit = (visit: Visit) => {
     dispatch(setSelectedVisit(visit));
@@ -35,6 +59,7 @@ export default function SidebarComponent() {
   };
 
   const createVisit = () => {
+    setIsCreatingVisit(true);
     send({
       type: "create_visit",
       session_id: session._id,
@@ -43,6 +68,7 @@ export default function SidebarComponent() {
   };
 
   const deleteVisit = (visit: Visit) => {
+    setIsDeletingVisit(true);
     send({
       type: "delete_visit",
       session_id: session._id,
@@ -74,9 +100,15 @@ export default function SidebarComponent() {
             </SidebarMenuItem>
           </SidebarMenu>
           <div className="relative flex w-full min-w-0 flex-col p-2 rounded-md">
-            <Button className="font-normal" onClick={createVisit}>
-              <CirclePlus className="h-4 w-4" />
-              New Visit
+            <Button className="font-normal" onClick={createVisit} disabled={isCreatingVisit}>
+              {isCreatingVisit ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <>
+                  <CirclePlus className="h-4 w-4 mr-2" />
+                  New Visit
+                </>
+              )}
             </Button>
           </div>
         </SidebarHeader>
@@ -134,7 +166,16 @@ export default function SidebarComponent() {
                             ) : (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem className="text-destructive focus:text-destructive hover:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                  <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive hover:text-destructive"
+                                    onSelect={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                    }}
+                                  >
                                     <Trash2 className="h-4 w-4 text-destructive" />
                                     <span>Delete Visit</span>
                                   </DropdownMenuItem>
@@ -146,8 +187,16 @@ export default function SidebarComponent() {
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => deleteVisit(visit)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                      Delete
+                                    <AlertDialogAction
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        deleteVisit(visit);
+                                      }}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      disabled={isDeletingVisit}
+                                    >
+                                      {isDeletingVisit ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>

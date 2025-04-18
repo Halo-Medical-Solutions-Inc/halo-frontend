@@ -3,29 +3,44 @@ import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Printer, Download, RefreshCw, Trash2, Copy, Check } from "lucide-react";
+import { MoreHorizontal, Printer, Download, RefreshCw, Trash2, Copy, Check, Loader2 } from "lucide-react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ExpandingTextarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
-import { setSelectedVisit } from "@/store/slices/visitSlice";
-import useWebSocket from "@/lib/websocket";
+import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
+import useWebSocket, { handle } from "@/lib/websocket";
+import { useDebouncedSend } from "@/lib/utils";
 
 export default function NoteComponent() {
   const dispatch = useDispatch();
+  const { send } = useWebSocket();
+  const debouncedSend = useDebouncedSend(send);
+
   const session = useSelector((state: RootState) => state.session.session);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
+  const visits = useSelector((state: RootState) => state.visit.visits);
   const [transcriptView, setTranscriptView] = useState(false);
-  const { send } = useWebSocket();
+  const [isDeletingVisit, setIsDeletingVisit] = useState(false);
+  
+  useEffect(() => {
+    handle("delete_visit", "sidebar", (data) => {
+      setIsDeletingVisit(false);
+      if (data.was_requested) {
+        dispatch(setVisits(visits.filter((visit) => visit._id !== data.data._id)));
+        dispatch(setSelectedVisit(visits[visits.length - 1]));
+      }
+    });
+  }, [visits]);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedVisit({ ...selectedVisit, name: e.target.value }));
-    send({
+    debouncedSend({
       type: "update_visit",
       session_id: session._id,
       data: {
@@ -37,7 +52,7 @@ export default function NoteComponent() {
 
   const noteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     dispatch(setSelectedVisit({ ...selectedVisit, note: e.target.value }));
-    send({
+    debouncedSend({
       type: "update_visit",
       session_id: session._id,
       data: {
@@ -69,7 +84,14 @@ export default function NoteComponent() {
   };
 
   const deleteVisit = () => {
-    // TODO: Implement delete visit
+    setIsDeletingVisit(true);
+    send({
+      type: "delete_visit",
+      session_id: session._id,
+      data: {
+        visit_id: selectedVisit?._id,
+      },
+    });
   };
 
   const regenerateNote = () => {
@@ -126,23 +148,42 @@ export default function NoteComponent() {
                     <span>Regenerate</span>
                   </DropdownMenuItem>
                   <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <DropdownMenuItem className="text-destructive focus:text-destructive hover:text-destructive" onSelect={(e) => e.preventDefault()}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                        <span>Delete Visit</span>
-                      </DropdownMenuItem>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>This will permanently delete the visit. This action cannot be undone.</AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive hover:text-destructive"
+                                    onSelect={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                    <span>Delete Visit</span>
+                                  </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>This will permanently delete the visit. This action cannot be undone.</AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        deleteVisit();
+                                      }}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      disabled={isDeletingVisit}
+                                    >
+                                      {isDeletingVisit ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

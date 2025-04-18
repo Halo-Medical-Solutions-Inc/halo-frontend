@@ -16,7 +16,7 @@ type MessageHandler = (data: WebSocketResponse) => void;
 
 let websocket: WebSocket | null = null;
 let isConnecting = false;
-const messageHandlers: Record<string, MessageHandler> = {};
+const messageHandlers: Record<string, Record<string, MessageHandler>> = {};
 
 export const connect = (sessionId: string) => {
   if (websocket?.readyState === WebSocket.OPEN || isConnecting) return;
@@ -35,7 +35,9 @@ export const connect = (sessionId: string) => {
   websocket.onmessage = (event: MessageEvent) => {
     const data: WebSocketResponse = JSON.parse(event.data);
     if (messageHandlers[data.type]) {
-      messageHandlers[data.type](data);
+      Object.values(messageHandlers[data.type]).forEach((handler) => {
+        handler(data);
+      });
     }
   };
 
@@ -58,11 +60,22 @@ export const send = (message: WebSocketMessage) => {
   }
 };
 
-export const handle = (type: WebSocketResponse["type"], handler: MessageHandler) => {
-  messageHandlers[type] = handler;
+export const handle = (type: WebSocketResponse["type"], id: string, handler: MessageHandler) => {
+  if (!messageHandlers[type]) {
+    messageHandlers[type] = {};
+  }
+
+  // If a handler with the same ID exists, it will be replaced
+  messageHandlers[type][id] = handler;
+
   return () => {
-    if (messageHandlers[type] === handler) {
-      delete messageHandlers[type];
+    if (messageHandlers[type] && messageHandlers[type][id]) {
+      delete messageHandlers[type][id];
+
+      // Clean up the type object if no handlers remain
+      if (Object.keys(messageHandlers[type]).length === 0) {
+        delete messageHandlers[type];
+      }
     }
   };
 };
