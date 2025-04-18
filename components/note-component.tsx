@@ -27,12 +27,12 @@ export default function NoteComponent() {
   const visits = useSelector((state: RootState) => state.visit.visits);
   const [transcriptView, setTranscriptView] = useState(false);
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
-  
+
   useEffect(() => {
     handle("delete_visit", "sidebar", (data) => {
       setIsDeletingVisit(false);
       if (data.was_requested) {
-        dispatch(setVisits(visits.filter((visit) => visit._id !== data.data._id)));
+        dispatch(setVisits(visits.filter((visit) => visit.visit_id !== data.data.visit_id)));
         dispatch(setSelectedVisit(visits[visits.length - 1]));
       }
     });
@@ -42,9 +42,9 @@ export default function NoteComponent() {
     dispatch(setSelectedVisit({ ...selectedVisit, name: e.target.value }));
     debouncedSend({
       type: "update_visit",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        _id: selectedVisit?._id,
+        visit_id: selectedVisit?.visit_id,
         name: e.target.value,
       },
     });
@@ -54,9 +54,9 @@ export default function NoteComponent() {
     dispatch(setSelectedVisit({ ...selectedVisit, note: e.target.value }));
     debouncedSend({
       type: "update_visit",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        _id: selectedVisit?._id,
+        visit_id: selectedVisit?.visit_id,
         note: e.target.value,
       },
     });
@@ -70,9 +70,9 @@ export default function NoteComponent() {
       dispatch(setSelectedVisit({ ...selectedVisit, template_id: value }));
       send({
         type: "update_visit",
-        session_id: session._id,
+        session_id: session.session_id,
         data: {
-          _id: selectedVisit?._id,
+          visit_id: selectedVisit?.visit_id,
           template_id: value,
         },
       });
@@ -87,9 +87,9 @@ export default function NoteComponent() {
     setIsDeletingVisit(true);
     send({
       type: "delete_visit",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        visit_id: selectedVisit?._id,
+        visit_id: selectedVisit?.visit_id,
       },
     });
   };
@@ -148,42 +148,42 @@ export default function NoteComponent() {
                     <span>Regenerate</span>
                   </DropdownMenuItem>
                   <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem
-                                    className="text-destructive focus:text-destructive hover:text-destructive"
-                                    onSelect={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                    }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                    <span>Delete Visit</span>
-                                  </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>This will permanently delete the visit. This action cannot be undone.</AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        deleteVisit();
-                                      }}
-                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                      disabled={isDeletingVisit}
-                                    >
-                                      {isDeletingVisit ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive hover:text-destructive"
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <span>Delete Visit</span>
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>This will permanently delete the visit. This action cannot be undone.</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            deleteVisit();
+                          }}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={isDeletingVisit}
+                        >
+                          {isDeletingVisit ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -206,7 +206,7 @@ export default function NoteComponent() {
                     <SelectLabel>Templates</SelectLabel>
                     <SelectItem value="transcript">Transcript</SelectItem>
                     {templates.map((template) => (
-                      <SelectItem key={template._id} value={template._id || ""}>
+                      <SelectItem key={template.template_id} value={template.template_id || ""}>
                         {template.name || "Unnamed Template"}
                       </SelectItem>
                     ))}
@@ -220,7 +220,7 @@ export default function NoteComponent() {
             </div>
           </div>
 
-          {selectedVisit?.template_modified_at && templates.find((t) => t._id === selectedVisit?.template_id)?.modified_at && new Date(selectedVisit?.template_modified_at) < new Date(templates.find((t) => t._id === selectedVisit?.template_id)?.modified_at || "") && transcriptView && (
+          {selectedVisit?.template_modified_at && templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at && new Date(selectedVisit?.template_modified_at) < new Date(templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at || "") && transcriptView && (
             <div className="flex items-center justify-between p-4 w-full bg-muted rounded-md border-border border">
               <div className="flex flex-col">
                 <span className="text-sm font-medium">Template Updated</span>

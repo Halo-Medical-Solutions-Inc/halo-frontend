@@ -32,14 +32,14 @@ export default function TemplateComponent() {
   useEffect(() => {
     handle("create_template", "template", (data) => {
       if (data.was_requested) {
-        dispatch(setTemplates(templates.map((template: Template) => (template._id === selectedTemplate?._id ? (data.data as Template) : template))));
+        dispatch(setTemplates(templates.map((template: Template) => (template.template_id === selectedTemplate?.template_id ? (data.data as Template) : template))));
         dispatch(clearSelectedTemplate());
         dispatch(setScreen("TEMPLATES"));
       }
     });
 
     handle("delete_template", "template", (data) => {
-      if (selectedTemplate?._id === data.data.template_id) {
+      if (selectedTemplate?.template_id === data.data.template_id) {
         dispatch(clearSelectedTemplate());
         dispatch(setScreen("TEMPLATES"));
       }
@@ -50,9 +50,9 @@ export default function TemplateComponent() {
     dispatch(setSelectedTemplate({ ...selectedTemplate, name: e.target.value }));
     debouncedSend({
       type: "update_template",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        _id: selectedTemplate?._id,
+        template_id: selectedTemplate?.template_id,
         name: e.target.value,
       },
     });
@@ -61,9 +61,9 @@ export default function TemplateComponent() {
     dispatch(setSelectedTemplate({ ...selectedTemplate, instructions: e.target.value }));
     debouncedSend({
       type: "update_template",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        _id: selectedTemplate?._id,
+        template_id: selectedTemplate?.template_id,
         instructions: e.target.value,
       },
     });
@@ -73,9 +73,9 @@ export default function TemplateComponent() {
     setIsDeletingTemplate(true);
     send({
       type: "delete_template",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        template_id: selectedTemplate?._id,
+        template_id: selectedTemplate?.template_id,
       },
     });
   };

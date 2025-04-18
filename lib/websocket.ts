@@ -1,12 +1,12 @@
 const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "ws://localhost:8000/user/ws";
 
-interface WebSocketMessage {
+export interface WebSocketMessage {
   type: "create_template" | "update_template" | "delete_template" | "create_visit" | "update_visit" | "delete_visit";
   session_id: string;
   data: Record<string, any>;
 }
 
-interface WebSocketResponse {
+export interface WebSocketResponse {
   type: "create_template" | "update_template" | "delete_template" | "create_visit" | "update_visit" | "delete_visit";
   data: Record<string, any>;
   was_requested: boolean;

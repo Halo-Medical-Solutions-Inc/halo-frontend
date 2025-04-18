@@ -45,7 +45,7 @@ export default function TemplatesComponent() {
     handle("delete_template", "templates", (data) => {
       setIsDeletingTemplate(false);
       if (data.was_requested) {
-        dispatch(setTemplates(templates.filter((template) => template._id !== data.data.template_id)));
+        dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
         dispatch(setScreen("TEMPLATES"));
       }
     });
@@ -60,7 +60,7 @@ export default function TemplatesComponent() {
     setIsCreatingTemplate(true);
     debouncedSend({
       type: "create_template",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {},
     });
   };
@@ -69,9 +69,9 @@ export default function TemplatesComponent() {
     setIsDeletingTemplate(true);
     debouncedSend({
       type: "delete_template",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        template_id: template._id,
+        template_id: template.template_id,
       },
     });
   };
@@ -137,12 +137,12 @@ export default function TemplatesComponent() {
                     return dateB - dateA;
                   })
                   .map((template) => (
-                    <TableRow key={template._id} className={`${template.status !== "DEFAULT" ? "cursor-pointer" : "cursor-not-allowed"}`} onClick={() => selectTemplate(template)}>
+                    <TableRow key={template.template_id} className={`${template.status !== "DEFAULT" ? "cursor-pointer" : "cursor-not-allowed"}`} onClick={() => selectTemplate(template)}>
                       <TableCell className="font-normal text-primary p-3">
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2">
                             <span className="pt-0.5">{template.name || "New Template"} </span>
-                            {template._id === user?.default_template_id && (
+                            {template.template_id === user?.default_template_id && (
                               <Badge variant="outline" className="border-success-border bg-success-secondary text-success px-1.5 py-0.5 rounded">
                                 Default
                               </Badge>

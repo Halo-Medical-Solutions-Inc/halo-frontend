@@ -48,9 +48,9 @@ export default function RecordComponent() {
     dispatch(setSelectedVisit({ ...selectedVisit, name: e.target.value }));
     debouncedSend({
       type: "update_visit",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        _id: selectedVisit?._id,
+        visit_id: selectedVisit?.visit_id,
         name: e.target.value,
       },
     });
@@ -60,9 +60,9 @@ export default function RecordComponent() {
     dispatch(setSelectedVisit({ ...selectedVisit, additional_context: e.target.value }));
     debouncedSend({
       type: "update_visit",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        _id: selectedVisit?._id,
+        visit_id: selectedVisit?.visit_id,
         additional_context: e.target.value,
       },
     });
@@ -72,9 +72,9 @@ export default function RecordComponent() {
     dispatch(setSelectedVisit({ ...selectedVisit, template_id: value }));
     send({
       type: "update_visit",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        _id: selectedVisit?._id,
+        visit_id: selectedVisit?.visit_id,
         template_id: value,
       },
     });
@@ -84,9 +84,9 @@ export default function RecordComponent() {
     dispatch(setSelectedVisit({ ...selectedVisit, language: value }));
     send({
       type: "update_visit",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        _id: selectedVisit?._id,
+        visit_id: selectedVisit?.visit_id,
         language: value,
       },
     });
@@ -180,7 +180,7 @@ export default function RecordComponent() {
                   <SelectGroup>
                     <SelectLabel>Templates</SelectLabel>
                     {templates.map((template) => (
-                      <SelectItem key={template._id} value={template._id || ""}>
+                      <SelectItem key={template.template_id} value={template.template_id || ""}>
                         {template.name}
                       </SelectItem>
                     ))}

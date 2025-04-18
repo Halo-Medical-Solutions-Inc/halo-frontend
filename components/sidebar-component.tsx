@@ -44,7 +44,7 @@ export default function SidebarComponent() {
     handle("delete_visit", "sidebar", (data) => {
       setIsDeletingVisit(false);
       if (data.was_requested) {
-        dispatch(setVisits(visits.filter((visit) => visit._id !== data.data._id)));
+        dispatch(setVisits(visits.filter((visit) => visit.visit_id !== data.data.visit_id)));
       }
     });
   }, [visits]);
@@ -62,7 +62,7 @@ export default function SidebarComponent() {
     setIsCreatingVisit(true);
     send({
       type: "create_visit",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {},
     });
   };
@@ -71,9 +71,9 @@ export default function SidebarComponent() {
     setIsDeletingVisit(true);
     send({
       type: "delete_visit",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        visit_id: visit._id,
+        visit_id: visit.visit_id,
       },
     });
   };
@@ -120,8 +120,8 @@ export default function SidebarComponent() {
                   <SidebarGroupLabel className="text-muted-foreground font-normal">{date}</SidebarGroupLabel>
                   <SidebarMenu>
                     {visits.map((visit) => (
-                      <SidebarMenuItem key={visit._id} className={visit._id === selectedVisit?._id ? "bg-accent" : ""} onClick={visit.status !== "RECORDING" ? () => selectVisit(visit) : undefined}>
-                        <SidebarMenuButton asChild className={`${visit.status === "RECORDING" ? "cursor-not-allowed bg-transparent hover:bg-transparent active:bg-transparent focus:bg-transparent" : visit._id === selectedVisit?._id ? "bg-primary/10 hover:bg-primary/10" : "hover:bg-primary/5"}`}>
+                      <SidebarMenuItem key={visit.visit_id} className={visit.visit_id === selectedVisit?.visit_id ? "bg-accent" : ""} onClick={visit.status !== "RECORDING" ? () => selectVisit(visit) : undefined}>
+                        <SidebarMenuButton asChild className={`${visit.status === "RECORDING" ? "cursor-not-allowed bg-transparent hover:bg-transparent active:bg-transparent focus:bg-transparent" : visit.visit_id === selectedVisit?.visit_id ? "bg-primary/10 hover:bg-primary/10" : "hover:bg-primary/5"}`}>
                           <span className="flex w-full justify-between items-center">
                             <span className="truncate">{visit.name || "New Visit"}</span>
                             <span className="text-muted-foreground ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-normal outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0">

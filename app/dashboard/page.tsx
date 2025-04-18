@@ -37,7 +37,7 @@ export default function Page() {
     });
     handle("delete_template", "dashboard", (data) => {
       if (!data.was_requested) {
-        dispatch(setTemplates(templates.filter((template) => template._id !== data.data.template_id)));
+        dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
       }
     });
   }, [templates]);
@@ -50,8 +50,8 @@ export default function Page() {
     });
 
     handle("delete_visit", "dashboard", (data) => {
-      dispatch(setVisits(visits.filter((visit) => visit._id !== data.data.visit_id)));
-      const remainingVisits = visits.filter((visit) => visit._id !== data.data.visit_id);
+      dispatch(setVisits(visits.filter((visit) => visit.visit_id !== data.data.visit_id)));
+      const remainingVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
       if (remainingVisits.length > 0) {
         const latestVisit = [...remainingVisits].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())[0];
         dispatch(setSelectedVisit(latestVisit));
@@ -62,10 +62,10 @@ export default function Page() {
   useEffect(() => {
     handle("update_visit", "dashboard", (data) => {
       const updatedFields = data.data as Partial<Visit>;
-      const visitId = updatedFields._id;
+      const visitId = updatedFields.visit_id;
 
       if (visitId) {
-        const currentVisit = visits.find((visit) => visit._id === visitId);
+        const currentVisit = visits.find((visit) => visit.visit_id === visitId);
         if (currentVisit) {
           dispatch(setVisit({ ...currentVisit, ...updatedFields }));
         }
@@ -74,10 +74,10 @@ export default function Page() {
 
     handle("update_template", "dashboard", (data) => {
       const updatedFields = data.data as Partial<Template>;
-      const templateId = updatedFields._id;
+      const templateId = updatedFields.template_id;
 
       if (templateId) {
-        const currentTemplate = templates.find((template) => template._id === templateId);
+        const currentTemplate = templates.find((template) => template.template_id === templateId);
         if (currentTemplate) {
           dispatch(setTemplate({ ...currentTemplate, ...updatedFields }));
         }
@@ -86,17 +86,17 @@ export default function Page() {
   }, [visits, templates]);
 
   useEffect(() => {
-    connect(session._id);
+    connect(session.session_id);
 
-    apiGetUser(session._id).then((user) => {
+    apiGetUser(session.session_id).then((user) => {
       dispatch(setUser(user));
     });
 
-    apiGetUserTemplates(session._id).then((templates) => {
+    apiGetUserTemplates(session.session_id).then((templates) => {
       dispatch(setTemplates(templates));
     });
 
-    apiGetUserVisits(session._id).then((visits) => {
+    apiGetUserVisits(session.session_id).then((visits) => {
       dispatch(setVisits(visits));
     });
   }, []);

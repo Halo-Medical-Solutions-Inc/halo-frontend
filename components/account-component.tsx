@@ -126,7 +126,7 @@ export default function AccountComponent() {
                   <SelectGroup>
                     <SelectLabel>Templates</SelectLabel>
                     {templates.map((template) => (
-                      <SelectItem key={template._id} value={template._id || ""}>
+                      <SelectItem key={template.template_id} value={template.template_id || ""}>
                         {template.name}
                       </SelectItem>
                     ))}

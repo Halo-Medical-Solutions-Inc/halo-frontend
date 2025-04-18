@@ -1,15 +1,16 @@
-import { Visit, WebSocketMessage } from "@/store/types";
+import { Visit } from "@/store/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format } from "date-fns";
 import { useCallback } from "react";
 import { debounce } from "lodash";
+import { WebSocketMessage } from "@/lib/websocket";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const useDebouncedSend = (send: (data: WebSocketMessage) => void, delay = 250) => {
+export const useDebouncedSend = (send: (data: WebSocketMessage) => void, delay = 500) => {
   return useCallback(
     debounce((data: WebSocketMessage) => {
       send(data);
