@@ -103,8 +103,8 @@ export default function Page() {
             </Button>
             <p className="text-sm text-center text-muted-foreground">
               Don't have an account?{" "}
-              <Link href="/signup" className="text-primary underline">
-                Sign up
+              <Link href="mailto:usehalohealth@gmail.com" className="text-primary underline">
+                Email us
               </Link>
             </p>
           </div>

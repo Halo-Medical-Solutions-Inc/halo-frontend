@@ -16,6 +16,8 @@ import { setScreen } from "@/store/slices/sessionSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useEffect, useState } from "react";
 import { clearSelectedTemplate } from "@/store/slices/templateSlice";
+import { clearUser } from "@/store/slices/userSlice";
+import { clearSession } from "@/store/slices/sessionSlice";
 
 export default function SidebarComponent() {
   const dispatch = useDispatch();
@@ -115,12 +117,20 @@ export default function SidebarComponent() {
     dispatch(setScreen("ACCOUNT"));
   };
 
+  const logoutClick = () => {
+    dispatch(clearSelectedTemplate());
+    dispatch(clearSelectedVisit());
+    dispatch(clearUser());
+    dispatch(clearSession());
+    window.location.href = "/signin";
+  };
+
   return (
     <>
       <Sidebar variant="sidebar">
         <SidebarHeader className="pb-0">
           <SidebarMenu>
-            <SidebarMenuItem>
+            <SidebarMenuItem className="cursor-none pointer-events-none">
               <SidebarMenuButton size="lg" asChild>
                 <a href="#">
                   <img src="/logo.svg" alt="Halo Logo" className="size-8 rounded-lg" />
@@ -157,9 +167,7 @@ export default function SidebarComponent() {
                         <SidebarMenuButton asChild className={`${visit.status === "RECORDING" ? "cursor-not-allowed bg-transparent hover:bg-transparent active:bg-transparent focus:bg-transparent" : visit.visit_id === selectedVisit?.visit_id ? "bg-primary/10 hover:bg-primary/10" : "hover:bg-primary/5"}`}>
                           <span className="flex w-full justify-between items-center">
                             <span className="truncate">{visit.name || "New Visit"}</span>
-                            <span className="text-muted-foreground ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-normal outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0">
-                              {visit.created_at ? formatLocalTime(visit.created_at) : "00:00 AM"}
-                            </span>
+                            <span className="text-muted-foreground ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-normal outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0">{visit.created_at ? formatLocalTime(visit.created_at) : "00:00 AM"}</span>
                           </span>
                         </SidebarMenuButton>
 
@@ -288,7 +296,7 @@ export default function SidebarComponent() {
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive focus:text-destructive hover:text-destructive">
+                  <DropdownMenuItem className="text-destructive focus:text-destructive hover:text-destructive" onClick={logoutClick}>
                     <LogOut className="text-destructive" />
                     Log out
                   </DropdownMenuItem>

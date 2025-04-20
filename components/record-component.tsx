@@ -16,7 +16,7 @@ import { AudioVisualizer } from "./ui/audio-visualizer";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { languages } from "@/store/types";
-import { clearSelectedVisit, setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
+import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
 import { useDispatch } from "react-redux";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
@@ -78,11 +78,6 @@ export default function RecordComponent() {
   }, [visits]);
 
   useEffect(() => {
-    if (selectedVisit?.additional_context?.trim() === "") {
-      setIsAdditionalContextFocused(false);
-      return;
-    }
-
     if (selectedVisit?.additional_context?.trim() !== "") {
       setIsAdditionalContextFocused(true);
       return;
@@ -91,6 +86,13 @@ export default function RecordComponent() {
       textareaRef.current.focus();
     }
   }, [isAdditionalContextFocused, selectedVisit?.additional_context]);
+
+  useEffect(() => {
+    if (selectedVisit?.additional_context?.trim() === "") {
+      setIsAdditionalContextFocused(false);
+      return;
+    }
+  }, [selectedVisit]);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedVisit({ ...selectedVisit, name: e.target.value }));

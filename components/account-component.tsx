@@ -5,13 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectGroup, SelectLabel, SelectItem, SelectValue } from "@/components/ui/select";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { languages } from "@/store/types";
-import { setUser } from "@/store/slices/userSlice";
 import { useDispatch } from "react-redux";
 
 export default function AccountComponent() {
@@ -22,6 +19,7 @@ export default function AccountComponent() {
 
   const [name, setName] = useState(user?.name);
   const [email, setEmail] = useState(user?.email);
+  const [speciality, setSpeciality] = useState("");
   const [defaultTemplateId, setDefaultTemplateId] = useState(user?.default_template_id);
   const [defaultLanguage, setDefaultLanguage] = useState(user?.default_language);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -94,13 +92,37 @@ export default function AccountComponent() {
               {validationErrors.name && <p className="text-xs text-destructive">{validationErrors.name}</p>}
             </div>
 
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label>
                 Email<span className="text-destructive">*</span>
               </Label>
               <Input id="email" type="email" placeholder="email@halo.com" value={email} onChange={(e) => setEmail(e.target.value)} className={validationErrors.email ? "!border-destructive !ring-destructive" : ""} />
               {validationErrors.email && <p className="text-xs text-destructive">{validationErrors.email}</p>}
-            </div>
+            </div> */}
+            <Label>
+              Select speciality
+              <span className="text-destructive" />
+            </Label>
+            <Select value={speciality} onValueChange={(value) => setSpeciality(value)}>
+              <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
+                <SelectValue placeholder="Select a speciality" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Specialities</SelectLabel>
+                  <SelectItem value="speciality1">Orthopedics</SelectItem>
+                  <SelectItem value="speciality2">Neurosurgery</SelectItem>
+                  <SelectItem value="speciality3">Cardiology</SelectItem>
+                  <SelectItem value="speciality4">Rheumatology</SelectItem>
+                  <SelectItem value="speciality5">Pediatrics</SelectItem>
+                  <SelectItem value="speciality6">Urology</SelectItem>
+                  <SelectItem value="speciality7">Dermatology</SelectItem>
+                  <SelectItem value="speciality8">Endocrinology</SelectItem>
+                  <SelectItem value="speciality9">Gastroenterology</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+
             <div className="flex items-center gap-2">
               <Button type="submit" onClick={saveAccount}>
                 Save Changes
@@ -159,69 +181,6 @@ export default function AccountComponent() {
             <Button type="submit" onClick={saveDefault}>
               Save
             </Button>
-          </div>
-          <Separator className="my-6" />
-          <div className="space-y-4">
-            <div className="flex flex-col gap-2">
-              <h2 className="text-xl md:text-xl font-bold">Change Password</h2>
-              <p className="text-sm text-muted-foreground">Update your password to keep your account secure.</p>
-            </div>
-            <div className="space-y-2">
-              <Label>
-                Current Password
-                <span className="text-destructive">*</span>
-              </Label>
-              <Input id="currentPassword" type="password" placeholder="********" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className={validationErrors.currentPassword ? "!border-destructive !ring-destructive" : ""} />
-              {validationErrors.currentPassword && <p className="text-xs text-destructive">{validationErrors.currentPassword}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label>
-                New Password
-                <span className="text-destructive">*</span>
-              </Label>
-              <Input id="newPassword" type="password" placeholder="********" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={validationErrors.newPassword ? "!border-destructive !ring-destructive" : ""} />
-              {validationErrors.newPassword && <p className="text-xs text-destructive">{validationErrors.newPassword}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label>
-                Retype Password
-                <span className="text-destructive">*</span>
-              </Label>
-              <Input id="retypePassword" type="password" placeholder="********" value={retypePassword} onChange={(e) => setRetypePassword(e.target.value)} className={validationErrors.retypePassword ? "!border-destructive !ring-destructive" : ""} />
-              {validationErrors.retypePassword && <p className="text-xs text-destructive">{validationErrors.retypePassword}</p>}
-            </div>
-            <Button type="submit" onClick={savePassword}>
-              Update Password
-            </Button>
-          </div>
-          <Separator className="my-6" />
-          <div className="space-y-4">
-            <div className="rounded-lg border border-destructive-border">
-              <div className="flex items-center gap-2 p-4">
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-xl md:text-xl font-bold">Delete Account</h2>
-                  <p className="text-sm text-muted-foreground">This will permanently delete your Halo Account. Please note that this action is irreversible, so proceed with caution.</p>
-                </div>
-              </div>
-              <div className="bg-destructive-secondary p-4 flex flex-row items-center justify-between rounded-b-lg">
-                <p className="text-sm font-medium text-destructive">This action cannot be undone!</p>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive">Delete account</Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                      <AlertDialogDescription>This action cannot be undone. This will permanently delete your account and remove all your data from our servers.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
           </div>
         </div>
       </div>

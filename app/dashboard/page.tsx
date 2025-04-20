@@ -7,10 +7,8 @@ import NoteComponent from "@/components/note-component";
 import RecordComponent from "@/components/record-component";
 import TemplateComponent from "@/components/template-component";
 import TemplatesComponent from "@/components/templates-component";
-import AskAIComponent from "@/components/ask-ai-component";
-import { Visit, Template } from "@/store/types";
 import { setUser } from "@/store/slices/userSlice";
-import { setSelectedTemplate, setTemplate, setTemplates } from "@/store/slices/templateSlice";
+import { setTemplate, setTemplates } from "@/store/slices/templateSlice";
 import { setVisit, setVisits } from "@/store/slices/visitSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
@@ -18,7 +16,6 @@ import { RootState } from "@/store/store";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { apiGetUser, apiGetUserTemplates, apiGetUserVisits } from "@/store/api";
 import { setScreen } from "@/store/slices/sessionSlice";
-import { setSelectedVisit } from "@/store/slices/visitSlice";
 
 export default function Page() {
   const dispatch = useDispatch();
@@ -117,7 +114,6 @@ export default function Page() {
       {screen === "RECORD" && <RecordComponent />}
       {screen === "TEMPLATE" && <TemplateComponent />}
       {screen === "TEMPLATES" && <TemplatesComponent />}
-      <AskAIComponent />
     </Application>
   );
 }

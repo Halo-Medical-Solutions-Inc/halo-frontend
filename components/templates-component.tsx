@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Trash2 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { clearSelectedTemplate, setSelectedTemplate, setTemplates } from "@/store/slices/templateSlice";
+import { setSelectedTemplate, setTemplates } from "@/store/slices/templateSlice";
 import { useDispatch } from "react-redux";
 import { Template } from "@/store/types";
 import { setScreen } from "@/store/slices/sessionSlice";
@@ -157,9 +157,7 @@ export default function TemplatesComponent() {
                           <span className="text-xs text-muted-foreground">{template.status === "DEFAULT" ? "Created by HALO" : "Created by you"}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="font-normal text-primary">
-                        {template.modified_at ? formatLocalDateAndTime(template.modified_at) : "00:00 AM"}
-                      </TableCell>
+                      <TableCell className="font-normal text-primary">{template.modified_at ? formatLocalDateAndTime(template.modified_at) : "00:00 AM"}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

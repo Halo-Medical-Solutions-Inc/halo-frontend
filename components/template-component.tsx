@@ -16,7 +16,6 @@ import { setSelectedTemplate, clearSelectedTemplate, setTemplates } from "@/stor
 import { setScreen } from "@/store/slices/sessionSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend, getTimeDifference } from "@/lib/utils";
-import { Template } from "@/store/types";
 
 export default function TemplateComponent() {
   const dispatch = useDispatch();
@@ -105,12 +104,7 @@ export default function TemplateComponent() {
         <div className="ml-auto px-3">
           <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center">
-              <span className="font-normal text-muted-foreground md:inline-block">
-                Last saved{" "}
-                {selectedTemplate?.modified_at
-                  ? getTimeDifference(selectedTemplate?.modified_at.replace(" ", "T") + "Z", new Date().toISOString())
-                  : ""}
-              </span>
+              <span className="font-normal text-muted-foreground md:inline-block">Last saved {selectedTemplate?.modified_at ? getTimeDifference(selectedTemplate?.modified_at.replace(" ", "T") + "Z", new Date().toISOString()) : ""}</span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
