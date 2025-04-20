@@ -44,3 +44,41 @@ export const groupVisitsByDate = (visits: Visit[]) => {
       }),
     }));
 };
+
+export const formatLocalTime = (utcDateString: string | undefined, defaultValue: string = "00:00 AM") => {
+  if (!utcDateString) return defaultValue;
+  const utcDate = new Date(utcDateString);
+  const localDate = new Date(utcDate.getTime() - (utcDate.getTimezoneOffset() * 60000));
+  return localDate.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit', hour12: true});
+};
+
+export const formatLocalDateAndTime = (utcDateString: string | undefined, defaultValue: string = "January 1, 00:00 AM") => {
+  if (!utcDateString) return defaultValue;
+  const utcDate = new Date(utcDateString);
+  const localDate = new Date(utcDate.getTime() - (utcDate.getTimezoneOffset() * 60000));
+  const month = localDate.toLocaleString('en-US', { month: 'long' });
+  const day = localDate.getDate();
+  const time = localDate.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit', hour12: true});
+  return `${month} ${day}, ${time}`;
+};
+
+export const getTimeDifference = (olderDate: string, newerDate?: string): string => {
+  console.log(olderDate, newerDate);
+  const older = new Date(olderDate);
+  const newer = newerDate ? new Date(newerDate) : new Date();
+  
+  const diffMs = newer.getTime() - older.getTime();
+  const diffMinutes = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMinutes < 1) {
+    return "Just now";
+  } else if (diffMinutes < 60) {
+    return `${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""} ago`;
+  } else if (diffHours < 24) {
+    return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
+  } else {
+    return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
+  }
+};

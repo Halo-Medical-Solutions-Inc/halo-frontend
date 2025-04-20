@@ -9,17 +9,18 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "./ui/textarea";
-import { CheckCircle, Mic, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2 } from "lucide-react";
+import { CheckCircle, Loader2, Mic, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "./ui/input";
 import { AudioVisualizer } from "./ui/audio-visualizer";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { languages } from "@/store/types";
-import { setSelectedVisit } from "@/store/slices/visitSlice";
+import { clearSelectedVisit, setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
 import { useDispatch } from "react-redux";
-import useWebSocket from "@/lib/websocket";
+import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
+import { setScreen } from "@/store/slices/sessionSlice";
 
 export default function RecordComponent() {
   const dispatch = useDispatch();
@@ -27,14 +28,61 @@ export default function RecordComponent() {
   const debouncedSend = useDebouncedSend(send);
 
   const session = useSelector((state: RootState) => state.session.session);
+  const visits = useSelector((state: RootState) => state.visit.visits);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isAdditionalContextFocused, setIsAdditionalContextFocused] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isDeletingVisit, setIsDeletingVisit] = useState(false);
 
   useEffect(() => {
+    const deleteVisitHandler = handle("delete_visit", "record", (data) => {
+      if (data.was_requested) {
+        console.log("Processing delete_visit in record");
+        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
+        dispatch(setVisits(filteredVisits));
+
+        if (filteredVisits.length > 0) {
+          const lastVisit = filteredVisits[filteredVisits.length - 1];
+          dispatch(setSelectedVisit(lastVisit));
+
+          if (lastVisit.status === "FINISHED" || lastVisit.status === "GENERATING_NOTE") {
+            dispatch(setScreen("NOTE"));
+          } else {
+            dispatch(setScreen("RECORD"));
+          }
+        }
+
+        setIsDeletingVisit(false);
+      } else {
+        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
+
+        if (filteredVisits.length > 0) {
+          const lastVisit = filteredVisits[filteredVisits.length - 1];
+          dispatch(setSelectedVisit(lastVisit));
+
+          if (lastVisit.status === "FINISHED" || lastVisit.status === "GENERATING_NOTE") {
+            dispatch(setScreen("NOTE"));
+          } else {
+            dispatch(setScreen("RECORD"));
+          }
+        }
+      }
+    });
+
+    return () => {
+      deleteVisitHandler();
+    };
+  }, [visits]);
+
+  useEffect(() => {
+    if (selectedVisit?.additional_context?.trim() === "") {
+      setIsAdditionalContextFocused(false);
+      return;
+    }
+
     if (selectedVisit?.additional_context?.trim() !== "") {
       setIsAdditionalContextFocused(true);
       return;
@@ -92,6 +140,17 @@ export default function RecordComponent() {
     });
   };
 
+  const deleteVisit = () => {
+    setIsDeletingVisit(true);
+    send({
+      type: "delete_visit",
+      session_id: session.session_id,
+      data: {
+        visit_id: selectedVisit?.visit_id,
+      },
+    });
+  };
+
   const startRecording = () => {
     const errors: Record<string, string> = !selectedVisit?.template_id ? { template: "Please select a template" } : {};
 
@@ -137,9 +196,18 @@ export default function RecordComponent() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-auto">
-                    <AlertDialog>
+                    <AlertDialog key={selectedVisit?.visit_id}>
                       <AlertDialogTrigger asChild>
-                        <DropdownMenuItem className="text-destructive focus:text-destructive hover:text-destructive" onSelect={(e) => e.preventDefault()}>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive hover:text-destructive"
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
                           <Trash2 className="h-4 w-4 text-destructive" />
                           <span>Delete Visit</span>
                         </DropdownMenuItem>
@@ -151,7 +219,17 @@ export default function RecordComponent() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                          <AlertDialogAction
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              deleteVisit();
+                            }}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            disabled={isDeletingVisit}
+                          >
+                            {isDeletingVisit ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+                          </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
@@ -224,7 +302,7 @@ export default function RecordComponent() {
             ) : (
               <div className="flex flex-col w-full gap-2">
                 <Label className="text-sm font-normal text-muted-foreground">Additional context</Label>
-                <Textarea placeholder="ex. 32 year old male with a history of hypertension and diabetes" className="w-full h-28 resize-none" value={selectedVisit?.additional_context} onChange={additionalContextChange} onFocus={() => setIsAdditionalContextFocused(true)} onBlur={() => (selectedVisit?.additional_context?.trim() ? setIsAdditionalContextFocused(true) : setIsAdditionalContextFocused(false))} ref={textareaRef} />
+                <Textarea key={selectedVisit?.visit_id} placeholder="ex. 32 year old male with a history of hypertension and diabetes" className="w-full h-28 resize-none" value={selectedVisit?.additional_context} onChange={additionalContextChange} onFocus={() => setIsAdditionalContextFocused(true)} onBlur={() => (selectedVisit?.additional_context?.trim() ? setIsAdditionalContextFocused(true) : setIsAdditionalContextFocused(false))} ref={textareaRef} />
               </div>
             )}
 

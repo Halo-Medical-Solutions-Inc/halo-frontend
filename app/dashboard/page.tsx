@@ -30,60 +30,62 @@ export default function Page() {
   const visits = useSelector((state: RootState) => state.visit.visits);
 
   useEffect(() => {
-    handle("create_template", "dashboard", (data) => {
+    const createVisitHandler = handle("create_visit", "dashboard", (data) => {
       if (!data.was_requested) {
-        dispatch(setTemplates([...templates, data.data as Template]));
-      }
-    });
-    handle("delete_template", "dashboard", (data) => {
-      if (!data.was_requested) {
-        dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
-      }
-    });
-  }, [templates]);
-
-  useEffect(() => {
-    handle("create_visit", "dashboard", (data) => {
-      if (!data.was_requested) {
-        dispatch(setVisits([...visits, data.data as Visit]));
+        console.log("Processing create_visit in dashboard");
+        dispatch(setVisits([...visits, data.data]));
       }
     });
 
-    handle("delete_visit", "dashboard", (data) => {
-      dispatch(setVisits(visits.filter((visit) => visit.visit_id !== data.data.visit_id)));
-      const remainingVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
-      if (remainingVisits.length > 0) {
-        const latestVisit = [...remainingVisits].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())[0];
-        dispatch(setSelectedVisit(latestVisit));
+    const updateVisitHandler = handle("update_visit", "dashboard", (data) => {
+      if (!data.was_requested) {
+        console.log("Processing update_visit in dashboard");
+        dispatch(setVisit(data.data));
       }
     });
+
+    const deleteVisitHandler = handle("delete_visit", "dashboard", (data) => {
+      if (!data.was_requested) {
+        console.log("Processing delete_visit in dashboard");
+        dispatch(setVisits(visits.filter((visit) => visit.visit_id !== data.data.visit_id)));
+      }
+    });
+
+    return () => {
+      createVisitHandler();
+      updateVisitHandler();
+      deleteVisitHandler();
+    };
   }, [visits]);
 
   useEffect(() => {
-    handle("update_visit", "dashboard", (data) => {
-      const updatedFields = data.data as Partial<Visit>;
-      const visitId = updatedFields.visit_id;
-
-      if (visitId) {
-        const currentVisit = visits.find((visit) => visit.visit_id === visitId);
-        if (currentVisit) {
-          dispatch(setVisit({ ...currentVisit, ...updatedFields }));
-        }
+    const createTemplateHandler = handle("create_template", "dashboard", (data) => {
+      if (!data.was_requested) {
+        console.log("Processing create_template in dashboard");
+        dispatch(setTemplates([...templates, data.data]));
       }
     });
 
-    handle("update_template", "dashboard", (data) => {
-      const updatedFields = data.data as Partial<Template>;
-      const templateId = updatedFields.template_id;
-
-      if (templateId) {
-        const currentTemplate = templates.find((template) => template.template_id === templateId);
-        if (currentTemplate) {
-          dispatch(setTemplate({ ...currentTemplate, ...updatedFields }));
-        }
+    const updateTemplateHandler = handle("update_template", "dashboard", (data) => {
+      if (!data.was_requested) {
+        console.log("Processing update_template in dashboard");
+        dispatch(setTemplate(data.data));
       }
     });
-  }, [visits, templates]);
+
+    const deleteTemplateHandler = handle("delete_template", "dashboard", (data) => {
+      if (!data.was_requested) {
+        console.log("Processing delete_template in dashboard");
+        dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
+      }
+    });
+
+    return () => {
+      createTemplateHandler();
+      updateTemplateHandler();
+      deleteTemplateHandler();
+    };
+  }, [templates]);
 
   useEffect(() => {
     connect(session.session_id);

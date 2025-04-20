@@ -23,9 +23,9 @@ const visitSlice = createSlice({
       const updatedVisit = action.payload;
       const index = state.visits.findIndex((visit) => visit.visit_id === updatedVisit.visit_id);
       if (index !== -1) {
-        state.visits[index] = updatedVisit;
+        state.visits[index] = { ...state.visits[index], ...updatedVisit };
         if (state.selectedVisit && state.selectedVisit.visit_id === updatedVisit.visit_id) {
-          state.selectedVisit = updatedVisit;
+          state.selectedVisit = { ...state.selectedVisit, ...updatedVisit };
         }
       }
     },
@@ -33,7 +33,7 @@ const visitSlice = createSlice({
       state.selectedVisit = action.payload;
       const index = state.visits.findIndex((visit) => visit.visit_id === action.payload.visit_id);
       if (index !== -1) {
-        state.visits[index] = action.payload;
+        state.visits[index] = { ...state.visits[index], ...action.payload };
       }
     },
     clearSelectedVisit: (state: VisitState) => {

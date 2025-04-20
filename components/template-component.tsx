@@ -15,7 +15,7 @@ import { RootState } from "@/store/store";
 import { setSelectedTemplate, clearSelectedTemplate, setTemplates } from "@/store/slices/templateSlice";
 import { setScreen } from "@/store/slices/sessionSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
-import { useDebouncedSend } from "@/lib/utils";
+import { useDebouncedSend, getTimeDifference } from "@/lib/utils";
 import { Template } from "@/store/types";
 
 export default function TemplateComponent() {
@@ -30,21 +30,25 @@ export default function TemplateComponent() {
   const templates = useSelector((state: RootState) => state.template.templates);
 
   useEffect(() => {
-    handle("create_template", "template", (data) => {
+    const deleteTemplateHandler = handle("delete_template", "template", (data) => {
       if (data.was_requested) {
-        dispatch(setTemplates(templates.map((template: Template) => (template.template_id === selectedTemplate?.template_id ? (data.data as Template) : template))));
+        console.log("Processing delete_template in template");
+        dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
         dispatch(clearSelectedTemplate());
         dispatch(setScreen("TEMPLATES"));
+        setIsDeletingTemplate(false);
+      } else {
+        if (selectedTemplate?.template_id === data.data.template_id) {
+          dispatch(clearSelectedTemplate());
+          dispatch(setScreen("TEMPLATES"));
+        }
       }
     });
 
-    handle("delete_template", "template", (data) => {
-      if (selectedTemplate?.template_id === data.data.template_id) {
-        dispatch(clearSelectedTemplate());
-        dispatch(setScreen("TEMPLATES"));
-      }
-    });
-  }, [selectedTemplate, templates]);
+    return () => {
+      deleteTemplateHandler();
+    };
+  }, [templates]);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedTemplate({ ...selectedTemplate, name: e.target.value }));
@@ -104,23 +108,7 @@ export default function TemplateComponent() {
               <span className="font-normal text-muted-foreground md:inline-block">
                 Last saved{" "}
                 {selectedTemplate?.modified_at
-                  ? (() => {
-                      const now = new Date();
-                      const modified = new Date(selectedTemplate?.modified_at);
-                      const diffMs = now.getTime() - modified.getTime();
-                      const diffMinutes = Math.floor(diffMs / 60000);
-                      const diffHours = Math.floor(diffMs / 3600000);
-                      const diffDays = Math.floor(diffMs / 86400000);
-                      const diffMonths = (now.getFullYear() - modified.getFullYear()) * 12 + now.getMonth() - modified.getMonth();
-                      const diffYears = now.getFullYear() - modified.getFullYear();
-
-                      if (diffMinutes === 0) return "now";
-                      if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""} ago`;
-                      if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
-                      if (diffDays < 30) return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
-                      if (diffMonths < 12) return `${diffMonths} month${diffMonths !== 1 ? "s" : ""} ago`;
-                      return `${diffYears} year${diffYears !== 1 ? "s" : ""} ago`;
-                    })()
+                  ? getTimeDifference(selectedTemplate?.modified_at.replace(" ", "T") + "Z", new Date().toISOString())
                   : ""}
               </span>
               <DropdownMenu>

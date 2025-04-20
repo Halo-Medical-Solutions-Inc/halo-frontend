@@ -18,7 +18,7 @@ import { useDispatch } from "react-redux";
 import { Template } from "@/store/types";
 import { setScreen } from "@/store/slices/sessionSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
-import { useDebouncedSend } from "@/lib/utils";
+import { formatLocalDateAndTime, useDebouncedSend } from "@/lib/utils";
 
 export default function TemplatesComponent() {
   const dispatch = useDispatch();
@@ -33,22 +33,28 @@ export default function TemplatesComponent() {
   const templates = useSelector((state: RootState) => state.template.templates);
 
   useEffect(() => {
-    handle("create_template", "templates", (data) => {
-      setIsCreatingTemplate(false);
+    const createTemplateHandler = handle("create_template", "templates", (data) => {
       if (data.was_requested) {
+        console.log("Processing create_template in templates");
         dispatch(setTemplates([...templates, data.data as Template]));
         dispatch(setSelectedTemplate(data.data as Template));
         dispatch(setScreen("TEMPLATE"));
+        setIsCreatingTemplate(false);
       }
     });
 
-    handle("delete_template", "templates", (data) => {
-      setIsDeletingTemplate(false);
+    const deleteTemplateHandler = handle("delete_template", "templates", (data) => {
       if (data.was_requested) {
+        console.log("Processing delete_template in templates");
         dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
-        dispatch(setScreen("TEMPLATES"));
+        setIsDeletingTemplate(false);
       }
     });
+
+    return () => {
+      createTemplateHandler();
+      deleteTemplateHandler();
+    };
   }, [templates]);
 
   const selectTemplate = (template: Template) => {
@@ -152,16 +158,7 @@ export default function TemplatesComponent() {
                         </div>
                       </TableCell>
                       <TableCell className="font-normal text-primary">
-                        {template.modified_at
-                          ? new Date(template.modified_at).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                              hour: "numeric",
-                              minute: "numeric",
-                              hour12: true,
-                            })
-                          : ""}
+                        {template.modified_at ? formatLocalDateAndTime(template.modified_at) : "00:00 AM"}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>

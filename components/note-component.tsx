@@ -15,6 +15,7 @@ import { RootState } from "@/store/store";
 import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
+import { setScreen } from "@/store/slices/sessionSlice";
 
 export default function NoteComponent() {
   const dispatch = useDispatch();
@@ -29,13 +30,43 @@ export default function NoteComponent() {
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
 
   useEffect(() => {
-    handle("delete_visit", "sidebar", (data) => {
-      setIsDeletingVisit(false);
+    const deleteVisitHandler = handle("delete_visit", "note", (data) => {
       if (data.was_requested) {
-        dispatch(setVisits(visits.filter((visit) => visit.visit_id !== data.data.visit_id)));
-        dispatch(setSelectedVisit(visits[visits.length - 1]));
+        console.log("Processing delete_visit in note");
+        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
+        dispatch(setVisits(filteredVisits));
+
+        if (filteredVisits.length > 0) {
+          const lastVisit = filteredVisits[filteredVisits.length - 1];
+          dispatch(setSelectedVisit(lastVisit));
+
+          if (lastVisit.status === "FINISHED" || lastVisit.status === "GENERATING_NOTE") {
+            dispatch(setScreen("NOTE"));
+          } else {
+            dispatch(setScreen("RECORD"));
+          }
+        }
+
+        setIsDeletingVisit(false);
+      } else {
+        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
+
+        if (filteredVisits.length > 0) {
+          const lastVisit = filteredVisits[filteredVisits.length - 1];
+          dispatch(setSelectedVisit(lastVisit));
+
+          if (lastVisit.status === "FINISHED" || lastVisit.status === "GENERATING_NOTE") {
+            dispatch(setScreen("NOTE"));
+          } else {
+            dispatch(setScreen("RECORD"));
+          }
+        }
       }
     });
+
+    return () => {
+      deleteVisitHandler();
+    };
   }, [visits]);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,7 +178,7 @@ export default function NoteComponent() {
                     <RefreshCw className="h-4 w-4" />
                     <span>Regenerate</span>
                   </DropdownMenuItem>
-                  <AlertDialog>
+                  <AlertDialog key={selectedVisit?.visit_id}>
                     <AlertDialogTrigger asChild>
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive hover:text-destructive"

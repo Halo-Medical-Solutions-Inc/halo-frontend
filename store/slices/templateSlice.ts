@@ -23,9 +23,9 @@ const templateSlice = createSlice({
       const updatedTemplate = action.payload;
       const index = state.templates.findIndex((template) => template.template_id === updatedTemplate.template_id);
       if (index !== -1) {
-        state.templates[index] = updatedTemplate;
+        state.templates[index] = { ...state.templates[index], ...updatedTemplate };
         if (state.selectedTemplate && state.selectedTemplate.template_id === updatedTemplate.template_id) {
-          state.selectedTemplate = updatedTemplate;
+          state.selectedTemplate = { ...state.selectedTemplate, ...updatedTemplate };
         }
       }
     },
@@ -33,7 +33,7 @@ const templateSlice = createSlice({
       state.selectedTemplate = action.payload;
       const index = state.templates.findIndex((template) => template.template_id === action.payload.template_id);
       if (index !== -1) {
-        state.templates[index] = action.payload;
+        state.templates[index] = { ...state.templates[index], ...action.payload };
       }
     },
     clearSelectedTemplate: (state: TemplateState) => {
