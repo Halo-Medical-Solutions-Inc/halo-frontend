@@ -32,7 +32,6 @@ export default function NoteComponent() {
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "note", (data) => {
       if (data.was_requested) {
-        console.log("Processing delete_visit in note");
         const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
         dispatch(setVisits(filteredVisits));
 
@@ -141,6 +140,8 @@ export default function NoteComponent() {
     // TODO: Implement copy all note
   };
 
+  console.log(selectedVisit?.template_modified_at);
+  console.log(templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at);
   return (
     <SidebarInset>
       <header className="flex h-14 shrink-0 items-center gap-2">
@@ -251,7 +252,7 @@ export default function NoteComponent() {
             </div>
           </div>
 
-          {selectedVisit?.template_modified_at && templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at && new Date(selectedVisit?.template_modified_at) < new Date(templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at || "") && transcriptView && (
+          {selectedVisit?.template_modified_at && templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at && new Date(selectedVisit?.template_modified_at.replace(" ", "T") + "Z") < new Date(templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at.replace(" ", "T") + "Z" || "") && !transcriptView && (
             <div className="flex items-center justify-between p-4 w-full bg-muted rounded-md border-border border">
               <div className="flex flex-col">
                 <span className="text-sm font-medium">Template Updated</span>

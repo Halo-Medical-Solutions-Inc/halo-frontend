@@ -21,6 +21,7 @@ export default function Page() {
   const dispatch = useDispatch();
   const { connect } = useWebSocket();
 
+  const user = useSelector((state: RootState) => state.user.user);
   const session = useSelector((state: RootState) => state.session.session);
   const screen = useSelector((state: RootState) => state.session.screen);
   const templates = useSelector((state: RootState) => state.template.templates);
@@ -64,10 +65,8 @@ export default function Page() {
     });
 
     const updateTemplateHandler = handle("update_template", "dashboard", (data) => {
-      if (!data.was_requested) {
-        console.log("Processing update_template in dashboard");
-        dispatch(setTemplate(data.data));
-      }
+      console.log("Processing update_template in dashboard");
+      dispatch(setTemplate(data.data));
     });
 
     const deleteTemplateHandler = handle("delete_template", "dashboard", (data) => {
@@ -83,6 +82,19 @@ export default function Page() {
       deleteTemplateHandler();
     };
   }, [templates]);
+
+  useEffect(() => {
+    const updateUserHandler = handle("update_user", "dashboard", (data) => {
+      if (!data.was_requested) {
+        console.log("Processing update_user in dashboard");
+        dispatch(setUser(data.data));
+      }
+    });
+
+    return () => {
+      updateUserHandler();
+    };
+  }, [user]);
 
   useEffect(() => {
     connect(session.session_id);

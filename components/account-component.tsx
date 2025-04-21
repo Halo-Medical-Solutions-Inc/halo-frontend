@@ -8,44 +8,67 @@ import { Select, SelectTrigger, SelectContent, SelectGroup, SelectLabel, SelectI
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { languages } from "@/store/types";
+import { languages, specialties } from "@/store/types";
 import { useDispatch } from "react-redux";
+import useWebSocket, { handle } from "@/lib/websocket";
+import { useDebouncedSend } from "@/lib/utils";
+import { setUser } from "@/store/slices/userSlice";
 
 export default function AccountComponent() {
   const dispatch = useDispatch();
-
   const user = useSelector((state: RootState) => state.user.user);
   const templates = useSelector((state: RootState) => state.template.templates);
+  const session = useSelector((state: RootState) => state.session.session);
+  const { send } = useWebSocket();
+  const debouncedSend = useDebouncedSend(send);
 
-  const [name, setName] = useState(user?.name);
-  const [email, setEmail] = useState(user?.email);
-  const [speciality, setSpeciality] = useState("");
-  const [defaultTemplateId, setDefaultTemplateId] = useState(user?.default_template_id);
-  const [defaultLanguage, setDefaultLanguage] = useState(user?.default_language);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [retypePassword, setRetypePassword] = useState("");
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setUser({ ...user, name: e.target.value }));
+    debouncedSend({
+      type: "update_user",
+      session_id: session.session_id,
+      data: {
+        user_id: user?.user_id,
+        name: e.target.value,
+      },
+    });
+  };
 
-  useEffect(() => {
-    setName(user?.name);
-    setValidationErrors({ ...validationErrors, name: "" });
-  }, [user?.name]);
+  const selectSpecialty = (value: string) => {
+    dispatch(setUser({ ...user, user_specialty: value }));
+    send({
+      type: "update_user",
+      session_id: session.session_id,
+      data: {
+        user_id: user?.user_id,
+        user_specialty: value,
+      },
+    });
+  };
 
-  useEffect(() => {
-    setEmail(user?.email);
-    setValidationErrors({ ...validationErrors, email: "" });
-  }, [user?.email]);
+  const selectDefaultTemplate = (value: string) => {
+    dispatch(setUser({ ...user, default_template_id: value }));
+    send({
+      type: "update_user",
+      session_id: session.session_id,
+      data: {
+        user_id: user?.user_id,
+        default_template_id: value,
+      },
+    });
+  };
 
-  useEffect(() => {
-    setDefaultTemplateId(user?.default_template_id);
-    setValidationErrors({ ...validationErrors, defaultTemplate: "" });
-  }, [user?.default_template_id]);
-
-  useEffect(() => {
-    setDefaultLanguage(user?.default_language);
-    setValidationErrors({ ...validationErrors, defaultLanguage: "" });
-  }, [user?.default_language]);
+  const selectDefaultLanguage = (value: string) => {
+    dispatch(setUser({ ...user, default_language: value }));
+    send({
+      type: "update_user",
+      session_id: session.session_id,
+      data: {
+        user_id: user?.user_id,
+        default_language: value,
+      },
+    });
+  };
 
   const saveAccount = () => {
     //TODO: Implement save account
@@ -54,6 +77,7 @@ export default function AccountComponent() {
   const saveDefault = () => {
     //TODO: Implement save default
   };
+  
   const savePassword = () => {
     //TODO: Implement save password
   };
@@ -88,8 +112,7 @@ export default function AccountComponent() {
               <Label>
                 Name<span className="text-destructive">*</span>
               </Label>
-              <Input id="name" type="text" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} className={validationErrors.name ? "!border-destructive !ring-destructive" : ""} />
-              {validationErrors.name && <p className="text-xs text-destructive">{validationErrors.name}</p>}
+              <Input id="name" type="text" placeholder="John Doe" value={user?.name} onChange={(e) => nameChange(e)} />
             </div>
 
             {/* <div className="space-y-2">
@@ -100,25 +123,21 @@ export default function AccountComponent() {
               {validationErrors.email && <p className="text-xs text-destructive">{validationErrors.email}</p>}
             </div> */}
             <Label>
-              Select speciality
+              Select specialty
               <span className="text-destructive" />
             </Label>
-            <Select value={speciality} onValueChange={(value) => setSpeciality(value)}>
+            <Select value={user?.user_specialty} onValueChange={(value) => selectSpecialty(value)}>
               <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
-                <SelectValue placeholder="Select a speciality" />
+                <SelectValue placeholder="Select a specialty" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>Specialities</SelectLabel>
-                  <SelectItem value="speciality1">Orthopedics</SelectItem>
-                  <SelectItem value="speciality2">Neurosurgery</SelectItem>
-                  <SelectItem value="speciality3">Cardiology</SelectItem>
-                  <SelectItem value="speciality4">Rheumatology</SelectItem>
-                  <SelectItem value="speciality5">Pediatrics</SelectItem>
-                  <SelectItem value="speciality6">Urology</SelectItem>
-                  <SelectItem value="speciality7">Dermatology</SelectItem>
-                  <SelectItem value="speciality8">Endocrinology</SelectItem>
-                  <SelectItem value="speciality9">Gastroenterology</SelectItem>
+                  <SelectLabel>Specialties</SelectLabel>
+                  {specialties.map((specialty) => (
+                    <SelectItem key={specialty.specialty_id} value={specialty.specialty_id}>
+                      {specialty.name}
+                    </SelectItem>
+                  ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -140,7 +159,7 @@ export default function AccountComponent() {
                 Default template
                 <span className="text-destructive" />
               </Label>
-              <Select value={defaultTemplateId} onValueChange={(value) => setDefaultTemplateId(value)}>
+              <Select value={user?.default_template_id} onValueChange={(value) => selectDefaultTemplate(value)}>
                 <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
@@ -162,7 +181,7 @@ export default function AccountComponent() {
                 Default language
                 <span className="text-destructive" />
               </Label>
-              <Select value={defaultLanguage} onValueChange={(value) => setDefaultLanguage(value)}>
+              <Select value={user?.default_language} onValueChange={(value) => selectDefaultLanguage(value)}>
                 <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
                   <SelectValue placeholder="Select a language" />
                 </SelectTrigger>

@@ -6,6 +6,7 @@ interface User {
   name?: string;
   email?: string;
   password?: string;
+  user_specialty?: string;
   default_template_id?: string;
   default_language?: string;
   template_ids?: string[];
@@ -77,5 +78,36 @@ export const languages = [
   {
     language_id: "zh",
     name: "Chinese",
+  },
+];
+
+export const specialties = [
+  {
+    specialty_id: "primary_care",
+    name: "Primary Care",
+  },
+  {
+    specialty_id: "specialty_care",
+    name: "Specialty Care",
+  },
+  {
+    specialty_id: "mental_health",
+    name: "Mental Health",
+  },
+  {
+    specialty_id: "pediatric",
+    name: "Pediatric",
+  },
+  {
+    specialty_id: "geriatric",
+    name: "Geriatric",
+  },
+  {
+    specialty_id: "women_health",
+    name: "Women's Health",
+  },
+  {
+    specialty_id: "physical_therapy",
+    name: "Physical Therapy",
   },
 ];
