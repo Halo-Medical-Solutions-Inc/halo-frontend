@@ -1,13 +1,13 @@
 const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "ws://localhost:8000/user/ws";
 
 interface WebSocketMessage {
-  type: "create_template" | "update_template" | "delete_template" | "create_visit" | "update_visit" | "delete_visit";
+  type: "create_template" | "update_template" | "delete_template" | "create_visit" | "update_visit" | "delete_visit" | "start_recording" | "pause_recording" | "resume_recording" | "finish_recording" | "audio_chunk";
   session_id: string;
   data: Record<string, any>;
 }
 
 interface WebSocketResponse {
-  type: "create_template" | "update_template" | "delete_template" | "create_visit" | "update_visit" | "delete_visit";
+  type: "create_template" | "update_template" | "delete_template" | "create_visit" | "update_visit" | "delete_visit" | "start_recording" | "pause_recording" | "resume_recording" | "finish_recording" | "audio_chunk";
   data: Record<string, any>;
   was_requested: boolean;
 }

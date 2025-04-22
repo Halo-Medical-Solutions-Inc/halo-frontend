@@ -27,7 +27,7 @@ export default function NoteComponent() {
   const visits = useSelector((state: RootState) => state.visit.visits);
   const [transcriptView, setTranscriptView] = useState(false);
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
-  
+
   useEffect(() => {
     handle("delete_visit", "sidebar", (data) => {
       setIsDeletingVisit(false);
@@ -148,42 +148,42 @@ export default function NoteComponent() {
                     <span>Regenerate</span>
                   </DropdownMenuItem>
                   <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem
-                                    className="text-destructive focus:text-destructive hover:text-destructive"
-                                    onSelect={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                    }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                    <span>Delete Visit</span>
-                                  </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>This will permanently delete the visit. This action cannot be undone.</AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        deleteVisit();
-                                      }}
-                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                      disabled={isDeletingVisit}
-                                    >
-                                      {isDeletingVisit ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive hover:text-destructive"
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <span>Delete Visit</span>
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>This will permanently delete the visit. This action cannot be undone.</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            deleteVisit();
+                          }}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={isDeletingVisit}
+                        >
+                          {isDeletingVisit ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

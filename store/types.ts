@@ -3,7 +3,7 @@ import { TemplateState } from "./slices/templateSlice";
 import { UserState } from "./slices/userSlice";
 import { VisitState } from "./slices/visitSlice";
 
-export type WebSocketMessageType = "create_template" | "update_template" | "delete_template" | "create_visit" | "update_visit" | "delete_visit";
+export type WebSocketMessageType = "create_template" | "update_template" | "delete_template" | "create_visit" | "update_visit" | "delete_visit" | "start_recording" | "pause_recording" | "resume_recording" | "finish_recording" | "audio_chunk";
 
 export interface WebSocketMessage {
   type: WebSocketMessageType;
