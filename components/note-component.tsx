@@ -9,13 +9,75 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ExpandingTextarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
-import { useDebouncedSend } from "@/lib/utils";
+import { useDebouncedSend, WITH_BASIC_INIT_VALUE } from "@/lib/utils";
 import { setScreen } from "@/store/slices/sessionSlice";
+import YooptaEditor, { createYooptaEditor, Elements, Blocks, useYooptaEditor, YooptaContentValue, YooptaOnChangeOptions } from "@yoopta/editor";
+
+import Paragraph from "@yoopta/paragraph";
+import Blockquote from "@yoopta/blockquote";
+import Embed from "@yoopta/embed";
+import Image from "@yoopta/image";
+import Link from "@yoopta/link";
+import Callout from "@yoopta/callout";
+import Video from "@yoopta/video";
+import File from "@yoopta/file";
+import Accordion from "@yoopta/accordion";
+import { NumberedList, BulletedList, TodoList } from "@yoopta/lists";
+import { Bold, Italic, CodeMark, Underline, Strike, Highlight } from "@yoopta/marks";
+import { HeadingOne, HeadingThree, HeadingTwo } from "@yoopta/headings";
+import Code from "@yoopta/code";
+import Table from "@yoopta/table";
+import Divider from "@yoopta/divider";
+import ActionMenuList, { DefaultActionMenuRender } from "@yoopta/action-menu-list";
+import Toolbar, { DefaultToolbarRender } from "@yoopta/toolbar";
+import LinkTool, { DefaultLinkToolRender } from "@yoopta/link-tool";
+
+const plugins = [
+  Paragraph,
+  Table,
+  Divider.extend({
+    elementProps: {
+      divider: (props) => ({
+        ...props,
+        color: "#007aff",
+      }),
+    },
+  }),
+  Accordion,
+  HeadingOne,
+  HeadingTwo,
+  HeadingThree,
+  Blockquote,
+  Callout,
+  NumberedList,
+  BulletedList,
+  TodoList,
+  Code,
+  Link,
+  Embed,
+];
+
+const TOOLS = {
+  ActionMenu: {
+    render: DefaultActionMenuRender,
+    tool: ActionMenuList,
+  },
+  Toolbar: {
+    render: DefaultToolbarRender,
+    tool: Toolbar,
+  },
+  LinkTool: {
+    render: DefaultLinkToolRender,
+    tool: LinkTool,
+  },
+};
+
+const MARKS = [Bold, Italic, CodeMark, Underline, Strike, Highlight];
 
 export default function NoteComponent() {
   const dispatch = useDispatch();
@@ -28,6 +90,21 @@ export default function NoteComponent() {
   const visits = useSelector((state: RootState) => state.visit.visits);
   const [transcriptView, setTranscriptView] = useState(false);
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
+
+  const [value, setValue] = useState<YooptaContentValue>(WITH_BASIC_INIT_VALUE || {});
+  const editor = useMemo(() => {
+    const editorInstance = createYooptaEditor();
+    return editorInstance;
+  }, []);
+  const selectionRef = useRef(null);
+
+  console.log(value);
+
+  const onChange = (newValue: YooptaContentValue, options: YooptaOnChangeOptions) => {
+    if (newValue) {
+      setValue(newValue);
+    }
+  };
 
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "note", (data) => {
@@ -140,8 +217,6 @@ export default function NoteComponent() {
     // TODO: Implement copy all note
   };
 
-  console.log(selectedVisit?.template_modified_at);
-  console.log(templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at);
   return (
     <SidebarInset>
       <header className="flex h-14 shrink-0 items-center gap-2">
@@ -252,7 +327,7 @@ export default function NoteComponent() {
             </div>
           </div>
 
-          {selectedVisit?.template_modified_at && templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at && new Date(selectedVisit?.template_modified_at.replace(" ", "T") + "Z") < new Date(templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at.replace(" ", "T") + "Z" || "") && !transcriptView && (
+          {selectedVisit?.template_modified_at && selectedVisit?.template_id && templates.find((t) => t.template_id === selectedVisit.template_id)?.modified_at && new Date(selectedVisit.template_modified_at.replace(" ", "T") + "Z") < new Date((templates.find((t) => t.template_id === selectedVisit.template_id)?.modified_at || "").replace(" ", "T") + "Z") && !transcriptView && (
             <div className="flex items-center justify-between p-4 w-full bg-muted rounded-md border-border border">
               <div className="flex flex-col">
                 <span className="text-sm font-medium">Template Updated</span>
@@ -305,8 +380,20 @@ export default function NoteComponent() {
                 </div>
               </>
             ) : (
-              <div className="relative group">
-                <ExpandingTextarea id={`note`} minHeight={0} maxHeight={10000} value={selectedVisit?.note} onChange={noteChange} className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" />
+              <div className="relative" ref={selectionRef}>
+                {editor && (
+                  <YooptaEditor 
+                  className="w-full"
+                    editor={editor} 
+                    plugins={plugins} 
+                    tools={TOOLS} 
+                    marks={MARKS} 
+                    selectionBoxRoot={selectionRef} 
+                    value={value} 
+                    onChange={onChange} 
+                    autoFocus 
+                  />
+                )}
               </div>
             )}
           </div>

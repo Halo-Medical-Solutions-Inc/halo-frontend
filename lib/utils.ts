@@ -63,7 +63,6 @@ export const formatLocalDateAndTime = (utcDateString: string | undefined, defaul
 };
 
 export const getTimeDifference = (olderDate: string, newerDate?: string): string => {
-  console.log(olderDate, newerDate);
   const older = new Date(olderDate);
   const newer = newerDate ? new Date(newerDate) : new Date();
 
@@ -73,12 +72,37 @@ export const getTimeDifference = (olderDate: string, newerDate?: string): string
   const diffDays = Math.floor(diffMs / 86400000);
 
   if (diffMinutes < 1) {
-    return "Just now";
+    return "just now";
   } else if (diffMinutes < 60) {
     return `${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""} ago`;
   } else if (diffHours < 24) {
     return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
   } else {
     return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
+  }
+};
+
+export const WITH_BASIC_INIT_VALUE: any = {
+  '9d98408d-b990-4ffc-a1d7-387084291b00': {
+    id: '9d98408d-b990-4ffc-a1d7-387084291b00',
+    value: [
+      {
+        id: '0508777e-52a4-4168-87a0-bc7661e57aab',
+        type: 'heading-one',
+        children: [
+          {
+            text: 'Example with full setup of Yoopta-Editor',
+          },
+        ],
+        props: {
+          nodeType: 'block',
+        },
+      },
+    ],
+    type: 'HeadingOne',
+    meta: {
+      order: 0,
+      depth: 0,
+    },
   }
 };

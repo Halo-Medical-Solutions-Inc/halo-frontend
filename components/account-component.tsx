@@ -77,7 +77,7 @@ export default function AccountComponent() {
   const saveDefault = () => {
     //TODO: Implement save default
   };
-  
+
   const savePassword = () => {
     //TODO: Implement save password
   };

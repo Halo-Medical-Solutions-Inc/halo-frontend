@@ -7,15 +7,15 @@ import NoteComponent from "@/components/note-component";
 import RecordComponent from "@/components/record-component";
 import TemplateComponent from "@/components/template-component";
 import TemplatesComponent from "@/components/templates-component";
-import { setUser } from "@/store/slices/userSlice";
-import { setTemplate, setTemplates } from "@/store/slices/templateSlice";
-import { setVisit, setVisits } from "@/store/slices/visitSlice";
+import { clearUser, setUser } from "@/store/slices/userSlice";
+import { clearSelectedTemplate, setTemplate, setTemplates } from "@/store/slices/templateSlice";
+import { clearSelectedVisit, setVisit, setVisits } from "@/store/slices/visitSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { RootState } from "@/store/store";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { apiGetUser, apiGetUserTemplates, apiGetUserVisits } from "@/store/api";
-import { setScreen } from "@/store/slices/sessionSlice";
+import { clearSession, setScreen } from "@/store/slices/sessionSlice";
 
 export default function Page() {
   const dispatch = useDispatch();
@@ -91,8 +91,19 @@ export default function Page() {
       }
     });
 
+    const errorHandler = handle("error", "dashboard", (data) => {
+      if (data.was_requested && data.data.message === "Invalid session") {
+        dispatch(clearSelectedTemplate());
+        dispatch(clearSelectedVisit());
+        dispatch(clearUser());
+        dispatch(clearSession());
+        window.location.href = "/signin";
+      }
+    });
+
     return () => {
       updateUserHandler();
+      errorHandler();
     };
   }, [user]);
 

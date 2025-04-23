@@ -19,6 +19,7 @@ import { Template } from "@/store/types";
 import { setScreen } from "@/store/slices/sessionSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { formatLocalDateAndTime, useDebouncedSend } from "@/lib/utils";
+import { setUser } from "@/store/slices/userSlice";
 
 export default function TemplatesComponent() {
   const dispatch = useDispatch();
@@ -73,7 +74,7 @@ export default function TemplatesComponent() {
 
   const deleteTemplate = (template: Template) => {
     setIsDeletingTemplate(true);
-    debouncedSend({
+    send({
       type: "delete_template",
       session_id: session.session_id,
       data: {
@@ -87,7 +88,15 @@ export default function TemplatesComponent() {
   };
 
   const setDefaultTemplate = (template: Template) => {
-    // TODO: Implement set default template
+    dispatch(setUser({ ...user, default_template_id: template.template_id }));
+    send({
+      type: "update_user",
+      session_id: session.session_id,
+      data: {
+        user_id: user?.user_id,
+        default_template_id: template.template_id,
+      },
+    });
   };
 
   return (
@@ -166,7 +175,12 @@ export default function TemplatesComponent() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="w-auto" align="end">
-                            <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDefaultTemplate(template);
+                              }}
+                            >
                               <CheckCircle className="h-4 w-4" />
                               <span>Set Default</span>
                             </DropdownMenuItem>
