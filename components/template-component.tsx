@@ -16,6 +16,7 @@ import { setSelectedTemplate, clearSelectedTemplate, setTemplates } from "@/stor
 import { setScreen } from "@/store/slices/sessionSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend, getTimeDifference } from "@/lib/utils";
+import AnimatedLoadingSkeleton from "@/components/ui/animated-loading-skeleton";
 
 export default function TemplateComponent() {
   const dispatch = useDispatch();
@@ -23,7 +24,7 @@ export default function TemplateComponent() {
   const debouncedSend = useDebouncedSend(send);
 
   const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
-
+  const [isPolishingTemplate, setIsPolishingTemplate] = useState(false);
   const session = useSelector((state: RootState) => state.session.session);
   const selectedTemplate = useSelector((state: RootState) => state.template.selectedTemplate);
   const templates = useSelector((state: RootState) => state.template.templates);
@@ -84,7 +85,10 @@ export default function TemplateComponent() {
   };
 
   const polishTemplate = () => {
-    // TODO: Implement polish template
+    setIsPolishingTemplate(true);
+    setTimeout(() => {
+      setIsPolishingTemplate(false);
+    }, 15000);
   };
 
   return (
@@ -165,24 +169,28 @@ export default function TemplateComponent() {
                 <ArrowLeft className="h-4 w-4" />
                 Back
               </Button>
-              <Button>
+              <Button onClick={polishTemplate}>
                 <Sparkles className="h-4 w-4" />
                 Polish
               </Button>
             </div>
           </div>
           <Separator className="my-2 bg-border h-[1px]" />
-          <ExpandingTextarea
-            minHeight={200}
-            maxHeight={10000}
-            value={selectedTemplate?.instructions}
-            onChange={instructionsChange}
-            placeholder={`Create or insert you're EMR template here
+          {isPolishingTemplate ? (
+            <AnimatedLoadingSkeleton />
+          ) : (
+            <ExpandingTextarea
+              minHeight={200}
+              maxHeight={10000}
+              value={selectedTemplate?.instructions}
+              onChange={instructionsChange}
+              placeholder={`Create or insert you're EMR template here
 - Use ##Title Name## to define sections.
 - {Use curly braces} for providing AI instructions.
 - For Epic users, Halo recognizes your @smartlinks@.`}
-            className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none"
-          />
+              className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none"
+            />
+          )}
         </div>
       </div>
     </SidebarInset>

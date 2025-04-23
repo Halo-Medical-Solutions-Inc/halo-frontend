@@ -14,7 +14,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
-import { useDebouncedSend } from "@/lib/utils";
+import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as downloadNoteAsPDFUtil, downloadNoteAsPDF } from "@/lib/utils";
 import { setScreen } from "@/store/slices/sessionSlice";
 
 export default function NoteComponent() {
@@ -26,8 +26,10 @@ export default function NoteComponent() {
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
   const visits = useSelector((state: RootState) => state.visit.visits);
+
   const [transcriptView, setTranscriptView] = useState(false);
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "note", (data) => {
@@ -129,19 +131,26 @@ export default function NoteComponent() {
   };
 
   const printNote = () => {
-    // TODO: Implement print note
+    const name = selectedVisit?.name || "New Visit";
+    const content = transcriptView ? selectedVisit?.transcript || "" : selectedVisit?.note || "";
+    printNoteUtil(name, content);
   };
 
   const downloadNote = () => {
-    // TODO: Implement download note
+    const name = selectedVisit?.name || "New Visit";
+    const content = transcriptView ? selectedVisit?.transcript || "" : selectedVisit?.note || "";
+    downloadNoteAsPDFUtil(name, content);
   };
 
   const copyAllNote = () => {
-    // TODO: Implement copy all note
+    const textToCopy = transcriptView ? selectedVisit?.transcript + "\n\n" + selectedVisit?.additional_context : selectedVisit?.note;
+    if (textToCopy) {
+      navigator.clipboard.writeText(textToCopy);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
   };
 
-  console.log(selectedVisit?.template_modified_at);
-  console.log(templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at);
   return (
     <SidebarInset>
       <header className="flex h-14 shrink-0 items-center gap-2">
@@ -167,11 +176,11 @@ export default function NoteComponent() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-auto" align="end">
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={printNote}>
                     <Printer className="h-4 w-4" />
                     <span>Print</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={downloadNote}>
                     <Download className="h-4 w-4" />
                     <span>Download</span>
                   </DropdownMenuItem>
@@ -245,14 +254,14 @@ export default function NoteComponent() {
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              <Button>
-                <Copy className="h-4 w-4" />
+              <Button onClick={copyAllNote}>
+                {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 Copy all
               </Button>
             </div>
           </div>
 
-          {selectedVisit?.template_modified_at && templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at && new Date(selectedVisit?.template_modified_at.replace(" ", "T") + "Z") < new Date(templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at.replace(" ", "T") + "Z" || "") && !transcriptView && (
+          {selectedVisit?.template_modified_at && selectedVisit?.template_id && templates.find((t) => t.template_id === selectedVisit.template_id)?.modified_at && new Date(selectedVisit.template_modified_at.replace(" ", "T") + "Z") < new Date((templates.find((t) => t.template_id === selectedVisit.template_id)?.modified_at || "").replace(" ", "T") + "Z") && !transcriptView && (
             <div className="flex items-center justify-between p-4 w-full bg-muted rounded-md border-border border">
               <div className="flex flex-col">
                 <span className="text-sm font-medium">Template Updated</span>
@@ -272,14 +281,7 @@ export default function NoteComponent() {
                 <div className="flex flex-col">
                   <div className="flex items-center justify-between">
                     <div className="w-full flex items-center relative group">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="text-sm font-bold text-primary truncate cursor-pointer hover:text-primary/80">TRANSCRIPT</span>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="flex items-center gap-1">
-                          Click to copy
-                        </TooltipContent>
-                      </Tooltip>
+                      <span className="text-sm font-bold text-primary truncate">TRANSCRIPT</span>
                     </div>
                   </div>
                   <div className="relative group mt-2">
@@ -289,14 +291,7 @@ export default function NoteComponent() {
                 <div className="flex flex-col">
                   <div className="flex items-center justify-between">
                     <div className="w-full flex items-center relative group">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="text-sm font-bold text-primary truncate cursor-pointer hover:text-primary/80">ADDITIONAL CONTEXT</span>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="flex items-center gap-1">
-                          Click to copy
-                        </TooltipContent>
-                      </Tooltip>
+                      <span className="text-sm font-bold text-primary truncate">ADDITIONAL CONTEXT</span>
                     </div>
                   </div>
                   <div className="relative group mt-2">

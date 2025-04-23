@@ -13,7 +13,7 @@ import { useDispatch } from "react-redux";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
 import { setUser } from "@/store/slices/userSlice";
-
+import { Loader2 } from "lucide-react";
 export default function AccountComponent() {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
@@ -21,6 +21,9 @@ export default function AccountComponent() {
   const session = useSelector((state: RootState) => state.session.session);
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
+
+  const [isSavingAccount, setIsSavingAccount] = useState(false);
+  const [isSavingDefault, setIsSavingDefault] = useState(false);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setUser({ ...user, name: e.target.value }));
@@ -71,13 +74,19 @@ export default function AccountComponent() {
   };
 
   const saveAccount = () => {
-    //TODO: Implement save account
+    setIsSavingAccount(true);
+    setTimeout(() => {
+      setIsSavingAccount(false);
+    }, 2000);
   };
 
   const saveDefault = () => {
-    //TODO: Implement save default
+    setIsSavingDefault(true);
+    setTimeout(() => {
+      setIsSavingDefault(false);
+    }, 2000);
   };
-  
+
   const savePassword = () => {
     //TODO: Implement save password
   };
@@ -115,13 +124,6 @@ export default function AccountComponent() {
               <Input id="name" type="text" placeholder="John Doe" value={user?.name} onChange={(e) => nameChange(e)} />
             </div>
 
-            {/* <div className="space-y-2">
-              <Label>
-                Email<span className="text-destructive">*</span>
-              </Label>
-              <Input id="email" type="email" placeholder="email@halo.com" value={email} onChange={(e) => setEmail(e.target.value)} className={validationErrors.email ? "!border-destructive !ring-destructive" : ""} />
-              {validationErrors.email && <p className="text-xs text-destructive">{validationErrors.email}</p>}
-            </div> */}
             <Label>
               Select specialty
               <span className="text-destructive" />
@@ -143,8 +145,8 @@ export default function AccountComponent() {
             </Select>
 
             <div className="flex items-center gap-2">
-              <Button type="submit" onClick={saveAccount}>
-                Save Changes
+              <Button type="submit" onClick={saveAccount} disabled={isSavingAccount}>
+                {isSavingAccount ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
               </Button>
             </div>
           </div>
@@ -197,8 +199,8 @@ export default function AccountComponent() {
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" onClick={saveDefault}>
-              Save
+            <Button type="submit" onClick={saveDefault} disabled={isSavingDefault}>
+              {isSavingDefault ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
             </Button>
           </div>
         </div>

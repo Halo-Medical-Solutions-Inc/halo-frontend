@@ -63,7 +63,6 @@ export const formatLocalDateAndTime = (utcDateString: string | undefined, defaul
 };
 
 export const getTimeDifference = (olderDate: string, newerDate?: string): string => {
-  console.log(olderDate, newerDate);
   const older = new Date(olderDate);
   const newer = newerDate ? new Date(newerDate) : new Date();
 
@@ -81,4 +80,132 @@ export const getTimeDifference = (olderDate: string, newerDate?: string): string
   } else {
     return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
   }
+};
+
+export const printNote = (visitName: string, noteContent: string) => {
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) return;
+
+  const currentDate = new Date().toLocaleDateString();
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>${visitName} - Halo Note</title>
+        <style>
+          body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+          }
+          .header {
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+          }
+          .title {
+            font-size: 24px;
+            font-weight: bold;
+          }
+          .date {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+          }
+          .content {
+            white-space: pre-wrap;
+          }
+          @media print {
+            body {
+              margin: 0.5in;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="title">${visitName}</div>
+          <div class="date">Generated on ${currentDate}</div>
+        </div>
+        <div class="content">${noteContent}</div>
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+
+  // Slight delay to ensure content is loaded before printing
+  setTimeout(() => {
+    printWindow.print();
+    printWindow.onafterprint = () => printWindow.close();
+  }, 300);
+};
+
+export const downloadNoteAsPDF = async (visitName: string, noteContent: string) => {
+  // For a production app, you would typically use a PDF library like jsPDF
+  // This is a simple implementation using the browser's print functionality
+  // to save as PDF (which works on modern browsers)
+
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) return;
+
+  const fileName = `${visitName.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_note.pdf`;
+  const currentDate = new Date().toLocaleDateString();
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>${visitName} - Halo Note</title>
+        <style>
+          body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+          }
+          .header {
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+          }
+          .title {
+            font-size: 24px;
+            font-weight: bold;
+          }
+          .date {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+          }
+          .content {
+            white-space: pre-wrap;
+          }
+          @media print {
+            body {
+              margin: 0.5in;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="title">${visitName}</div>
+          <div class="date">Generated on ${currentDate}</div>
+        </div>
+        <div class="content">${noteContent}</div>
+        <script>
+          document.title = "${fileName}";
+        </script>
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+
+  // Slight delay to ensure content is loaded before printing
+  setTimeout(() => {
+    printWindow.print();
+    // The user will select "Save as PDF" in the print dialog
+  }, 300);
 };
