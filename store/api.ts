@@ -51,3 +51,13 @@ export async function apiGetUserVisits(sessionId: string): Promise<Visit[]> {
   if (!response.ok) throw new Error("Failed to get user visits");
   return response.json();
 }
+
+export async function processAudioBuffer(sessionId: string, visitId: string, audioBuffer: ArrayBuffer): Promise<string> {
+  const response = await fetch(`${API_URL}/audio/process_audio_buffer`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId, visit_id: visitId, audio_buffer: audioBuffer }),
+  });
+  if (!response.ok) throw new Error("Failed to process audio buffer");
+  return response.json();
+}

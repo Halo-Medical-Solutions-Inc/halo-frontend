@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "./ui/textarea";
-import { CheckCircle, Loader2, Mic, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2 } from "lucide-react";
+import { CheckCircle, Loader2, Mic, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2, Wifi, WifiOff } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "./ui/input";
 import { AudioVisualizer } from "./ui/audio-visualizer";
@@ -36,6 +36,17 @@ export default function RecordComponent() {
   const [isAdditionalContextFocused, setIsAdditionalContextFocused] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
+
+  const [startRecordingLoading, setStartRecordingLoading] = useState(false);
+  const [pauseRecordingLoading, setPauseRecordingLoading] = useState(false);
+  const [resumeRecordingLoading, setResumeRecordingLoading] = useState(false);
+  const [finishRecordingLoading, setFinishRecordingLoading] = useState(false);
+
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const processorNodeRef = useRef<ScriptProcessorNode | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const isRecordingRef = useRef<boolean>(false);
+  const isInternetConnectedRef = useRef<boolean>(navigator.onLine);
 
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "record", (data) => {
@@ -72,8 +83,45 @@ export default function RecordComponent() {
       }
     });
 
+    const startRecordingHandler = handle("start_recording", "record", (data) => {
+      if (data.was_requested) {
+        console.log("Processing start_recording in record");
+        dispatch(setSelectedVisit({ ...selectedVisit, status: data.data.status, recording_started_at: data.data.recording_started_at }));
+        setStartRecordingLoading(false);
+      }
+    });
+
+    const resumeRecordingHandler = handle("resume_recording", "record", (data) => {
+      if (data.was_requested) {
+        console.log("Processing resume_recording in record");
+        dispatch(setSelectedVisit({ ...selectedVisit, status: data.data.status, recording_started_at: data.data.recording_started_at }));
+        setResumeRecordingLoading(false);
+      }
+    });
+
+    const pauseRecordingHandler = handle("pause_recording", "record", (data) => {
+      if (data.was_requested) {
+        console.log("Processing pause_recording in record");
+        dispatch(setSelectedVisit({ ...selectedVisit, status: data.data.status, recording_started_at: data.data.recording_started_at }));
+        setPauseRecordingLoading(false);
+      }
+    });
+
+    const finishRecordingHandler = handle("finish_recording", "record", (data) => {
+      if (data.was_requested) {
+        console.log("Processing finish_recording in record");
+        dispatch(setSelectedVisit({ ...selectedVisit, status: data.data.status, recording_started_at: data.data.recording_started_at, recording_finished_at: data.data.recording_finished_at, transcript: data.data.transcript }));
+        setFinishRecordingLoading(false);
+        dispatch(setScreen("NOTE"));
+      }
+    });
+
     return () => {
       deleteVisitHandler();
+      startRecordingHandler();
+      resumeRecordingHandler();
+      pauseRecordingHandler();
+      finishRecordingHandler();
     };
   }, [visits]);
 
@@ -104,6 +152,57 @@ export default function RecordComponent() {
         name: e.target.value,
       },
     });
+  };
+
+  const startAudioProcessing = () => {
+    try {
+      console.log("Starting audio processing in record");
+      if (!streamRef.current) return;
+
+      audioContextRef.current = new AudioContext({
+        sampleRate: 16000,
+      });
+
+      const source = audioContextRef.current.createMediaStreamSource(streamRef.current);
+
+      processorNodeRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
+      processorNodeRef.current.connect(audioContextRef.current.destination);
+
+      console.log("Processor node connected in record");
+
+      processorNodeRef.current.onaudioprocess = (e) => {
+        console.log("Processing audio chunk in record");
+        if (isRecordingRef.current) {
+          const inputData = e.inputBuffer.getChannelData(0);
+
+          const pcmData = new Int16Array(inputData.length);
+          for (let i = 0; i < inputData.length; i++) {
+            pcmData[i] = Math.max(-1, Math.min(1, inputData[i])) * 0x7fff;
+          }
+
+          const binary = new Uint8Array(pcmData.buffer);
+          const base64 = btoa(binary.reduce((data, byte) => data + String.fromCharCode(byte), ""));
+          send({
+            type: "audio_chunk",
+            session_id: session.session_id,
+            data: { audio: base64 },
+          });
+        }
+      };
+
+      source.connect(processorNodeRef.current);
+      console.log("Audio processing initialized");
+    } catch (error) {
+      console.error("Error initializing audio processing:", error);
+      return;
+    }
+  };
+
+  const stopAudioProcessing = () => {
+    if (processorNodeRef.current) {
+      processorNodeRef.current.disconnect();
+      processorNodeRef.current = null;
+    }
   };
 
   const additionalContextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -153,23 +252,107 @@ export default function RecordComponent() {
     });
   };
 
-  const startRecording = () => {
-    const errors: Record<string, string> = !selectedVisit?.template_id ? { template: "Please select a template" } : {};
+  const startRecording = async () => {
+    setStartRecordingLoading(true);
 
+    const errors: Record<string, string> = !selectedVisit?.template_id ? { template: "Please select a template" } : {};
     setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    streamRef.current = stream;
+
+    send({
+      type: "start_recording",
+      session_id: session.session_id,
+      data: {
+        visit_id: selectedVisit?.visit_id,
+      },
+    });
+
+    isRecordingRef.current = true;
+
+    startAudioProcessing();
   };
 
   const pauseRecording = () => {
-    // TODO: pause recording
+    setPauseRecordingLoading(true);
+
+    send({
+      type: "pause_recording",
+      session_id: session.session_id,
+      data: {
+        visit_id: selectedVisit?.visit_id,
+      },
+    });
+
+    isRecordingRef.current = false;
+
+    stopAudioProcessing();
   };
 
-  const resumeRecording = () => {
-    // TODO: resume recording
+  const resumeRecording = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    streamRef.current = stream;
+
+    setResumeRecordingLoading(true);
+    send({
+      type: "resume_recording",
+      session_id: session.session_id,
+      data: {
+        visit_id: selectedVisit?.visit_id,
+      },
+    });
+
+    isRecordingRef.current = true;
+
+    startAudioProcessing();
   };
 
   const finishRecording = () => {
-    // TODO: finish recording
+    setFinishRecordingLoading(true);
+
+    send({
+      type: "finish_recording",
+      session_id: session.session_id,
+      data: {
+        visit_id: selectedVisit?.visit_id,
+      },
+    });
+
+    isRecordingRef.current = false;
+
+    stopAudioProcessing();
   };
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    if (selectedVisit?.status === "RECORDING") {
+      intervalId = setInterval(() => {
+        const currentDuration = (selectedVisit.recording_duration || 0) + 1;
+
+        dispatch(setSelectedVisit({ ...selectedVisit, recording_duration: currentDuration }));
+        send({
+          type: "update_visit",
+          session_id: session.session_id,
+          data: {
+            visit_id: selectedVisit?.visit_id,
+            recording_duration: currentDuration,
+          },
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [selectedVisit]);
 
   return (
     <>
@@ -190,7 +373,13 @@ export default function RecordComponent() {
           <div className="ml-auto px-3">
             <div className="flex items-center gap-2 text-sm">
               <div className="flex items-center">
-                <span className="font-normal text-muted-foreground md:inline-block">{selectedVisit?.recording_duration || "Not started"}</span>
+                <span className="font-normal text-muted-foreground md:inline-block">
+                  {selectedVisit?.recording_duration
+                    ? `${Math.floor(selectedVisit.recording_duration / 60)
+                        .toString()
+                        .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
+                    : "Not started"}
+                </span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
@@ -315,12 +504,22 @@ export default function RecordComponent() {
             {selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
               <div className="flex items-center justify-between w-full gap-2">
                 <Button variant="outline" className="flex-1" onClick={finishRecording}>
-                  <CheckCircle className="h-4 w-4" />
-                  Finish
+                  {finishRecordingLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4" /> Finish
+                    </>
+                  )}
                 </Button>
                 <Button className="flex-1" onClick={startRecording}>
-                  <Mic className="h-4 w-4" />
-                  Start
+                  {startRecordingLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Mic className="h-4 w-4" /> Start
+                    </>
+                  )}
                 </Button>
               </div>
             )}
@@ -328,12 +527,27 @@ export default function RecordComponent() {
             {selectedVisit?.status === "RECORDING" && (
               <div className="flex items-center justify-between w-full gap-2">
                 <Button variant="outline" className="flex-1 border-destructive-border text-destructive hover:opacity-80 hover:text-destructive" onClick={pauseRecording}>
-                  <PauseCircle className="h-4 w-4 text-destructive" />
-                  00:32
+                  {pauseRecordingLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <PauseCircle className="h-4 w-4 text-destructive" />{" "}
+                      {selectedVisit?.recording_duration
+                        ? `${Math.floor(selectedVisit.recording_duration / 60)
+                            .toString()
+                            .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
+                        : "00:00"}
+                    </>
+                  )}
                 </Button>
                 <Button className="flex-1" onClick={finishRecording}>
-                  <CheckCircle className="h-4 w-4" />
-                  Finish
+                  {finishRecordingLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4" /> Finish
+                    </>
+                  )}
                 </Button>
               </div>
             )}
@@ -341,20 +555,40 @@ export default function RecordComponent() {
             {selectedVisit?.status === "PAUSED" && (
               <div className="flex items-center justify-between w-full gap-2">
                 <Button variant="outline" className="flex-1 border-warning-border text-warning hover:opacity-80 hover:text-warning" onClick={resumeRecording}>
-                  <PlayCircle className="h-4 w-4 text-warning" />
-                  00:32
+                  {resumeRecordingLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <PlayCircle className="h-4 w-4 text-warning" />{" "}
+                      {selectedVisit?.recording_duration
+                        ? `${Math.floor(selectedVisit.recording_duration / 60)
+                            .toString()
+                            .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
+                        : "00:00"}
+                    </>
+                  )}
                 </Button>
                 <Button className="flex-1" onClick={finishRecording}>
-                  <CheckCircle className="h-4 w-4" />
-                  Finish
+                  {finishRecordingLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4" /> Finish
+                    </>
+                  )}
                 </Button>
               </div>
             )}
 
             {!selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
               <Button className="w-full" onClick={startRecording}>
-                <Mic className="h-4 w-4" />
-                Start recording
+                {startRecordingLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <Mic className="h-4 w-4" /> Start recording
+                  </>
+                )}
               </Button>
             )}
           </div>

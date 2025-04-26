@@ -9,7 +9,7 @@ import TemplateComponent from "@/components/template-component";
 import TemplatesComponent from "@/components/templates-component";
 import { clearUser, setUser } from "@/store/slices/userSlice";
 import { clearSelectedTemplate, setTemplate, setTemplates } from "@/store/slices/templateSlice";
-import { clearSelectedVisit, setVisit, setVisits } from "@/store/slices/visitSlice";
+import { clearSelectedVisit, setSelectedVisit, setVisit, setVisits } from "@/store/slices/visitSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { RootState } from "@/store/store";
@@ -24,6 +24,7 @@ export default function Page() {
   const user = useSelector((state: RootState) => state.user.user);
   const session = useSelector((state: RootState) => state.session.session);
   const screen = useSelector((state: RootState) => state.session.screen);
+  const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
   const visits = useSelector((state: RootState) => state.visit.visits);
 
@@ -49,12 +50,52 @@ export default function Page() {
       }
     });
 
+    const startRecordingHandler = handle("start_recording", "dashboard", (data) => {
+      if (!data.was_requested) {
+        console.log("Processing start_recording in dashboard");
+        if (selectedVisit?.visit_id == data.data.visit_id) {
+          dispatch(clearSelectedVisit());
+          dispatch(setScreen("ACCOUNT"));
+        }
+        dispatch(setVisit(data.data));
+      }
+    });
+
+    const pauseRecordingHandler = handle("pause_recording", "dashboard", (data) => {
+      if (!data.was_requested) {
+        console.log("Processing pause_recording in dashboard");
+        dispatch(setVisit(data.data));
+      }
+    });
+
+    const resumeRecordingHandler = handle("resume_recording", "dashboard", (data) => {
+      if (!data.was_requested) {
+        console.log("Processing resume_recording in dashboard");
+        if (selectedVisit?.visit_id == data.data.visit_id) {
+          dispatch(clearSelectedVisit());
+          dispatch(setScreen("ACCOUNT"));
+        }
+        dispatch(setVisit(data.data));
+      }
+    });
+
+    const finishRecordingHandler = handle("finish_recording", "dashboard", (data) => {
+      if (!data.was_requested) {
+        console.log("Processing finish_recording in dashboard");
+        dispatch(setVisit(data.data));
+      }
+    });
+
     return () => {
       createVisitHandler();
       updateVisitHandler();
       deleteVisitHandler();
+      startRecordingHandler();
+      pauseRecordingHandler();
+      resumeRecordingHandler();
+      finishRecordingHandler();
     };
-  }, [visits]);
+  }, [visits, selectedVisit]);
 
   useEffect(() => {
     const createTemplateHandler = handle("create_template", "dashboard", (data) => {
@@ -107,6 +148,7 @@ export default function Page() {
         dispatch(clearSession());
         window.location.href = "/signin";
       }
+      console.log("Processing error in dashboard, data:", data);
     });
 
     return () => {

@@ -111,10 +111,6 @@ export default function NoteComponent() {
     }
   };
 
-  const polishNote = () => {
-    // TODO: Implement polish note
-  };
-
   const deleteVisit = () => {
     setIsDeletingVisit(true);
     send({
