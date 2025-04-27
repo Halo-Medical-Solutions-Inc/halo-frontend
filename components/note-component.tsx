@@ -16,7 +16,7 @@ import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as downloadNoteAsPDFUtil, downloadNoteAsPDF } from "@/lib/utils";
 import { setScreen } from "@/store/slices/sessionSlice";
-import AnimatedLoadingText from "@/components/ui/animated-loading-text";
+
 export default function NoteComponent() {
   const dispatch = useDispatch();
   const { send } = useWebSocket();
