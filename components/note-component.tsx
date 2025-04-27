@@ -16,7 +16,7 @@ import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as downloadNoteAsPDFUtil, downloadNoteAsPDF } from "@/lib/utils";
 import { setScreen } from "@/store/slices/sessionSlice";
-
+import AnimatedLoadingText from "@/components/ui/animated-loading-text";
 export default function NoteComponent() {
   const dispatch = useDispatch();
   const { send } = useWebSocket();
@@ -108,6 +108,10 @@ export default function NoteComponent() {
           template_id: value,
         },
       });
+
+      if (value != selectedVisit?.template_id) {
+        regenerateNote();
+      }
     }
   };
 
@@ -123,7 +127,13 @@ export default function NoteComponent() {
   };
 
   const regenerateNote = () => {
-    // TODO: Implement regenerate note
+    send({
+      type: "regenerate_note",
+      session_id: session.session_id,
+      data: {
+        visit_id: selectedVisit?.visit_id,
+      },
+    });
   };
 
   const printNote = () => {
@@ -147,6 +157,8 @@ export default function NoteComponent() {
     }
   };
 
+  console.log(selectedVisit?.status);
+
   return (
     <SidebarInset>
       <header className="flex h-14 shrink-0 items-center gap-2">
@@ -164,7 +176,13 @@ export default function NoteComponent() {
         <div className="ml-auto px-3">
           <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center">
-              <span className="font-normal text-muted-foreground md:inline-block">{Math.floor(selectedVisit?.recording_duration || 0 / 60)} minutes</span>
+              <span className="font-normal text-muted-foreground md:inline-block">
+                {selectedVisit?.recording_duration
+                  ? `${Math.floor(selectedVisit.recording_duration / 60)
+                      .toString()
+                      .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
+                  : "00:00"}
+              </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
@@ -180,7 +198,7 @@ export default function NoteComponent() {
                     <Download className="h-4 w-4" />
                     <span>Download</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={regenerateNote}>
                     <RefreshCw className="h-4 w-4" />
                     <span>Regenerate</span>
                   </DropdownMenuItem>
@@ -263,7 +281,7 @@ export default function NoteComponent() {
                 <span className="text-sm font-medium">Template Updated</span>
                 <span className="text-sm text-muted-foreground">The template seems to be updated. Please regenerate.</span>
               </div>
-              <Button>
+              <Button onClick={regenerateNote}>
                 <RefreshCw className="h-4 w-4" />
                 Regenerate
               </Button>

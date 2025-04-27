@@ -178,7 +178,7 @@ export default function AccountComponent() {
               </Select>
             </div>
 
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label>
                 Default language
                 <span className="text-destructive" />
@@ -198,7 +198,8 @@ export default function AccountComponent() {
                   </SelectGroup>
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
+
             <Button type="submit" onClick={saveDefault} disabled={isSavingDefault}>
               {isSavingDefault ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
             </Button>

@@ -60,6 +60,10 @@ export const languages = [
     name: "Spanish",
   },
   {
+    language_id: "hi",
+    name: "Hindi",
+  },
+  {
     language_id: "fr",
     name: "French",
   },

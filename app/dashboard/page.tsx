@@ -86,6 +86,11 @@ export default function Page() {
       }
     });
 
+    const noteGeneratedHandler = handle("note_generated", "dashboard", (data) => {
+      console.log("Processing note_generated in dashboard");
+      dispatch(setVisit(data.data));
+    });
+
     return () => {
       createVisitHandler();
       updateVisitHandler();
@@ -94,6 +99,7 @@ export default function Page() {
       pauseRecordingHandler();
       resumeRecordingHandler();
       finishRecordingHandler();
+      noteGeneratedHandler();
     };
   }, [visits, selectedVisit]);
 

@@ -16,7 +16,7 @@ import { AudioVisualizer } from "./ui/audio-visualizer";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { languages } from "@/store/types";
-import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
+import { setSelectedVisit, setVisit, setVisits } from "@/store/slices/visitSlice";
 import { useDispatch } from "react-redux";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
@@ -86,7 +86,7 @@ export default function RecordComponent() {
     const startRecordingHandler = handle("start_recording", "record", (data) => {
       if (data.was_requested) {
         console.log("Processing start_recording in record");
-        dispatch(setSelectedVisit({ ...selectedVisit, status: data.data.status, recording_started_at: data.data.recording_started_at }));
+        dispatch(setVisit(data.data));
         setStartRecordingLoading(false);
       }
     });
@@ -94,7 +94,7 @@ export default function RecordComponent() {
     const resumeRecordingHandler = handle("resume_recording", "record", (data) => {
       if (data.was_requested) {
         console.log("Processing resume_recording in record");
-        dispatch(setSelectedVisit({ ...selectedVisit, status: data.data.status, recording_started_at: data.data.recording_started_at }));
+        dispatch(setVisit(data.data));
         setResumeRecordingLoading(false);
       }
     });
@@ -102,7 +102,7 @@ export default function RecordComponent() {
     const pauseRecordingHandler = handle("pause_recording", "record", (data) => {
       if (data.was_requested) {
         console.log("Processing pause_recording in record");
-        dispatch(setSelectedVisit({ ...selectedVisit, status: data.data.status, recording_started_at: data.data.recording_started_at }));
+        dispatch(setVisit(data.data));
         setPauseRecordingLoading(false);
       }
     });
@@ -110,7 +110,7 @@ export default function RecordComponent() {
     const finishRecordingHandler = handle("finish_recording", "record", (data) => {
       if (data.was_requested) {
         console.log("Processing finish_recording in record");
-        dispatch(setSelectedVisit({ ...selectedVisit, status: data.data.status, recording_started_at: data.data.recording_started_at, recording_finished_at: data.data.recording_finished_at, transcript: data.data.transcript }));
+        dispatch(setVisit(data.data));
         setFinishRecordingLoading(false);
         dispatch(setScreen("NOTE"));
       }
@@ -460,7 +460,7 @@ export default function RecordComponent() {
 
             {validationErrors.template && <p className="text-xs text-destructive">{validationErrors.template}</p>}
 
-            <div className="flex items-center justify-between w-full">
+            {/* <div className="flex items-center justify-between w-full">
               <Label className="text-sm font-normal text-muted-foreground">
                 Select language
                 <span className="text-destructive">*</span>
@@ -480,7 +480,7 @@ export default function RecordComponent() {
                   </SelectGroup>
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
 
             {!isAdditionalContextFocused ? (
               <div className="flex items-center justify-between w-full">

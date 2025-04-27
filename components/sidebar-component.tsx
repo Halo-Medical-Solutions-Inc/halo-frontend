@@ -74,7 +74,7 @@ export default function SidebarComponent() {
 
   const selectVisit = (visit: Visit) => {
     dispatch(setSelectedVisit(visit));
-    if (visit.status === "FINISHED") {
+    if (visit.status === "FINISHED" || visit.status === "GENERATING_NOTE") {
       dispatch(setScreen("NOTE"));
     } else {
       dispatch(setScreen("RECORD"));
