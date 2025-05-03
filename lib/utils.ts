@@ -72,7 +72,7 @@ export const getTimeDifference = (olderDate: string, newerDate?: string): string
   const diffDays = Math.floor(diffMs / 86400000);
 
   if (diffMinutes < 1) {
-    return "Just now";
+    return "just now";
   } else if (diffMinutes < 60) {
     return `${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""} ago`;
   } else if (diffHours < 24) {

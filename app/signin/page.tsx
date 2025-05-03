@@ -13,6 +13,7 @@ import { setSession } from "@/store/slices/sessionSlice";
 import { setTemplates } from "@/store/slices/templateSlice";
 import { setVisits } from "@/store/slices/visitSlice";
 import { setUser } from "@/store/slices/userSlice";
+
 import useWebSocket from "@/lib/websocket";
 export default function Page() {
   const [email, setEmail] = useState("");
@@ -49,6 +50,19 @@ export default function Page() {
         if (session) {
           dispatch(setSession(session));
           localStorage.setItem("session", JSON.stringify(session));
+          if (session.session_id) {
+            apiGetUser(session.session_id).then((user) => {
+              dispatch(setUser(user));
+            });
+
+            apiGetUserTemplates(session.session_id).then((templates) => {
+              dispatch(setTemplates(templates));
+            });
+
+            apiGetUserVisits(session.session_id).then((visits) => {
+              dispatch(setVisits(visits));
+            });
+          }
           router.push("/dashboard");
         }
       } catch (err: any) {
@@ -57,7 +71,7 @@ export default function Page() {
           password: "Incorrect email or password",
         });
       } finally {
-        setIsLoading(false);
+        // setIsLoading(false);
       }
     }
   };

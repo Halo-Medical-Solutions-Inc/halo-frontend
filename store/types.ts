@@ -36,7 +36,7 @@ interface Template {
   user_id?: string;
   created_at?: string;
   modified_at?: string;
-  status?: "DEFAULT" | "READY" | "ERROR" | "POLISHING_TEMPLATE";
+  status?: "DEFAULT" | "READY" | "ERROR" | "GENERATING_TEMPLATE";
   name?: string;
   instructions?: string;
   print?: string;

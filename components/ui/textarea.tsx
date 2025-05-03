@@ -57,7 +57,7 @@ const ExpandingTextarea = React.forwardRef<HTMLTextAreaElement, ExpandingTextare
       className={cn("flex w-full rounded-lg bg-background text-sm text-muted-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none disabled:cursor-not-allowed leading-normal", className)}
       onChange={handleChange}
       value={value}
-      style={{ minHeight: `${minHeight}px` }}
+      style={{ minHeight: `${minHeight}px`, overflow: "hidden" }}
       rows={1}
       {...props}
     />
