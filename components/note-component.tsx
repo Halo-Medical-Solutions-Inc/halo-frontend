@@ -14,7 +14,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
-import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as downloadNoteAsPDFUtil, downloadNoteAsPDF } from "@/lib/utils";
+import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as downloadNoteAsPDFUtil } from "@/lib/utils";
 import { setScreen } from "@/store/slices/sessionSlice";
 
 export default function NoteComponent() {
@@ -30,6 +30,7 @@ export default function NoteComponent() {
   const [transcriptView, setTranscriptView] = useState(false);
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [isNoteRegenerating, setIsNoteRegenerating] = useState(false);
 
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "note", (data) => {
@@ -110,6 +111,7 @@ export default function NoteComponent() {
       });
 
       if (value != selectedVisit?.template_id) {
+        setIsNoteRegenerating(true);
         regenerateNote();
       }
     }
@@ -127,6 +129,7 @@ export default function NoteComponent() {
   };
 
   const regenerateNote = () => {
+    setIsNoteRegenerating(true);
     send({
       type: "regenerate_note",
       session_id: session.session_id,
@@ -157,7 +160,15 @@ export default function NoteComponent() {
     }
   };
 
-  console.log(selectedVisit?.status);
+  useEffect(() => {
+    if (selectedVisit?.status === "GENERATING_NOTE") {
+      setIsNoteRegenerating(false);
+    }
+  }, [selectedVisit?.status]);
+
+  console.log("Selected visit status", selectedVisit?.status);
+  console.log("Note template modified at", selectedVisit?.template_modified_at);
+  console.log("Template modified at", templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at);
 
   return (
     <SidebarInset>
@@ -282,7 +293,7 @@ export default function NoteComponent() {
                 <span className="text-sm text-muted-foreground">The template seems to be updated. Please regenerate.</span>
               </div>
               <Button onClick={regenerateNote}>
-                <RefreshCw className="h-4 w-4" />
+                {selectedVisit?.status === "GENERATING_NOTE" ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                 Regenerate
               </Button>
             </div>
@@ -316,6 +327,11 @@ export default function NoteComponent() {
             ) : (
               <div className="relative group">
                 <ExpandingTextarea id={`note`} minHeight={0} maxHeight={10000} value={selectedVisit?.note} onChange={noteChange} className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" />
+                {isNoteRegenerating && (
+                  <div className="absolute inset-0 bg-background/10 backdrop-blur-[4px] flex items-center justify-center z-10">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                )}
               </div>
             )}
           </div>

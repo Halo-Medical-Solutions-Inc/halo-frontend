@@ -11,11 +11,12 @@ import { clearUser, setUser } from "@/store/slices/userSlice";
 import { clearSelectedTemplate, setTemplate, setTemplates } from "@/store/slices/templateSlice";
 import { clearSelectedVisit, setSelectedVisit, setVisit, setVisits } from "@/store/slices/visitSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { RootState } from "@/store/store";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { apiGetUser, apiGetUserTemplates, apiGetUserVisits } from "@/store/api";
 import { clearSession, setScreen } from "@/store/slices/sessionSlice";
+import { Loader2 } from "lucide-react";
 
 export default function Page() {
   const dispatch = useDispatch();
@@ -27,6 +28,8 @@ export default function Page() {
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
   const visits = useSelector((state: RootState) => state.visit.visits);
+
+  const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
     const createVisitHandler = handle("create_visit", "dashboard", (data) => {
@@ -88,6 +91,7 @@ export default function Page() {
 
     const noteGeneratedHandler = handle("note_generated", "dashboard", (data) => {
       console.log("Processing note_generated in dashboard");
+      console.log("data.data", data.data);
       dispatch(setVisit(data.data));
     });
 
@@ -164,20 +168,25 @@ export default function Page() {
   }, [user]);
 
   useEffect(() => {
+    setInitialLoad(true);
     connect(session.session_id);
 
-    apiGetUser(session.session_id).then((user) => {
-      dispatch(setUser(user));
-    });
-
-    apiGetUserTemplates(session.session_id).then((templates) => {
-      dispatch(setTemplates(templates));
-    });
-
-    apiGetUserVisits(session.session_id).then((visits) => {
-      dispatch(setVisits(visits));
+    Promise.all([
+      apiGetUser(session.session_id).then((user) => {
+        dispatch(setUser(user));
+      }),
+      apiGetUserTemplates(session.session_id).then((templates) => {
+        dispatch(setTemplates(templates));
+      }),
+      apiGetUserVisits(session.session_id).then((visits) => {
+        dispatch(setVisits(visits));
+      }),
+    ]).finally(() => {
+      setInitialLoad(false);
     });
   }, []);
+
+  console.log("initialLoad", initialLoad);
 
   useEffect(() => {
     if (visits.length < 1) {
@@ -186,13 +195,23 @@ export default function Page() {
   }, [visits]);
 
   return (
-    <Application>
-      <SidebarComponent />
-      {screen === "ACCOUNT" && <AccountComponent />}
-      {screen === "NOTE" && <NoteComponent />}
-      {screen === "RECORD" && <RecordComponent />}
-      {screen === "TEMPLATE" && <TemplateComponent />}
-      {screen === "TEMPLATES" && <TemplatesComponent />}
-    </Application>
+    <>
+      {initialLoad && (
+        <div className="fixed inset-0 bg-background/10 backdrop-blur-[4px] z-40 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center gap-2">
+            <span className="text-sm text-muted-foreground">Please wait while we load your data...</span>
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          </div>
+        </div>
+      )}
+      <Application>
+        <SidebarComponent />
+        {screen === "ACCOUNT" && <AccountComponent />}
+        {screen === "NOTE" && <NoteComponent />}
+        {screen === "RECORD" && <RecordComponent />}
+        {screen === "TEMPLATE" && <TemplateComponent />}
+        {screen === "TEMPLATES" && <TemplatesComponent />}
+      </Application>
+    </>
   );
 }

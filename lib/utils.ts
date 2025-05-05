@@ -135,7 +135,6 @@ export const printNote = (visitName: string, noteContent: string) => {
 
   printWindow.document.close();
 
-  // Slight delay to ensure content is loaded before printing
   setTimeout(() => {
     printWindow.print();
     printWindow.onafterprint = () => printWindow.close();
@@ -143,10 +142,6 @@ export const printNote = (visitName: string, noteContent: string) => {
 };
 
 export const downloadNoteAsPDF = async (visitName: string, noteContent: string) => {
-  // For a production app, you would typically use a PDF library like jsPDF
-  // This is a simple implementation using the browser's print functionality
-  // to save as PDF (which works on modern browsers)
-
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
 
@@ -203,9 +198,7 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string) 
 
   printWindow.document.close();
 
-  // Slight delay to ensure content is loaded before printing
   setTimeout(() => {
     printWindow.print();
-    // The user will select "Save as PDF" in the print dialog
   }, 300);
 };
