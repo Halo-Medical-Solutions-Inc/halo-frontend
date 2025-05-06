@@ -21,19 +21,19 @@ const visitSlice = createSlice({
   reducers: {
     setVisit: (state: VisitState, action: PayloadAction<Visit>) => {
       const updatedVisit = action.payload;
-      const index = state.visits.findIndex((visit) => visit._id === updatedVisit._id);
+      const index = state.visits.findIndex((visit) => visit.visit_id === updatedVisit.visit_id);
       if (index !== -1) {
-        state.visits[index] = updatedVisit;
-        if (state.selectedVisit && state.selectedVisit._id === updatedVisit._id) {
-          state.selectedVisit = updatedVisit;
+        state.visits[index] = { ...state.visits[index], ...updatedVisit };
+        if (state.selectedVisit && state.selectedVisit.visit_id === updatedVisit.visit_id) {
+          state.selectedVisit = { ...state.selectedVisit, ...updatedVisit };
         }
       }
     },
     setSelectedVisit: (state: VisitState, action: PayloadAction<Visit>) => {
       state.selectedVisit = action.payload;
-      const index = state.visits.findIndex((visit) => visit._id === action.payload._id);
+      const index = state.visits.findIndex((visit) => visit.visit_id === action.payload.visit_id);
       if (index !== -1) {
-        state.visits[index] = action.payload;
+        state.visits[index] = { ...state.visits[index], ...action.payload };
       }
     },
     clearSelectedVisit: (state: VisitState) => {

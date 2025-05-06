@@ -5,57 +5,88 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectGroup, SelectLabel, SelectItem, SelectValue } from "@/components/ui/select";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { languages } from "@/store/types";
-import { setUser } from "@/store/slices/userSlice";
+import { languages, specialties } from "@/store/types";
 import { useDispatch } from "react-redux";
-
+import useWebSocket, { handle } from "@/lib/websocket";
+import { useDebouncedSend } from "@/lib/utils";
+import { setUser } from "@/store/slices/userSlice";
+import { Loader2 } from "lucide-react";
 export default function AccountComponent() {
   const dispatch = useDispatch();
-
   const user = useSelector((state: RootState) => state.user.user);
   const templates = useSelector((state: RootState) => state.template.templates);
+  const session = useSelector((state: RootState) => state.session.session);
+  const { send } = useWebSocket();
+  const debouncedSend = useDebouncedSend(send);
 
-  const [name, setName] = useState(user?.name);
-  const [email, setEmail] = useState(user?.email);
-  const [defaultTemplateId, setDefaultTemplateId] = useState(user?.default_template_id);
-  const [defaultLanguage, setDefaultLanguage] = useState(user?.default_language);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [retypePassword, setRetypePassword] = useState("");
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isSavingAccount, setIsSavingAccount] = useState(false);
+  const [isSavingDefault, setIsSavingDefault] = useState(false);
 
-  useEffect(() => {
-    setName(user?.name);
-    setValidationErrors({ ...validationErrors, name: "" });
-  }, [user?.name]);
+  const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setUser({ ...user, name: e.target.value }));
+    debouncedSend({
+      type: "update_user",
+      session_id: session.session_id,
+      data: {
+        user_id: user?.user_id,
+        name: e.target.value,
+      },
+    });
+  };
 
-  useEffect(() => {
-    setEmail(user?.email);
-    setValidationErrors({ ...validationErrors, email: "" });
-  }, [user?.email]);
+  const selectSpecialty = (value: string) => {
+    dispatch(setUser({ ...user, user_specialty: value }));
+    send({
+      type: "update_user",
+      session_id: session.session_id,
+      data: {
+        user_id: user?.user_id,
+        user_specialty: value,
+      },
+    });
+  };
 
-  useEffect(() => {
-    setDefaultTemplateId(user?.default_template_id);
-    setValidationErrors({ ...validationErrors, defaultTemplate: "" });
-  }, [user?.default_template_id]);
+  const selectDefaultTemplate = (value: string) => {
+    dispatch(setUser({ ...user, default_template_id: value }));
+    send({
+      type: "update_user",
+      session_id: session.session_id,
+      data: {
+        user_id: user?.user_id,
+        default_template_id: value,
+      },
+    });
+  };
 
-  useEffect(() => {
-    setDefaultLanguage(user?.default_language);
-    setValidationErrors({ ...validationErrors, defaultLanguage: "" });
-  }, [user?.default_language]);
+  const selectDefaultLanguage = (value: string) => {
+    dispatch(setUser({ ...user, default_language: value }));
+    send({
+      type: "update_user",
+      session_id: session.session_id,
+      data: {
+        user_id: user?.user_id,
+        default_language: value,
+      },
+    });
+  };
 
   const saveAccount = () => {
-    //TODO: Implement save account
+    setIsSavingAccount(true);
+    setTimeout(() => {
+      setIsSavingAccount(false);
+    }, 2000);
   };
 
   const saveDefault = () => {
-    //TODO: Implement save default
+    setIsSavingDefault(true);
+    setTimeout(() => {
+      setIsSavingDefault(false);
+    }, 2000);
   };
+
   const savePassword = () => {
     //TODO: Implement save password
   };
@@ -90,20 +121,32 @@ export default function AccountComponent() {
               <Label>
                 Name<span className="text-destructive">*</span>
               </Label>
-              <Input id="name" type="text" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} className={validationErrors.name ? "!border-destructive !ring-destructive" : ""} />
-              {validationErrors.name && <p className="text-xs text-destructive">{validationErrors.name}</p>}
+              <Input id="name" type="text" placeholder="John Doe" value={user?.name} onChange={(e) => nameChange(e)} />
             </div>
 
-            <div className="space-y-2">
-              <Label>
-                Email<span className="text-destructive">*</span>
-              </Label>
-              <Input id="email" type="email" placeholder="email@halo.com" value={email} onChange={(e) => setEmail(e.target.value)} className={validationErrors.email ? "!border-destructive !ring-destructive" : ""} />
-              {validationErrors.email && <p className="text-xs text-destructive">{validationErrors.email}</p>}
-            </div>
+            <Label>
+              Select specialty
+              <span className="text-destructive" />
+            </Label>
+            <Select value={user?.user_specialty} onValueChange={(value) => selectSpecialty(value)}>
+              <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
+                <SelectValue placeholder="Select a specialty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Specialties</SelectLabel>
+                  {specialties.map((specialty) => (
+                    <SelectItem key={specialty.specialty_id} value={specialty.specialty_id}>
+                      {specialty.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+
             <div className="flex items-center gap-2">
-              <Button type="submit" onClick={saveAccount}>
-                Save Changes
+              <Button type="submit" onClick={saveAccount} disabled={isSavingAccount}>
+                {isSavingAccount ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
               </Button>
             </div>
           </div>
@@ -118,7 +161,7 @@ export default function AccountComponent() {
                 Default template
                 <span className="text-destructive" />
               </Label>
-              <Select value={defaultTemplateId} onValueChange={(value) => setDefaultTemplateId(value)}>
+              <Select value={user?.default_template_id} onValueChange={(value) => selectDefaultTemplate(value)}>
                 <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
@@ -126,7 +169,7 @@ export default function AccountComponent() {
                   <SelectGroup>
                     <SelectLabel>Templates</SelectLabel>
                     {templates.map((template) => (
-                      <SelectItem key={template._id} value={template._id || ""}>
+                      <SelectItem key={template.template_id} value={template.template_id || ""}>
                         {template.name}
                       </SelectItem>
                     ))}
@@ -135,12 +178,12 @@ export default function AccountComponent() {
               </Select>
             </div>
 
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label>
                 Default language
                 <span className="text-destructive" />
               </Label>
-              <Select value={defaultLanguage} onValueChange={(value) => setDefaultLanguage(value)}>
+              <Select value={user?.default_language} onValueChange={(value) => selectDefaultLanguage(value)}>
                 <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
                   <SelectValue placeholder="Select a language" />
                 </SelectTrigger>
@@ -155,73 +198,11 @@ export default function AccountComponent() {
                   </SelectGroup>
                 </SelectContent>
               </Select>
-            </div>
-            <Button type="submit" onClick={saveDefault}>
-              Save
+            </div> */}
+
+            <Button type="submit" onClick={saveDefault} disabled={isSavingDefault}>
+              {isSavingDefault ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
             </Button>
-          </div>
-          <Separator className="my-6" />
-          <div className="space-y-4">
-            <div className="flex flex-col gap-2">
-              <h2 className="text-xl md:text-xl font-bold">Change Password</h2>
-              <p className="text-sm text-muted-foreground">Update your password to keep your account secure.</p>
-            </div>
-            <div className="space-y-2">
-              <Label>
-                Current Password
-                <span className="text-destructive">*</span>
-              </Label>
-              <Input id="currentPassword" type="password" placeholder="********" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className={validationErrors.currentPassword ? "!border-destructive !ring-destructive" : ""} />
-              {validationErrors.currentPassword && <p className="text-xs text-destructive">{validationErrors.currentPassword}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label>
-                New Password
-                <span className="text-destructive">*</span>
-              </Label>
-              <Input id="newPassword" type="password" placeholder="********" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={validationErrors.newPassword ? "!border-destructive !ring-destructive" : ""} />
-              {validationErrors.newPassword && <p className="text-xs text-destructive">{validationErrors.newPassword}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label>
-                Retype Password
-                <span className="text-destructive">*</span>
-              </Label>
-              <Input id="retypePassword" type="password" placeholder="********" value={retypePassword} onChange={(e) => setRetypePassword(e.target.value)} className={validationErrors.retypePassword ? "!border-destructive !ring-destructive" : ""} />
-              {validationErrors.retypePassword && <p className="text-xs text-destructive">{validationErrors.retypePassword}</p>}
-            </div>
-            <Button type="submit" onClick={savePassword}>
-              Update Password
-            </Button>
-          </div>
-          <Separator className="my-6" />
-          <div className="space-y-4">
-            <div className="rounded-lg border border-destructive-border">
-              <div className="flex items-center gap-2 p-4">
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-xl md:text-xl font-bold">Delete Account</h2>
-                  <p className="text-sm text-muted-foreground">This will permanently delete your Halo Account. Please note that this action is irreversible, so proceed with caution.</p>
-                </div>
-              </div>
-              <div className="bg-destructive-secondary p-4 flex flex-row items-center justify-between rounded-b-lg">
-                <p className="text-sm font-medium text-destructive">This action cannot be undone!</p>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive">Delete account</Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                      <AlertDialogDescription>This action cannot be undone. This will permanently delete your account and remove all your data from our servers.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
           </div>
         </div>
       </div>

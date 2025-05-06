@@ -21,19 +21,19 @@ const templateSlice = createSlice({
   reducers: {
     setTemplate: (state: TemplateState, action: PayloadAction<Template>) => {
       const updatedTemplate = action.payload;
-      const index = state.templates.findIndex((template) => template._id === updatedTemplate._id);
+      const index = state.templates.findIndex((template) => template.template_id === updatedTemplate.template_id);
       if (index !== -1) {
-        state.templates[index] = updatedTemplate;
-        if (state.selectedTemplate && state.selectedTemplate._id === updatedTemplate._id) {
-          state.selectedTemplate = updatedTemplate;
+        state.templates[index] = { ...state.templates[index], ...updatedTemplate };
+        if (state.selectedTemplate && state.selectedTemplate.template_id === updatedTemplate.template_id) {
+          state.selectedTemplate = { ...state.selectedTemplate, ...updatedTemplate };
         }
       }
     },
     setSelectedTemplate: (state: TemplateState, action: PayloadAction<Template>) => {
       state.selectedTemplate = action.payload;
-      const index = state.templates.findIndex((template) => template._id === action.payload._id);
+      const index = state.templates.findIndex((template) => template.template_id === action.payload.template_id);
       if (index !== -1) {
-        state.templates[index] = action.payload;
+        state.templates[index] = { ...state.templates[index], ...action.payload };
       }
     },
     clearSelectedTemplate: (state: TemplateState) => {

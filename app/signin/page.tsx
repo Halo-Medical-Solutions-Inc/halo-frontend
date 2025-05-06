@@ -13,7 +13,8 @@ import { setSession } from "@/store/slices/sessionSlice";
 import { setTemplates } from "@/store/slices/templateSlice";
 import { setVisits } from "@/store/slices/visitSlice";
 import { setUser } from "@/store/slices/userSlice";
-import useWebSocket from "@/lib/websocket";
+import { useIsMobile } from "@/hooks/use-mobile";
+
 export default function Page() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +22,7 @@ export default function Page() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { connect } = useWebSocket();
+  const isMobile = useIsMobile();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +50,19 @@ export default function Page() {
         if (session) {
           dispatch(setSession(session));
           localStorage.setItem("session", JSON.stringify(session));
+          if (session.session_id) {
+            apiGetUser(session.session_id).then((user) => {
+              dispatch(setUser(user));
+            });
+
+            apiGetUserTemplates(session.session_id).then((templates) => {
+              dispatch(setTemplates(templates));
+            });
+
+            apiGetUserVisits(session.session_id).then((visits) => {
+              dispatch(setVisits(visits));
+            });
+          }
           router.push("/dashboard");
         }
       } catch (err: any) {
@@ -57,13 +71,13 @@ export default function Page() {
           password: "Incorrect email or password",
         });
       } finally {
-        setIsLoading(false);
+        // setIsLoading(false);
       }
     }
   };
 
   return (
-    <div className="flex md:items-center justify-center min-h-screen bg-background">
+    <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md p-8 space-y-8">
         <div className="text-center flex flex-col items-center gap-6">
           {/* <img src="/halo-logo.svg" alt="Halo Logo" className="size-8 rounded-lg" /> */}
@@ -103,8 +117,8 @@ export default function Page() {
             </Button>
             <p className="text-sm text-center text-muted-foreground">
               Don't have an account?{" "}
-              <Link href="/signup" className="text-primary underline">
-                Sign up
+              <Link href="mailto:usehalohealth@gmail.com" className="text-primary underline">
+                Email us
               </Link>
             </p>
           </div>

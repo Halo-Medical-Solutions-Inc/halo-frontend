@@ -15,44 +15,48 @@ import { RootState } from "@/store/store";
 import { setSelectedTemplate, clearSelectedTemplate, setTemplates } from "@/store/slices/templateSlice";
 import { setScreen } from "@/store/slices/sessionSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
-import { useDebouncedSend } from "@/lib/utils";
-import { Template } from "@/store/types";
-
+import { useDebouncedSend, getTimeDifference } from "@/lib/utils";
+import AnimatedLoadingSkeleton from "@/components/ui/animated-loading-skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 export default function TemplateComponent() {
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
+  const isMobile = useIsMobile();
 
   const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
-
   const session = useSelector((state: RootState) => state.session.session);
   const selectedTemplate = useSelector((state: RootState) => state.template.selectedTemplate);
   const templates = useSelector((state: RootState) => state.template.templates);
 
   useEffect(() => {
-    handle("create_template", "template", (data) => {
+    const deleteTemplateHandler = handle("delete_template", "template", (data) => {
       if (data.was_requested) {
-        dispatch(setTemplates(templates.map((template: Template) => (template._id === selectedTemplate?._id ? (data.data as Template) : template))));
+        console.log("Processing delete_template in template");
+        dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
         dispatch(clearSelectedTemplate());
         dispatch(setScreen("TEMPLATES"));
+        setIsDeletingTemplate(false);
+      } else {
+        if (selectedTemplate?.template_id === data.data.template_id) {
+          dispatch(clearSelectedTemplate());
+          dispatch(setScreen("TEMPLATES"));
+        }
       }
     });
 
-    handle("delete_template", "template", (data) => {
-      if (selectedTemplate?._id === data.data.template_id) {
-        dispatch(clearSelectedTemplate());
-        dispatch(setScreen("TEMPLATES"));
-      }
-    });
-  }, [selectedTemplate, templates]);
+    return () => {
+      deleteTemplateHandler();
+    };
+  }, [templates]);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedTemplate({ ...selectedTemplate, name: e.target.value }));
     debouncedSend({
       type: "update_template",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        _id: selectedTemplate?._id,
+        template_id: selectedTemplate?.template_id,
         name: e.target.value,
       },
     });
@@ -61,9 +65,9 @@ export default function TemplateComponent() {
     dispatch(setSelectedTemplate({ ...selectedTemplate, instructions: e.target.value }));
     debouncedSend({
       type: "update_template",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        _id: selectedTemplate?._id,
+        template_id: selectedTemplate?.template_id,
         instructions: e.target.value,
       },
     });
@@ -73,16 +77,14 @@ export default function TemplateComponent() {
     setIsDeletingTemplate(true);
     send({
       type: "delete_template",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        template_id: selectedTemplate?._id,
+        template_id: selectedTemplate?.template_id,
       },
     });
   };
 
-  const polishTemplate = () => {
-    // TODO: Implement polish template
-  };
+  const polishTemplate = () => {};
 
   return (
     <SidebarInset>
@@ -90,39 +92,20 @@ export default function TemplateComponent() {
         <div className="flex flex-1 items-center gap-2 px-3">
           <SidebarTrigger />
           <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbPage className="line-clamp-1">{selectedTemplate?.name || "New Template"}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+          {!isMobile && (
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="line-clamp-1">{selectedTemplate?.name || "New Template"}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          )}
         </div>
         <div className="ml-auto px-3">
           <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center">
-              <span className="font-normal text-muted-foreground md:inline-block">
-                Last saved{" "}
-                {selectedTemplate?.modified_at
-                  ? (() => {
-                      const now = new Date();
-                      const modified = new Date(selectedTemplate?.modified_at);
-                      const diffMs = now.getTime() - modified.getTime();
-                      const diffMinutes = Math.floor(diffMs / 60000);
-                      const diffHours = Math.floor(diffMs / 3600000);
-                      const diffDays = Math.floor(diffMs / 86400000);
-                      const diffMonths = (now.getFullYear() - modified.getFullYear()) * 12 + now.getMonth() - modified.getMonth();
-                      const diffYears = now.getFullYear() - modified.getFullYear();
-
-                      if (diffMinutes === 0) return "now";
-                      if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""} ago`;
-                      if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
-                      if (diffDays < 30) return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
-                      if (diffMonths < 12) return `${diffMonths} month${diffMonths !== 1 ? "s" : ""} ago`;
-                      return `${diffYears} year${diffYears !== 1 ? "s" : ""} ago`;
-                    })()
-                  : ""}
-              </span>
+              {!isMobile && <span className="font-normal text-muted-foreground md:inline-block">Last saved {selectedTemplate?.modified_at ? getTimeDifference(selectedTemplate?.modified_at.replace(" ", "T") + "Z", new Date().toISOString()) : ""}</span>}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
@@ -177,19 +160,28 @@ export default function TemplateComponent() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-4">
             <div className="flex items-center gap-2 w-full">
               <Input value={selectedTemplate?.name} onChange={nameChange} placeholder="New Template" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-left" />
+              {isMobile && (
+                <Button variant="outline" size="icon" onClick={() => dispatch(setScreen("TEMPLATES"))}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              )}
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Button variant="outline" onClick={() => dispatch(setScreen("TEMPLATES"))}>
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </Button>
-              <Button>
+            {!isMobile && (
+              <div className="flex items-center gap-2 shrink-0">
+                <Button variant="outline" onClick={() => dispatch(setScreen("TEMPLATES"))}>
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </Button>
+
+                {/* <Button onClick={polishTemplate}>
                 <Sparkles className="h-4 w-4" />
                 Polish
-              </Button>
-            </div>
+              </Button> */}
+              </div>
+            )}
           </div>
           <Separator className="my-2 bg-border h-[1px]" />
+
           <ExpandingTextarea
             minHeight={200}
             maxHeight={10000}

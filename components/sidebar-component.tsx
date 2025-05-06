@@ -9,16 +9,20 @@ import { CirclePlus, MoreHorizontal, StopCircle, Trash2, LogOut, Sparkles, Badge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { RootState } from "@/store/store";
 import { useSelector, useDispatch } from "react-redux";
-import { groupVisitsByDate } from "@/lib/utils";
+import { groupVisitsByDate, formatLocalTime } from "@/lib/utils";
 import { Visit } from "@/store/types";
-import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
+import { clearSelectedVisit, setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
 import { setScreen } from "@/store/slices/sessionSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useEffect, useState } from "react";
+import { clearSelectedTemplate } from "@/store/slices/templateSlice";
+import { clearUser } from "@/store/slices/userSlice";
+import { clearSession } from "@/store/slices/sessionSlice";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function SidebarComponent() {
   const dispatch = useDispatch();
-  const isMobile = false;
+  const isMobile = useIsMobile();
   const { send } = useWebSocket();
 
   const [isCreatingVisit, setIsCreatingVisit] = useState(false);
@@ -32,26 +36,46 @@ export default function SidebarComponent() {
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
 
   useEffect(() => {
-    handle("create_visit", "sidebar", (data) => {
-      setIsCreatingVisit(false);
+    const createVisitHandler = handle("create_visit", "sidebar", (data) => {
       if (data.was_requested) {
-        dispatch(setVisits([...visits, data.data as Visit]));
-        dispatch(setSelectedVisit(data.data as Visit));
+        console.log("Processing create_visit in sidebar");
+        dispatch(setVisits([...visits, data.data]));
+        dispatch(setSelectedVisit(data.data));
         dispatch(setScreen("RECORD"));
+        setIsCreatingVisit(false);
       }
     });
 
-    handle("delete_visit", "sidebar", (data) => {
-      setIsDeletingVisit(false);
+    const deleteVisitHandler = handle("delete_visit", "sidebar", (data) => {
       if (data.was_requested) {
-        dispatch(setVisits(visits.filter((visit) => visit._id !== data.data._id)));
+        console.log("Processing delete_visit in sidebar");
+        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
+        dispatch(setVisits(filteredVisits));
+
+        if (filteredVisits.length > 0) {
+          const lastVisit = filteredVisits[filteredVisits.length - 1];
+          dispatch(setSelectedVisit(lastVisit));
+
+          if (lastVisit.status === "FINISHED" || lastVisit.status === "GENERATING_NOTE") {
+            dispatch(setScreen("NOTE"));
+          } else {
+            dispatch(setScreen("RECORD"));
+          }
+        }
+
+        setIsDeletingVisit(false);
       }
     });
+
+    return () => {
+      createVisitHandler();
+      deleteVisitHandler();
+    };
   }, [visits]);
 
   const selectVisit = (visit: Visit) => {
     dispatch(setSelectedVisit(visit));
-    if (visit.status === "FINISHED") {
+    if (visit.status === "FINISHED" || visit.status === "GENERATING_NOTE") {
       dispatch(setScreen("NOTE"));
     } else {
       dispatch(setScreen("RECORD"));
@@ -62,7 +86,7 @@ export default function SidebarComponent() {
     setIsCreatingVisit(true);
     send({
       type: "create_visit",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {},
     });
   };
@@ -71,9 +95,9 @@ export default function SidebarComponent() {
     setIsDeletingVisit(true);
     send({
       type: "delete_visit",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        visit_id: visit._id,
+        visit_id: visit.visit_id,
       },
     });
   };
@@ -82,12 +106,32 @@ export default function SidebarComponent() {
     // TODO: Implement pause visit
   };
 
+  const templatesClick = () => {
+    dispatch(clearSelectedTemplate());
+    dispatch(clearSelectedVisit());
+    dispatch(setScreen("TEMPLATES"));
+  };
+
+  const accountClick = () => {
+    dispatch(clearSelectedTemplate());
+    dispatch(clearSelectedVisit());
+    dispatch(setScreen("ACCOUNT"));
+  };
+
+  const logoutClick = () => {
+    dispatch(clearSelectedTemplate());
+    dispatch(clearSelectedVisit());
+    dispatch(clearUser());
+    dispatch(clearSession());
+    window.location.href = "/signin";
+  };
+
   return (
     <>
       <Sidebar variant="sidebar">
         <SidebarHeader className="pb-0">
           <SidebarMenu>
-            <SidebarMenuItem>
+            <SidebarMenuItem className="cursor-none pointer-events-none">
               <SidebarMenuButton size="lg" asChild>
                 <a href="#">
                   <img src="/logo.svg" alt="Halo Logo" className="size-8 rounded-lg" />
@@ -120,17 +164,15 @@ export default function SidebarComponent() {
                   <SidebarGroupLabel className="text-muted-foreground font-normal">{date}</SidebarGroupLabel>
                   <SidebarMenu>
                     {visits.map((visit) => (
-                      <SidebarMenuItem key={visit._id} className={visit._id === selectedVisit?._id ? "bg-accent" : ""} onClick={visit.status !== "RECORDING" ? () => selectVisit(visit) : undefined}>
-                        <SidebarMenuButton asChild className={`${visit.status === "RECORDING" ? "cursor-not-allowed bg-transparent hover:bg-transparent active:bg-transparent focus:bg-transparent" : visit._id === selectedVisit?._id ? "bg-primary/10 hover:bg-primary/10" : "hover:bg-primary/5"}`}>
+                      <SidebarMenuItem key={visit.visit_id} className={visit.visit_id === selectedVisit?.visit_id ? "bg-accent" : ""} onClick={visit.status !== "RECORDING" ? () => selectVisit(visit) : undefined}>
+                        <SidebarMenuButton asChild className={`${visit.status === "RECORDING" ? "cursor-not-allowed bg-transparent hover:bg-transparent active:bg-transparent focus:bg-transparent" : visit.visit_id === selectedVisit?.visit_id ? "bg-primary/10 hover:bg-primary/10" : "hover:bg-primary/5"}`}>
                           <span className="flex w-full justify-between items-center">
                             <span className="truncate">{visit.name || "New Visit"}</span>
-                            <span className="text-muted-foreground ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-normal outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0">
-                              {visit.created_at ? new Date(visit.created_at).getHours() : 0}:{String(visit.created_at ? new Date(visit.created_at).getMinutes() : 0).padStart(2, "0")} {visit.created_at && new Date(visit.created_at).getHours() >= 12 ? "PM" : "AM"}
-                            </span>
+                            <span className="text-muted-foreground ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-normal outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0">{visit.created_at ? formatLocalTime(visit.created_at) : "00:00 AM"}</span>
                           </span>
                         </SidebarMenuButton>
 
-                        <DropdownMenu>
+                        <DropdownMenu key={visit.visit_id}>
                           <DropdownMenuTrigger asChild>
                             {visit.status === "RECORDING" ? (
                               <SidebarMenuAction>
@@ -243,19 +285,19 @@ export default function SidebarComponent() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
-                    <DropdownMenuItem onClick={() => dispatch(setScreen("TEMPLATES"))}>
+                    <DropdownMenuItem onClick={templatesClick}>
                       <Sparkles />
                       Templates
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuGroup>
-                    <DropdownMenuItem onClick={() => dispatch(setScreen("ACCOUNT"))}>
+                    <DropdownMenuItem onClick={accountClick}>
                       <BadgeCheck />
                       Account
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive focus:text-destructive hover:text-destructive">
+                  <DropdownMenuItem className="text-destructive focus:text-destructive hover:text-destructive" onClick={logoutClick}>
                     <LogOut className="text-destructive" />
                     Log out
                   </DropdownMenuItem>

@@ -13,42 +13,60 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Trash2 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { clearSelectedTemplate, setSelectedTemplate, setTemplates } from "@/store/slices/templateSlice";
+import { setSelectedTemplate, setTemplates } from "@/store/slices/templateSlice";
 import { useDispatch } from "react-redux";
 import { Template } from "@/store/types";
 import { setScreen } from "@/store/slices/sessionSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
-import { useDebouncedSend } from "@/lib/utils";
+import { formatLocalDateAndTime, useDebouncedSend } from "@/lib/utils";
+import { setUser } from "@/store/slices/userSlice";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function TemplatesComponent() {
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
+  const isMobile = useIsMobile();
 
   const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
   const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
-
+  const [isDuplicatingTemplate, setIsDuplicatingTemplate] = useState(false);
   const session = useSelector((state: RootState) => state.session.session);
   const user = useSelector((state: RootState) => state.user.user);
   const templates = useSelector((state: RootState) => state.template.templates);
 
   useEffect(() => {
-    handle("create_template", "templates", (data) => {
-      setIsCreatingTemplate(false);
+    const createTemplateHandler = handle("create_template", "templates", (data) => {
       if (data.was_requested) {
+        console.log("Processing create_template in templates");
         dispatch(setTemplates([...templates, data.data as Template]));
         dispatch(setSelectedTemplate(data.data as Template));
         dispatch(setScreen("TEMPLATE"));
+        setIsCreatingTemplate(false);
       }
     });
 
-    handle("delete_template", "templates", (data) => {
-      setIsDeletingTemplate(false);
+    const deleteTemplateHandler = handle("delete_template", "templates", (data) => {
       if (data.was_requested) {
-        dispatch(setTemplates(templates.filter((template) => template._id !== data.data.template_id)));
-        dispatch(setScreen("TEMPLATES"));
+        console.log("Processing delete_template in templates");
+        dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
+        setIsDeletingTemplate(false);
       }
     });
+
+    const duplicateTemplateHandler = handle("duplicate_template", "templates", (data) => {
+      if (data.was_requested) {
+        console.log("Processing duplicate_template in templates");
+        dispatch(setTemplates([...templates, data.data as Template]));
+        setIsDuplicatingTemplate(false);
+      }
+    });
+
+    return () => {
+      createTemplateHandler();
+      deleteTemplateHandler();
+      duplicateTemplateHandler();
+    };
   }, [templates]);
 
   const selectTemplate = (template: Template) => {
@@ -60,7 +78,7 @@ export default function TemplatesComponent() {
     setIsCreatingTemplate(true);
     debouncedSend({
       type: "create_template",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {},
     });
   };
@@ -69,19 +87,34 @@ export default function TemplatesComponent() {
     setIsDeletingTemplate(true);
     debouncedSend({
       type: "delete_template",
-      session_id: session._id,
+      session_id: session.session_id,
       data: {
-        template_id: template._id,
+        template_id: template.template_id,
       },
     });
   };
 
   const duplicateTemplate = (template: Template) => {
-    // TODO: Implement duplicate template
+    setIsDuplicatingTemplate(true);
+    send({
+      type: "duplicate_template",
+      session_id: session.session_id,
+      data: {
+        template_id: template.template_id,
+      },
+    });
   };
 
   const setDefaultTemplate = (template: Template) => {
-    // TODO: Implement set default template
+    dispatch(setUser({ ...user, default_template_id: template.template_id }));
+    send({
+      type: "update_user",
+      session_id: session.session_id,
+      data: {
+        user_id: user?.user_id,
+        default_template_id: template.template_id,
+      },
+    });
   };
 
   return (
@@ -90,33 +123,42 @@ export default function TemplatesComponent() {
         <div className="flex flex-1 items-center gap-2 px-4">
           <SidebarTrigger />
           <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbPage className="line-clamp-1">Template Center</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+          {!isMobile && (
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="line-clamp-1">Template Center</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          )}
         </div>
       </header>
       <div className="flex flex-1 flex-col gap-4 px-4 py-10">
         <div className="mx-auto h-full w-full max-w-3xl rounded-xl space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-4">
-            <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 justify-between">
               <h2 className="text-xl md:text-xl font-bold">Template Center</h2>
+              {isMobile && (
+                <Button size="icon" onClick={createTemplate} disabled={isCreatingTemplate}>
+                  {isCreatingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                </Button>
+              )}
             </div>
-            <div className="flex items-center gap-2">
-              <Button onClick={createTemplate} disabled={isCreatingTemplate}>
-                {isCreatingTemplate ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    {" "}
-                    <Plus className="h-4 w-4" /> Create
-                  </>
-                )}
-              </Button>
-            </div>
+            {!isMobile && (
+              <div className="flex items-center gap-2">
+                <Button onClick={createTemplate} disabled={isCreatingTemplate}>
+                  {isCreatingTemplate ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      {" "}
+                      <Plus className="h-4 w-4" /> Create
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
 
           <Separator />
@@ -125,7 +167,7 @@ export default function TemplatesComponent() {
               <TableHeader className="bg-muted/50">
                 <TableRow>
                   <TableHead className="text-xs font-normal text-muted-foreground py-3 px-3 w-[60%]">NAME</TableHead>
-                  <TableHead className="text-xs font-normal text-muted-foreground py-3 w-[30%]">LAST MODIFIED</TableHead>
+                  {!isMobile && <TableHead className="text-xs font-normal text-muted-foreground py-3 w-[30%]">LAST MODIFIED</TableHead>}
                   <TableHead className="text-xs text-right font-normal text-muted-foreground py-3 w-[10%]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -137,12 +179,12 @@ export default function TemplatesComponent() {
                     return dateB - dateA;
                   })
                   .map((template) => (
-                    <TableRow key={template._id} className={`${template.status !== "DEFAULT" ? "cursor-pointer" : "cursor-not-allowed"}`} onClick={() => selectTemplate(template)}>
+                    <TableRow key={template.template_id} className={`${template.status !== "DEFAULT" ? "cursor-pointer" : "cursor-not-allowed"}`} onClick={() => selectTemplate(template)}>
                       <TableCell className="font-normal text-primary p-3">
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2">
                             <span className="pt-0.5">{template.name || "New Template"} </span>
-                            {template._id === user?.default_template_id && (
+                            {template.template_id === user?.default_template_id && (
                               <Badge variant="outline" className="border-success-border bg-success-secondary text-success px-1.5 py-0.5 rounded">
                                 Default
                               </Badge>
@@ -151,18 +193,7 @@ export default function TemplatesComponent() {
                           <span className="text-xs text-muted-foreground">{template.status === "DEFAULT" ? "Created by HALO" : "Created by you"}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="font-normal text-primary">
-                        {template.modified_at
-                          ? new Date(template.modified_at).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                              hour: "numeric",
-                              minute: "numeric",
-                              hour12: true,
-                            })
-                          : ""}
-                      </TableCell>
+                      {!isMobile && <TableCell className="font-normal text-primary">{template.modified_at ? formatLocalDateAndTime(template.modified_at) : "00:00 AM"}</TableCell>}
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -171,12 +202,23 @@ export default function TemplatesComponent() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="w-auto" align="end">
-                            <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDefaultTemplate(template);
+                              }}
+                            >
                               <CheckCircle className="h-4 w-4" />
                               <span>Set Default</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                              <Copy className="h-4 w-4" />
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                duplicateTemplate(template);
+                              }}
+                            >
+                              {isDuplicatingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
                               <span>Duplicate</span>
                             </DropdownMenuItem>
                             {template.status !== "DEFAULT" && (
