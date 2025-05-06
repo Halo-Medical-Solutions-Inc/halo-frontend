@@ -9,11 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "./ui/textarea";
-<<<<<<< HEAD
 import { CheckCircle, Loader2, Mic, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2, WifiOff } from "lucide-react";
-=======
-import { CheckCircle, Mic, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2, Wifi, WifiOff, Cloud, CloudOff } from "lucide-react";
->>>>>>> test
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "./ui/input";
 import { AudioVisualizer } from "./ui/audio-visualizer";
@@ -552,7 +548,6 @@ export default function RecordComponent() {
     });
   };
 
-<<<<<<< HEAD
   const deleteVisit = () => {
     setIsDeletingVisit(true);
     send({
@@ -638,129 +633,6 @@ export default function RecordComponent() {
     isRecordingRef.current = false;
 
     stopAudioProcessing();
-=======
-  const startRecording = async () => {
-    const errors: Record<string, string> = !selectedVisit?.template_id ? { template: "Please select a template" } : {};
-
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors);
-      return;
-    }
-
-    try {
-      // Get audio stream
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-
-      setConnectionStatus("connecting");
-
-      // Send start recording message to server
-      send({
-        type: "start_recording",
-        session_id: session._id,
-        data: {
-          visit_id: selectedVisit?._id,
-        },
-      });
-
-      // Start recording timer
-      recordingStartTimeRef.current = Date.now();
-      setRecording(true);
-      isRecordingRef.current = true;
-
-      // Start appropriate recording mode based on internet connection
-      if (internetStatusRef.current) {
-        setRecordingMode("realtime");
-        recordingModeRef.current = "realtime";
-        initAudioProcessing();
-        setConnectionStatus("connected");
-      } else {
-        setRecordingMode("buffering");
-        recordingModeRef.current = "buffering";
-        startBufferingRecording();
-      }
-    } catch (error) {
-      console.error("Failed to start recording:", error);
-      setConnectionStatus("disconnected");
-    }
-  };
-
-  const pauseRecording = () => {
-    send({
-      type: "pause_recording",
-      session_id: session._id,
-      data: {
-        visit_id: selectedVisit?._id,
-      },
-    });
-
-    // Stop recording timer
-    if (recordingTimerRef.current) {
-      clearInterval(recordingTimerRef.current);
-      recordingTimerRef.current = null;
-    }
-  };
-
-  const resumeRecording = () => {
-    send({
-      type: "resume_recording",
-      session_id: session._id,
-      data: {
-        visit_id: selectedVisit?._id,
-      },
-    });
-
-    // Update start time to account for paused duration
-    if (recordingStartTimeRef.current) {
-      const pausedTime = Date.now() - recordingStartTimeRef.current;
-      recordingStartTimeRef.current = Date.now() - pausedTime;
-    }
-  };
-
-  const finishRecording = () => {
-    send({
-      type: "finish_recording",
-      session_id: session._id,
-      data: {
-        visit_id: selectedVisit?._id,
-      },
-    });
-
-    stopRecording();
-  };
-
-  const stopRecording = async () => {
-    // Process any remaining buffered audio if in buffering mode
-    if (recordingMode === "buffering" && audioBufferRef.current.length > 0 && internetStatusRef.current) {
-      await processBufferedAudio();
-    }
-
-    // Clean up MediaRecorder
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current = null;
-    }
-
-    // Clean up audio context
-    cleanupAudioContext();
-
-    // Clean up media stream
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-
-    // Stop recording timer
-    if (recordingTimerRef.current) {
-      clearInterval(recordingTimerRef.current);
-      recordingTimerRef.current = null;
-    }
-
-    setConnectionStatus("disconnected");
-    setRecording(false);
-    isRecordingRef.current = false;
-    recordingStartTimeRef.current = null;
->>>>>>> test
   };
 
   useEffect(() => {
@@ -805,7 +677,6 @@ export default function RecordComponent() {
           </div>
           <div className="ml-auto px-3">
             <div className="flex items-center gap-2 text-sm">
-<<<<<<< HEAD
               <div className="flex items-center">
                 {!isMobile && (
                   <span className="font-normal text-muted-foreground md:inline-block">
@@ -816,20 +687,6 @@ export default function RecordComponent() {
                       : "Not started"}
                   </span>
                 )}
-=======
-              <div className="flex items-center gap-2">
-                {/* Internet status indicator */}
-                <div className="flex items-center" title={internetStatus ? "Internet connected" : "Internet disconnected"}>
-                  {internetStatus ? <Wifi className="h-4 w-4 text-green-500" /> : <WifiOff className="h-4 w-4 text-red-500" />}
-                </div>
-
-                {/* WebSocket connection status indicator */}
-                <div className="flex items-center" title={connectionStatus === "connected" ? "WebSocket connected" : connectionStatus === "connecting" ? "WebSocket connecting" : "WebSocket disconnected"}>
-                  {connectionStatus === "connected" ? <Cloud className="h-4 w-4 text-green-500" /> : connectionStatus === "connecting" ? <Cloud className="h-4 w-4 text-yellow-500" /> : <CloudOff className="h-4 w-4 text-red-500" />}
-                </div>
-
-                <span className="font-normal text-muted-foreground md:inline-block">{recording ? recordingDuration : selectedVisit?.recording_duration || "Not started"}</span>
->>>>>>> test
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
@@ -951,7 +808,6 @@ export default function RecordComponent() {
 
             <AudioVisualizer />
 
-<<<<<<< HEAD
             {!selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
               <>
                 <Button className="w-full" onClick={startRecording} disabled={!connected || !online}>
@@ -964,13 +820,6 @@ export default function RecordComponent() {
                   )}
                 </Button>
               </>
-=======
-            {recordingMode === "buffering" && recording && (
-              <div className="flex items-center justify-center bg-yellow-100 text-yellow-800 p-2 rounded-md text-xs">
-                <WifiOff className="h-3 w-3 mr-1" />
-                Offline mode: Recording will be transcribed when connection is restored
-              </div>
->>>>>>> test
             )}
 
             {selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
@@ -999,7 +848,6 @@ export default function RecordComponent() {
             )}
 
             {selectedVisit?.status === "RECORDING" && (
-<<<<<<< HEAD
               <>
                 <div className="flex items-center justify-between w-full gap-2">
                   <Button variant="outline" className="flex-1 border-destructive-border text-destructive hover:opacity-80 hover:text-destructive" onClick={pauseRecording}>
@@ -1057,31 +905,6 @@ export default function RecordComponent() {
                   </Button>
                 </div>
               </>
-=======
-              <div className="flex items-center justify-between w-full gap-2">
-                <Button variant="outline" className="flex-1 border-destructive-border text-destructive hover:opacity-80 hover:text-destructive" onClick={pauseRecording}>
-                  <PauseCircle className="h-4 w-4 text-destructive" />
-                  {recordingDuration}
-                </Button>
-                <Button className="flex-1" onClick={finishRecording}>
-                  <CheckCircle className="h-4 w-4" />
-                  Finish
-                </Button>
-              </div>
-            )}
-
-            {selectedVisit?.status === "PAUSED" && (
-              <div className="flex items-center justify-between w-full gap-2">
-                <Button variant="outline" className="flex-1 border-warning-border text-warning hover:opacity-80 hover:text-warning" onClick={resumeRecording}>
-                  <PlayCircle className="h-4 w-4 text-warning" />
-                  {recordingDuration}
-                </Button>
-                <Button className="flex-1" onClick={finishRecording}>
-                  <CheckCircle className="h-4 w-4" />
-                  Finish
-                </Button>
-              </div>
->>>>>>> test
             )}
 
             {(!online || !connected) && (
