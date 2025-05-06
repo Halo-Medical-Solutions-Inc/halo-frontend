@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" rx="224" fill="#242424"/>
+  
+  <defs>
+    <linearGradient id="ringGradient" gradientUnits="userSpaceOnUse">
+      <stop offset="1%" stop-color="#E0D2E2"/>
+      <stop offset="6%" stop-color="#E0D2E2"/>
+      <stop offset="15%" stop-color="#C0B0D3"/>
+      <stop offset="32%" stop-color="#C68889"/>
+      <stop offset="48%" stop-color="#C2C9D0"/>
+      <stop offset="65%" stop-color="#C68AC1"/>
+      <stop offset="75%" stop-color="#B79FC9"/>
+      <stop offset="90%" stop-color="#B2D2AD"/>
+    </linearGradient>
+  </defs>
+
+  <circle 
+    cx="512" 
+    cy="512" 
+    r="340"
+    stroke="#404040"
+    stroke-width="60"
+    fill="none"
+  />
+
+  <circle 
+    cx="512" 
+    cy="512" 
+    r="250"
+    stroke="url(#ringGradient)"
+    stroke-width="120"
+    fill="none"
+  />
+</svg> 
