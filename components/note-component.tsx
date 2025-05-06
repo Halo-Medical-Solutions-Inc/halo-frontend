@@ -255,22 +255,20 @@ export default function NoteComponent() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-4">
             {isMobile ? (
               <div className="flex items-center justify-between w-full gap-2">
-                <Input 
-                  value={selectedVisit?.name} 
-                  onChange={nameChange} 
-                  placeholder="New Visit" 
-                  className="text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-left" 
-                />
+                <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-left" />
                 <div className="flex gap-2">
-                  <Button variant="outline" size="icon" onClick={() => {
-                    const dropdown = document.createElement('select');
-                    dropdown.click();
-                  }}>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const dropdown = document.createElement("select");
+                      dropdown.click();
+                    }}
+                  >
                     <div className="relative">
                       <FileText className="h-4 w-4 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10" />
                       <Select value={transcriptView ? "transcript" : selectedVisit?.template_id} onValueChange={selectTemplate}>
-                        <SelectTrigger className="h-10 w-10 p-0 border-none opacity-0">
-                        </SelectTrigger>
+                        <SelectTrigger className="h-10 w-10 p-0 border-none opacity-0"></SelectTrigger>
                         <SelectContent align="end">
                           <SelectGroup>
                             <SelectLabel>Templates</SelectLabel>
@@ -335,7 +333,7 @@ export default function NoteComponent() {
           )}
 
           <Separator />
-          
+
           <div className="flex flex-col gap-3">
             {transcriptView ? (
               <>
@@ -384,14 +382,7 @@ export default function NoteComponent() {
                     </div>
                   </div>
                 ) : (
-                  <ExpandingTextarea 
-                    id={`note`} 
-                    minHeight={0} 
-                    maxHeight={10000} 
-                    value={selectedVisit?.note} 
-                    onChange={noteChange} 
-                    className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" 
-                  />
+                  <ExpandingTextarea id={`note`} minHeight={0} maxHeight={10000} value={selectedVisit?.note} onChange={noteChange} className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" />
                 )}
               </div>
             )}

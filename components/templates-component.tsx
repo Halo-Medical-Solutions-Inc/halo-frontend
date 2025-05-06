@@ -141,11 +141,7 @@ export default function TemplatesComponent() {
               <h2 className="text-xl md:text-xl font-bold">Template Center</h2>
               {isMobile && (
                 <Button size="icon" onClick={createTemplate} disabled={isCreatingTemplate}>
-                  {isCreatingTemplate ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Plus className="h-4 w-4" />
-                  )}
+                  {isCreatingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                 </Button>
               )}
             </div>

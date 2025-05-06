@@ -17,15 +17,10 @@ import useWebSocket, { handle } from "@/lib/websocket";
 import { apiGetUser, apiGetUserTemplates, apiGetUserVisits } from "@/store/api";
 import { clearSession, setScreen } from "@/store/slices/sessionSlice";
 import { Loader2 } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Page() {
   const dispatch = useDispatch();
   const { connect } = useWebSocket();
-
-  const isMobile = useIsMobile();
-
-  console.log("isMobile", isMobile);
 
   const user = useSelector((state: RootState) => state.user.user);
   const session = useSelector((state: RootState) => state.session.session);
@@ -185,7 +180,7 @@ export default function Page() {
       }),
       apiGetUserVisits(session.session_id).then((visits) => {
         dispatch(setVisits(visits));
-        const lastNonRecordingVisit = [...visits].reverse().find(visit => visit.status !== "RECORDING");
+        const lastNonRecordingVisit = [...visits].reverse().find((visit) => visit.status !== "RECORDING");
         if (lastNonRecordingVisit) {
           dispatch(setSelectedVisit(lastNonRecordingVisit));
           dispatch(setScreen(lastNonRecordingVisit.status === "FINISHED" || lastNonRecordingVisit.status === "GENERATING_NOTE" ? "NOTE" : "RECORD"));

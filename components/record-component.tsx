@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "./ui/textarea";
-import { CheckCircle, Loader2, Mic, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2 } from "lucide-react";
+import { CheckCircle, Loader2, Mic, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2, WifiOff } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "./ui/input";
 import { AudioVisualizer } from "./ui/audio-visualizer";
@@ -17,15 +17,17 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { setSelectedVisit, setVisit, setVisits } from "@/store/slices/visitSlice";
 import { useDispatch } from "react-redux";
-import useWebSocket, { handle } from "@/lib/websocket";
+import useWebSocket, { handle, useConnectionStatus } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
 import { setScreen } from "@/store/slices/sessionSlice";
 import { useIsMobile } from "@/hooks/use-mobile";
+
 export default function RecordComponent() {
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
   const isMobile = useIsMobile();
+  const { online, connected } = useConnectionStatus();
 
   const session = useSelector((state: RootState) => state.session.session);
   const visits = useSelector((state: RootState) => state.visit.visits);
@@ -364,11 +366,7 @@ export default function RecordComponent() {
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem>
-                  {!isMobile && (
-                    <BreadcrumbPage className="line-clamp-1">{selectedVisit?.name || "New Visit"}</BreadcrumbPage>
-                  )}
-                </BreadcrumbItem>
+                <BreadcrumbItem>{!isMobile && <BreadcrumbPage className="line-clamp-1">{selectedVisit?.name || "New Visit"}</BreadcrumbPage>}</BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
           </div>
@@ -505,95 +503,110 @@ export default function RecordComponent() {
 
             <AudioVisualizer />
 
-            {selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
-              <div className="flex items-center justify-between w-full gap-2">
-                <Button variant="outline" className="flex-1" onClick={finishRecording}>
-                  {finishRecordingLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4" /> Finish
-                    </>
-                  )}
-                </Button>
-                <Button className="flex-1" onClick={startRecording}>
+            {!selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
+              <>
+                <Button className="w-full" onClick={startRecording} disabled={!connected || !online}>
                   {startRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <>
-                      <Mic className="h-4 w-4" /> Start
+                      <Mic className="h-4 w-4" /> Start recording
                     </>
                   )}
                 </Button>
-              </div>
+              </>
+            )}
+
+            {selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
+              <>
+                <div className="flex items-center justify-between w-full gap-2">
+                  <Button variant="outline" className="flex-1" onClick={finishRecording} disabled={!online || !connected}>
+                    {finishRecordingLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4" /> Finish
+                      </>
+                    )}
+                  </Button>
+                  <Button className="flex-1" onClick={startRecording} disabled={!online || !connected}>
+                    {startRecordingLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Mic className="h-4 w-4" /> Start
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </>
             )}
 
             {selectedVisit?.status === "RECORDING" && (
-              <div className="flex items-center justify-between w-full gap-2">
-                <Button variant="outline" className="flex-1 border-destructive-border text-destructive hover:opacity-80 hover:text-destructive" onClick={pauseRecording}>
-                  {pauseRecordingLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <PauseCircle className="h-4 w-4 text-destructive" />{" "}
-                      {selectedVisit?.recording_duration
-                        ? `${Math.floor(selectedVisit.recording_duration / 60)
-                            .toString()
-                            .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
-                        : "00:00"}
-                    </>
-                  )}
-                </Button>
-                <Button className="flex-1" onClick={finishRecording}>
-                  {finishRecordingLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4" /> Finish
-                    </>
-                  )}
-                </Button>
-              </div>
+              <>
+                <div className="flex items-center justify-between w-full gap-2">
+                  <Button variant="outline" className="flex-1 border-destructive-border text-destructive hover:opacity-80 hover:text-destructive" onClick={pauseRecording}>
+                    {pauseRecordingLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <PauseCircle className="h-4 w-4 text-destructive" />{" "}
+                        {selectedVisit?.recording_duration
+                          ? `${Math.floor(selectedVisit.recording_duration / 60)
+                              .toString()
+                              .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
+                          : "00:00"}
+                      </>
+                    )}
+                  </Button>
+                  <Button className="flex-1" onClick={finishRecording} disabled={!online || !connected}>
+                    {finishRecordingLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4" /> Finish
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </>
             )}
 
             {selectedVisit?.status === "PAUSED" && (
-              <div className="flex items-center justify-between w-full gap-2">
-                <Button variant="outline" className="flex-1 border-warning-border text-warning hover:opacity-80 hover:text-warning" onClick={resumeRecording}>
-                  {resumeRecordingLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <PlayCircle className="h-4 w-4 text-warning" />{" "}
-                      {selectedVisit?.recording_duration
-                        ? `${Math.floor(selectedVisit.recording_duration / 60)
-                            .toString()
-                            .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
-                        : "00:00"}
-                    </>
-                  )}
-                </Button>
-                <Button className="flex-1" onClick={finishRecording}>
-                  {finishRecordingLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4" /> Finish
-                    </>
-                  )}
-                </Button>
-              </div>
+              <>
+                <div className="flex items-center justify-between w-full gap-2">
+                  <Button variant="outline" className="flex-1 border-warning-border text-warning hover:opacity-80 hover:text-warning" onClick={resumeRecording} disabled={!online || !connected}>
+                    {resumeRecordingLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <PlayCircle className="h-4 w-4 text-warning" />{" "}
+                        {selectedVisit?.recording_duration
+                          ? `${Math.floor(selectedVisit.recording_duration / 60)
+                              .toString()
+                              .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
+                          : "00:00"}
+                      </>
+                    )}
+                  </Button>
+                  <Button className="flex-1" onClick={finishRecording} disabled={!online || !connected}>
+                    {finishRecordingLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4" /> Finish
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </>
             )}
 
-            {!selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
-              <Button className="w-full" onClick={startRecording}>
-                {startRecordingLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <Mic className="h-4 w-4" /> Start recording
-                  </>
-                )}
-              </Button>
+            {(!online || !connected) && (
+              <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
+                <WifiOff className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span>Recording may not be saved due to connectivity issues</span>
+              </div>
             )}
           </div>
         </div>

@@ -105,9 +105,7 @@ export default function TemplateComponent() {
         <div className="ml-auto px-3">
           <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center">
-              {!isMobile && (
-                <span className="font-normal text-muted-foreground md:inline-block">Last saved {selectedTemplate?.modified_at ? getTimeDifference(selectedTemplate?.modified_at.replace(" ", "T") + "Z", new Date().toISOString()) : ""}</span>
-              )}
+              {!isMobile && <span className="font-normal text-muted-foreground md:inline-block">Last saved {selectedTemplate?.modified_at ? getTimeDifference(selectedTemplate?.modified_at.replace(" ", "T") + "Z", new Date().toISOString()) : ""}</span>}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
@@ -169,18 +167,18 @@ export default function TemplateComponent() {
               )}
             </div>
             {!isMobile && (
-            <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <Button variant="outline" onClick={() => dispatch(setScreen("TEMPLATES"))}>
                   <ArrowLeft className="h-4 w-4" />
                   Back
                 </Button>
 
-              {/* <Button onClick={polishTemplate}>
+                {/* <Button onClick={polishTemplate}>
                 <Sparkles className="h-4 w-4" />
                 Polish
               </Button> */}
-            </div>
-                          )}
+              </div>
+            )}
           </div>
           <Separator className="my-2 bg-border h-[1px]" />
 

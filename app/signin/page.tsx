@@ -13,8 +13,8 @@ import { setSession } from "@/store/slices/sessionSlice";
 import { setTemplates } from "@/store/slices/templateSlice";
 import { setVisits } from "@/store/slices/visitSlice";
 import { setUser } from "@/store/slices/userSlice";
+import { useIsMobile } from "@/hooks/use-mobile";
 
-import useWebSocket from "@/lib/websocket";
 export default function Page() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +22,7 @@ export default function Page() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { connect } = useWebSocket();
+  const isMobile = useIsMobile();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +77,7 @@ export default function Page() {
   };
 
   return (
-    <div className="flex md:items-center justify-center min-h-screen bg-background">
+    <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md p-8 space-y-8">
         <div className="text-center flex flex-col items-center gap-6">
           {/* <img src="/halo-logo.svg" alt="Halo Logo" className="size-8 rounded-lg" /> */}
