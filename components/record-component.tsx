@@ -9,23 +9,23 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "./ui/textarea";
-import { CheckCircle, Loader2, Mic, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2, Wifi, WifiOff } from "lucide-react";
+import { CheckCircle, Loader2, Mic, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "./ui/input";
 import { AudioVisualizer } from "./ui/audio-visualizer";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { languages } from "@/store/types";
 import { setSelectedVisit, setVisit, setVisits } from "@/store/slices/visitSlice";
 import { useDispatch } from "react-redux";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
 import { setScreen } from "@/store/slices/sessionSlice";
-
+import { useIsMobile } from "@/hooks/use-mobile";
 export default function RecordComponent() {
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
+  const isMobile = useIsMobile();
 
   const session = useSelector((state: RootState) => state.session.session);
   const visits = useSelector((state: RootState) => state.visit.visits);
@@ -110,7 +110,7 @@ export default function RecordComponent() {
     const finishRecordingHandler = handle("finish_recording", "record", (data) => {
       if (data.was_requested) {
         console.log("Processing finish_recording in record");
-        dispatch(setVisit(data.data));
+        dispatch(setVisit({ ...data.data, status: "FRONTEND_TRANSITION" }));
         setFinishRecordingLoading(false);
         dispatch(setScreen("NOTE"));
       }
@@ -365,7 +365,9 @@ export default function RecordComponent() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <BreadcrumbPage className="line-clamp-1">{selectedVisit?.name || "New Visit"}</BreadcrumbPage>
+                  {!isMobile && (
+                    <BreadcrumbPage className="line-clamp-1">{selectedVisit?.name || "New Visit"}</BreadcrumbPage>
+                  )}
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -373,13 +375,15 @@ export default function RecordComponent() {
           <div className="ml-auto px-3">
             <div className="flex items-center gap-2 text-sm">
               <div className="flex items-center">
-                <span className="font-normal text-muted-foreground md:inline-block">
-                  {selectedVisit?.recording_duration
-                    ? `${Math.floor(selectedVisit.recording_duration / 60)
-                        .toString()
-                        .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
-                    : "Not started"}
-                </span>
+                {!isMobile && (
+                  <span className="font-normal text-muted-foreground md:inline-block">
+                    {selectedVisit?.recording_duration
+                      ? `${Math.floor(selectedVisit.recording_duration / 60)
+                          .toString()
+                          .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
+                      : "Not started"}
+                  </span>
+                )}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
@@ -430,8 +434,8 @@ export default function RecordComponent() {
             </div>
           </div>
         </header>
-        <div className={`flex flex-1 flex-col items-center justify-center gap-4 px-4 py-10 relative ${selectedVisit?.status === "RECORDING" ? "z-50" : ""}`}>
-          <div className="mx-auto w-[320px] max-w-3xl rounded-xl space-y-4">
+        <div className={`flex flex-1 flex-col items-center justify-center gap-4 px-4 sm:px-4 py-10 pb-16 sm:pb-10 relative ${selectedVisit?.status === "RECORDING" ? "z-50" : ""}`}>
+          <div className="mx-auto w-[320px] max-w-3xl rounded-xl space-y-4 px-2 sm:px-0">
             <div className="relative group flex justify-center items-center">
               <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-center" />
             </div>

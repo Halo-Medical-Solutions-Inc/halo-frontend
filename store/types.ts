@@ -18,7 +18,7 @@ interface Visit {
   user_id?: string;
   created_at?: string;
   modified_at?: string;
-  status?: "NOT_STARTED" | "PAUSED" | "RECORDING" | "GENERATING_NOTE" | "FINISHED";
+  status?: "NOT_STARTED" | "PAUSED" | "RECORDING" | "GENERATING_NOTE" | "FINISHED" | "FRONTEND_TRANSITION";
   name?: string;
   template_modified_at?: string;
   template_id?: string;

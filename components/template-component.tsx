@@ -17,11 +17,12 @@ import { setScreen } from "@/store/slices/sessionSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend, getTimeDifference } from "@/lib/utils";
 import AnimatedLoadingSkeleton from "@/components/ui/animated-loading-skeleton";
-
+import { useIsMobile } from "@/hooks/use-mobile";
 export default function TemplateComponent() {
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
+  const isMobile = useIsMobile();
 
   const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
   const session = useSelector((state: RootState) => state.session.session);
@@ -91,18 +92,22 @@ export default function TemplateComponent() {
         <div className="flex flex-1 items-center gap-2 px-3">
           <SidebarTrigger />
           <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbPage className="line-clamp-1">{selectedTemplate?.name || "New Template"}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+          {!isMobile && (
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="line-clamp-1">{selectedTemplate?.name || "New Template"}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          )}
         </div>
         <div className="ml-auto px-3">
           <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center">
-              <span className="font-normal text-muted-foreground md:inline-block">Last saved {selectedTemplate?.modified_at ? getTimeDifference(selectedTemplate?.modified_at.replace(" ", "T") + "Z", new Date().toISOString()) : ""}</span>
+              {!isMobile && (
+                <span className="font-normal text-muted-foreground md:inline-block">Last saved {selectedTemplate?.modified_at ? getTimeDifference(selectedTemplate?.modified_at.replace(" ", "T") + "Z", new Date().toISOString()) : ""}</span>
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
@@ -157,17 +162,25 @@ export default function TemplateComponent() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-4">
             <div className="flex items-center gap-2 w-full">
               <Input value={selectedTemplate?.name} onChange={nameChange} placeholder="New Template" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-left" />
+              {isMobile && (
+                <Button variant="outline" size="icon" onClick={() => dispatch(setScreen("TEMPLATES"))}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              )}
             </div>
+            {!isMobile && (
             <div className="flex items-center gap-2 shrink-0">
-              <Button variant="outline" onClick={() => dispatch(setScreen("TEMPLATES"))}>
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </Button>
-              <Button onClick={polishTemplate}>
+                <Button variant="outline" onClick={() => dispatch(setScreen("TEMPLATES"))}>
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </Button>
+
+              {/* <Button onClick={polishTemplate}>
                 <Sparkles className="h-4 w-4" />
                 Polish
-              </Button>
+              </Button> */}
             </div>
+                          )}
           </div>
           <Separator className="my-2 bg-border h-[1px]" />
 

@@ -18,10 +18,11 @@ import { useEffect, useState } from "react";
 import { clearSelectedTemplate } from "@/store/slices/templateSlice";
 import { clearUser } from "@/store/slices/userSlice";
 import { clearSession } from "@/store/slices/sessionSlice";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function SidebarComponent() {
   const dispatch = useDispatch();
-  const isMobile = false;
+  const isMobile = useIsMobile();
   const { send } = useWebSocket();
 
   const [isCreatingVisit, setIsCreatingVisit] = useState(false);

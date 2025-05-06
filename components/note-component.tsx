@@ -3,9 +3,8 @@ import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Printer, Download, RefreshCw, Trash2, Copy, Check, Loader2 } from "lucide-react";
+import { MoreHorizontal, Printer, Download, RefreshCw, Trash2, Copy, Check, Loader2, DownloadCloud, FileText } from "lucide-react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ExpandingTextarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -16,11 +15,14 @@ import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as downloadNoteAsPDFUtil } from "@/lib/utils";
 import { setScreen } from "@/store/slices/sessionSlice";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function NoteComponent() {
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
+  const isMobile = useIsMobile();
 
   const session = useSelector((state: RootState) => state.session.session);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
@@ -30,7 +32,6 @@ export default function NoteComponent() {
   const [transcriptView, setTranscriptView] = useState(false);
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [isNoteRegenerating, setIsNoteRegenerating] = useState(false);
 
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "note", (data) => {
@@ -111,7 +112,6 @@ export default function NoteComponent() {
       });
 
       if (value != selectedVisit?.template_id) {
-        setIsNoteRegenerating(true);
         regenerateNote();
       }
     }
@@ -129,7 +129,6 @@ export default function NoteComponent() {
   };
 
   const regenerateNote = () => {
-    setIsNoteRegenerating(true);
     send({
       type: "regenerate_note",
       session_id: session.session_id,
@@ -137,6 +136,7 @@ export default function NoteComponent() {
         visit_id: selectedVisit?.visit_id,
       },
     });
+    dispatch(setSelectedVisit({ ...selectedVisit, status: "FRONTEND_TRANSITION" }));
   };
 
   const printNote = () => {
@@ -160,12 +160,6 @@ export default function NoteComponent() {
     }
   };
 
-  useEffect(() => {
-    if (selectedVisit?.status === "GENERATING_NOTE") {
-      setIsNoteRegenerating(false);
-    }
-  }, [selectedVisit?.status]);
-
   console.log("Selected visit status", selectedVisit?.status);
   console.log("Note template modified at", selectedVisit?.template_modified_at);
   console.log("Template modified at", templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at);
@@ -179,7 +173,7 @@ export default function NoteComponent() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbPage className="line-clamp-1">{selectedVisit?.name || "New Visit"}</BreadcrumbPage>
+                <BreadcrumbPage className="line-clamp-1">{!isMobile && (selectedVisit?.name || "New Visit")}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -188,11 +182,11 @@ export default function NoteComponent() {
           <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center">
               <span className="font-normal text-muted-foreground md:inline-block">
-                {selectedVisit?.recording_duration
+                {!isMobile && selectedVisit?.recording_duration
                   ? `${Math.floor(selectedVisit.recording_duration / 60)
                       .toString()
                       .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
-                  : "00:00"}
+                  : !isMobile && "00:00"}
               </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -259,31 +253,72 @@ export default function NoteComponent() {
       <div className="flex flex-1 flex-col gap-4 px-4 py-10">
         <div className="mx-auto h-full w-full max-w-3xl rounded-xl space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-4">
-            <div className="flex items-center gap-2 w-full">
-              <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-left" />
-            </div>
-            <div className="flex items-center gap-2">
-              <Select value={transcriptView ? "transcript" : selectedVisit?.template_id} onValueChange={selectTemplate}>
-                <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
-                  <SelectValue placeholder="Select a template" />
-                </SelectTrigger>
-                <SelectContent align="end">
-                  <SelectGroup>
-                    <SelectLabel>Templates</SelectLabel>
-                    <SelectItem value="transcript">Transcript</SelectItem>
-                    {templates.map((template) => (
-                      <SelectItem key={template.template_id} value={template.template_id || ""}>
-                        {template.name || "Unnamed Template"}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <Button onClick={copyAllNote}>
-                {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                Copy all
-              </Button>
-            </div>
+            {isMobile ? (
+              <div className="flex items-center justify-between w-full gap-2">
+                <Input 
+                  value={selectedVisit?.name} 
+                  onChange={nameChange} 
+                  placeholder="New Visit" 
+                  className="text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-left" 
+                />
+                <div className="flex gap-2">
+                  <Button variant="outline" size="icon" onClick={() => {
+                    const dropdown = document.createElement('select');
+                    dropdown.click();
+                  }}>
+                    <div className="relative">
+                      <FileText className="h-4 w-4 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10" />
+                      <Select value={transcriptView ? "transcript" : selectedVisit?.template_id} onValueChange={selectTemplate}>
+                        <SelectTrigger className="h-10 w-10 p-0 border-none opacity-0">
+                        </SelectTrigger>
+                        <SelectContent align="end">
+                          <SelectGroup>
+                            <SelectLabel>Templates</SelectLabel>
+                            <SelectItem value="transcript">Transcript</SelectItem>
+                            {templates.map((template) => (
+                              <SelectItem key={template.template_id} value={template.template_id || ""}>
+                                {template.name || "Unnamed Template"}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </Button>
+                  <Button variant="default" size="icon" onClick={copyAllNote}>
+                    {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 w-full">
+                <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-left" />
+              </div>
+            )}
+            {!isMobile && (
+              <div className="flex items-center gap-2">
+                <Select value={transcriptView ? "transcript" : selectedVisit?.template_id} onValueChange={selectTemplate}>
+                  <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
+                    <SelectValue placeholder="Select a template" />
+                  </SelectTrigger>
+                  <SelectContent align="end">
+                    <SelectGroup>
+                      <SelectLabel>Templates</SelectLabel>
+                      <SelectItem value="transcript">Transcript</SelectItem>
+                      {templates.map((template) => (
+                        <SelectItem key={template.template_id} value={template.template_id || ""}>
+                          {template.name || "Unnamed Template"}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <Button onClick={copyAllNote}>
+                  {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  Copy all
+                </Button>
+              </div>
+            )}
           </div>
 
           {selectedVisit?.template_modified_at && selectedVisit?.template_id && templates.find((t) => t.template_id === selectedVisit.template_id)?.modified_at && new Date(selectedVisit.template_modified_at.replace(" ", "T") + "Z") < new Date((templates.find((t) => t.template_id === selectedVisit.template_id)?.modified_at || "").replace(" ", "T") + "Z") && !transcriptView && (
@@ -293,13 +328,14 @@ export default function NoteComponent() {
                 <span className="text-sm text-muted-foreground">The template seems to be updated. Please regenerate.</span>
               </div>
               <Button onClick={regenerateNote}>
-                {selectedVisit?.status === "GENERATING_NOTE" ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                Regenerate
+                {selectedVisit?.status === "FRONTEND_TRANSITION" || selectedVisit?.status === "GENERATING_NOTE" ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                {selectedVisit?.status === "FRONTEND_TRANSITION" || selectedVisit?.status === "GENERATING_NOTE" ? "Regenerating" : "Regenerate"}
               </Button>
             </div>
           )}
 
           <Separator />
+          
           <div className="flex flex-col gap-3">
             {transcriptView ? (
               <>
@@ -326,11 +362,36 @@ export default function NoteComponent() {
               </>
             ) : (
               <div className="relative group">
-                <ExpandingTextarea id={`note`} minHeight={0} maxHeight={10000} value={selectedVisit?.note} onChange={noteChange} className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" />
-                {isNoteRegenerating && (
-                  <div className="absolute inset-0 bg-background/10 backdrop-blur-[4px] flex items-center justify-center z-10">
-                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                {selectedVisit?.status === "FRONTEND_TRANSITION" ? (
+                  <div className="space-y-4">
+                    <div className="flex gap-2">
+                      <Skeleton className="h-4 w-[20%]" />
+                      <Skeleton className="h-4 w-[50%]" />
+                      <Skeleton className="h-4 w-[30%]" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Skeleton className="h-4 w-[40%]" />
+                      <Skeleton className="h-4 w-[60%]" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Skeleton className="h-4 w-[80%]" />
+                      <Skeleton className="h-4 w-[20%]" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Skeleton className="h-4 w-[30%]" />
+                      <Skeleton className="h-4 w-[30%]" />
+                      <Skeleton className="h-4 w-[40%]" />
+                    </div>
                   </div>
+                ) : (
+                  <ExpandingTextarea 
+                    id={`note`} 
+                    minHeight={0} 
+                    maxHeight={10000} 
+                    value={selectedVisit?.note} 
+                    onChange={noteChange} 
+                    className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" 
+                  />
                 )}
               </div>
             )}

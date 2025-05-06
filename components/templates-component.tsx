@@ -20,11 +20,13 @@ import { setScreen } from "@/store/slices/sessionSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { formatLocalDateAndTime, useDebouncedSend } from "@/lib/utils";
 import { setUser } from "@/store/slices/userSlice";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function TemplatesComponent() {
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
+  const isMobile = useIsMobile();
 
   const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
   const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
@@ -121,33 +123,46 @@ export default function TemplatesComponent() {
         <div className="flex flex-1 items-center gap-2 px-4">
           <SidebarTrigger />
           <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbPage className="line-clamp-1">Template Center</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+          {!isMobile && (
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="line-clamp-1">Template Center</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          )}
         </div>
       </header>
       <div className="flex flex-1 flex-col gap-4 px-4 py-10">
         <div className="mx-auto h-full w-full max-w-3xl rounded-xl space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-4">
-            <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 justify-between">
               <h2 className="text-xl md:text-xl font-bold">Template Center</h2>
+              {isMobile && (
+                <Button size="icon" onClick={createTemplate} disabled={isCreatingTemplate}>
+                  {isCreatingTemplate ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
             </div>
-            <div className="flex items-center gap-2">
-              <Button onClick={createTemplate} disabled={isCreatingTemplate}>
-                {isCreatingTemplate ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    {" "}
-                    <Plus className="h-4 w-4" /> Create
-                  </>
-                )}
-              </Button>
-            </div>
+            {!isMobile && (
+              <div className="flex items-center gap-2">
+                <Button onClick={createTemplate} disabled={isCreatingTemplate}>
+                  {isCreatingTemplate ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      {" "}
+                      <Plus className="h-4 w-4" /> Create
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
 
           <Separator />
@@ -156,7 +171,7 @@ export default function TemplatesComponent() {
               <TableHeader className="bg-muted/50">
                 <TableRow>
                   <TableHead className="text-xs font-normal text-muted-foreground py-3 px-3 w-[60%]">NAME</TableHead>
-                  <TableHead className="text-xs font-normal text-muted-foreground py-3 w-[30%]">LAST MODIFIED</TableHead>
+                  {!isMobile && <TableHead className="text-xs font-normal text-muted-foreground py-3 w-[30%]">LAST MODIFIED</TableHead>}
                   <TableHead className="text-xs text-right font-normal text-muted-foreground py-3 w-[10%]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -182,7 +197,7 @@ export default function TemplatesComponent() {
                           <span className="text-xs text-muted-foreground">{template.status === "DEFAULT" ? "Created by HALO" : "Created by you"}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="font-normal text-primary">{template.modified_at ? formatLocalDateAndTime(template.modified_at) : "00:00 AM"}</TableCell>
+                      {!isMobile && <TableCell className="font-normal text-primary">{template.modified_at ? formatLocalDateAndTime(template.modified_at) : "00:00 AM"}</TableCell>}
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
