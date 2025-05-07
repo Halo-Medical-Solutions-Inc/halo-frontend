@@ -40,6 +40,8 @@ interface Template {
   name?: string;
   instructions?: string;
   print?: string;
+  header?: string;
+  footer?: string;
 }
 
 interface Session {

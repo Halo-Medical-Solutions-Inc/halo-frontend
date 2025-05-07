@@ -111,7 +111,7 @@ export default function RecordComponent() {
     const finishRecordingHandler = handle("finish_recording", "record", (data) => {
       if (data.was_requested) {
         console.log("Processing finish_recording in record");
-        dispatch(setVisit(data.data));
+        dispatch(setVisit({ ...data.data, status: "FRONTEND_TRANSITION" }));
         setFinishRecordingLoading(false);
         dispatch(setScreen("NOTE"));
       }
@@ -592,7 +592,7 @@ export default function RecordComponent() {
                 )}
               </Button>
             )}
-            
+
             {(!online || !connected) && (
               <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
                 <WifiOff className="h-4 w-4 mr-2 flex-shrink-0" />
