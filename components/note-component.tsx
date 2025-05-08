@@ -143,13 +143,27 @@ export default function NoteComponent() {
   const printNote = () => {
     const name = selectedVisit?.name || "New Visit";
     const content = transcriptView ? selectedVisit?.transcript || "" : selectedVisit?.note || "";
-    printNoteUtil(name, content);
+    
+    // Get the header and footer from the template if available
+    const templateId = selectedVisit?.template_id || "";
+    const template = templates.find(t => t.template_id === templateId);
+    const header = template?.header || "";
+    const footer = template?.footer || "";
+    
+    printNoteUtil(name, content, header, footer);
   };
 
   const downloadNote = () => {
     const name = selectedVisit?.name || "New Visit";
     const content = transcriptView ? selectedVisit?.transcript || "" : selectedVisit?.note || "";
-    downloadNoteAsPDFUtil(name, content);
+    
+    // Get the header and footer from the template if available
+    const templateId = selectedVisit?.template_id || "";
+    const template = templates.find(t => t.template_id === templateId);
+    const header = template?.header || "";
+    const footer = template?.footer || "";
+    
+    downloadNoteAsPDFUtil(name, content, header, footer);
   };
 
   const copyAllNote = () => {

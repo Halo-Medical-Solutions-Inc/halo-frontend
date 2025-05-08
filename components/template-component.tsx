@@ -18,6 +18,8 @@ import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend, getTimeDifference } from "@/lib/utils";
 import AnimatedLoadingSkeleton from "@/components/ui/animated-loading-skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+
 export default function TemplateComponent() {
   const dispatch = useDispatch();
   const { send } = useWebSocket();
@@ -74,26 +76,26 @@ export default function TemplateComponent() {
     });
   };
 
-  const headerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    dispatch(setSelectedTemplate({ ...selectedTemplate, header: e.target.value }));
+  const headerChange = (html: string) => {
+    dispatch(setSelectedTemplate({ ...selectedTemplate, header: html }));
     debouncedSend({
       type: "update_template",
       session_id: session.session_id,
       data: {
         template_id: selectedTemplate?.template_id,
-        header: e.target.value,
+        header: html,
       },
     });
   };
 
-  const footerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    dispatch(setSelectedTemplate({ ...selectedTemplate, footer: e.target.value }));
+  const footerChange = (html: string) => {
+    dispatch(setSelectedTemplate({ ...selectedTemplate, footer: html }));
     debouncedSend({
       type: "update_template",
       session_id: session.session_id,
       data: {
         template_id: selectedTemplate?.template_id,
-        footer: e.target.value,
+        footer: html,
       },
     });
   };
@@ -244,7 +246,12 @@ export default function TemplateComponent() {
                   </div>
                 </div>
                 <div className="border rounded-md p-4 bg-muted/20">
-                  <ExpandingTextarea minHeight={100} maxHeight={300} value={selectedTemplate?.header || ""} onChange={headerChange} placeholder={`Add your header content here (HTML supported)`} className="w-full text-sm flex-1 resize-none p-0 leading-relaxed focus:ring-0 focus:outline-none bg-transparent" />
+                  <RichTextEditor 
+                    content={selectedTemplate?.header || ""} 
+                    onChange={headerChange} 
+                    minHeight={100} 
+                    placeholder="Add your header content here" 
+                  />
                 </div>
                 <p className="text-xs text-muted-foreground">Add HTML content for the document header. This will appear at the top of printed documents.</p>
               </div>
@@ -258,13 +265,14 @@ export default function TemplateComponent() {
                   </div>
                 </div>
                 <div className="border rounded-md p-4 bg-muted/20">
-                  <ExpandingTextarea minHeight={100} maxHeight={300} value={selectedTemplate?.footer || ""} onChange={footerChange} placeholder={`Add your footer content here (HTML supported)`} className="w-full text-sm flex-1 resize-none p-0 leading-relaxed focus:ring-0 focus:outline-none bg-transparent" />
+                  <RichTextEditor 
+                    content={selectedTemplate?.footer || ""} 
+                    onChange={footerChange} 
+                    minHeight={100} 
+                    placeholder="Add your footer content here" 
+                  />
                 </div>
                 <p className="text-xs text-muted-foreground">Add HTML content for the document footer. This will appear at the bottom of printed documents.</p>
-              </div>
-
-              <div className="border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-900/30 rounded-md p-4">
-                <p className="text-sm text-amber-800 dark:text-amber-200">This is a basic HTML editor. For more advanced formatting options like images, colors, and fonts, consider integrating a rich text editor library.</p>
               </div>
             </div>
           )}

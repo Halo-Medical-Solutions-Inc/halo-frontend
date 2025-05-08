@@ -82,7 +82,7 @@ export const getTimeDifference = (olderDate: string, newerDate?: string): string
   }
 };
 
-export const printNote = (visitName: string, noteContent: string) => {
+export const printNote = (visitName: string, noteContent: string, headerContent?: string, footerContent?: string) => {
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
 
@@ -91,11 +91,6 @@ export const printNote = (visitName: string, noteContent: string) => {
     <html>
       <head>
         <style>
-          body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            margin: 20px;
-          }
           .content {
             white-space: pre-wrap;
           }
@@ -107,7 +102,9 @@ export const printNote = (visitName: string, noteContent: string) => {
         </style>
       </head>
       <body>
+        ${headerContent ? `<div class="header">${headerContent}</div>` : ''}
         <div class="content">${noteContent}</div>
+        ${footerContent ? `<div class="footer">${footerContent}</div>` : ''}
         <script>
           document.title = "";
         </script>
@@ -123,7 +120,7 @@ export const printNote = (visitName: string, noteContent: string) => {
   }, 300);
 };
 
-export const downloadNoteAsPDF = async (visitName: string, noteContent: string) => {
+export const downloadNoteAsPDF = async (visitName: string, noteContent: string, headerContent?: string, footerContent?: string) => {
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
 
@@ -132,10 +129,11 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string) 
     <html>
       <head>
         <style>
-          body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            margin: 20px;
+          .header {
+            width: 100%;
+          }
+          .footer {
+            width: 100%;
           }
           .content {
             white-space: pre-wrap;
@@ -148,7 +146,9 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string) 
         </style>
       </head>
       <body>
+        ${headerContent ? `<div class="header">${headerContent}</div>` : ''}
         <div class="content">${noteContent}</div>
+        ${footerContent ? `<div class="footer">${footerContent}</div>` : ''}
         <script>
           document.title = "";
         </script>
