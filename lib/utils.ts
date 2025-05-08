@@ -91,6 +91,26 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
     <html>
       <head>
         <style>
+          .header {
+            width: 100%;
+            white-space: pre-wrap;
+          }
+          .header p {
+            margin: 0;
+            line-height: 1.5;
+          }
+          .header p:empty {
+            min-height: 1.5em;
+            display: block;
+          }
+          .footer {
+            width: 100%;
+            white-space: pre-wrap;
+          }
+          .footer p {
+            margin: 0;
+            line-height: 1.5;
+          }
           .content {
             white-space: pre-wrap;
           }
@@ -102,9 +122,9 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
         </style>
       </head>
       <body>
-        ${headerContent ? `<div class="header">${headerContent}</div>` : ''}
+        ${headerContent ? `<div class="header">${headerContent}</div>` : ""}
         <div class="content">${noteContent}</div>
-        ${footerContent ? `<div class="footer">${footerContent}</div>` : ''}
+        ${footerContent ? `<div class="footer">${footerContent}</div>` : ""}
         <script>
           document.title = "";
         </script>
@@ -131,9 +151,23 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
         <style>
           .header {
             width: 100%;
+            white-space: pre-wrap;
+          }
+          .header p {
+            margin: 0;
+            line-height: 1.5;
+          }
+          .header p:empty {
+            min-height: 1.5em;
+            display: block;
           }
           .footer {
             width: 100%;
+            white-space: pre-wrap;
+          }
+          .footer p {
+            margin: 0;
+            line-height: 1.5;
           }
           .content {
             white-space: pre-wrap;
@@ -146,9 +180,9 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
         </style>
       </head>
       <body>
-        ${headerContent ? `<div class="header">${headerContent}</div>` : ''}
+        ${headerContent ? `<div class="header">${headerContent}</div>` : ""}
         <div class="content">${noteContent}</div>
-        ${footerContent ? `<div class="footer">${footerContent}</div>` : ''}
+        ${footerContent ? `<div class="footer">${footerContent}</div>` : ""}
         <script>
           document.title = "";
         </script>

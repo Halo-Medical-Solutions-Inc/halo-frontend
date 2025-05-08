@@ -246,12 +246,7 @@ export default function TemplateComponent() {
                   </div>
                 </div>
                 <div className="border rounded-md p-4 bg-muted/20">
-                  <RichTextEditor 
-                    content={selectedTemplate?.header || ""} 
-                    onChange={headerChange} 
-                    minHeight={100} 
-                    placeholder="Add your header content here" 
-                  />
+                  <RichTextEditor content={selectedTemplate?.header || ""} onChange={headerChange} minHeight={100} placeholder="Add your header content here" />
                 </div>
                 <p className="text-xs text-muted-foreground">Add HTML content for the document header. This will appear at the top of printed documents.</p>
               </div>
@@ -265,12 +260,7 @@ export default function TemplateComponent() {
                   </div>
                 </div>
                 <div className="border rounded-md p-4 bg-muted/20">
-                  <RichTextEditor 
-                    content={selectedTemplate?.footer || ""} 
-                    onChange={footerChange} 
-                    minHeight={100} 
-                    placeholder="Add your footer content here" 
-                  />
+                  <RichTextEditor content={selectedTemplate?.footer || ""} onChange={footerChange} minHeight={100} placeholder="Add your footer content here" />
                 </div>
                 <p className="text-xs text-muted-foreground">Add HTML content for the document footer. This will appear at the bottom of printed documents.</p>
               </div>
