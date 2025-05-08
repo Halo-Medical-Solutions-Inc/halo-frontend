@@ -40,6 +40,7 @@ export default function Page() {
     });
 
     const updateVisitHandler = handle("update_visit", "dashboard", (data) => {
+      console.log("Data updated", data.data);
       if (!data.was_requested) {
         console.log("Processing update_visit in dashboard");
         dispatch(setVisit(data.data));
@@ -90,8 +91,7 @@ export default function Page() {
     });
 
     const noteGeneratedHandler = handle("note_generated", "dashboard", (data) => {
-      console.log("Processing note_generated in dashboard");
-      console.log("data.data", data.data);
+      // console.log("Processing note_generated in dashboard");
       dispatch(setVisit(data.data));
     });
 
@@ -190,8 +190,6 @@ export default function Page() {
       setInitialLoad(false);
     });
   }, []);
-
-  console.log("initialLoad", initialLoad);
 
   useEffect(() => {
     if (visits.length < 1) {
