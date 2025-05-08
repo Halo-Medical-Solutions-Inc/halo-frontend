@@ -70,8 +70,10 @@ export default function TemplatesComponent() {
   }, [templates]);
 
   const selectTemplate = (template: Template) => {
-    dispatch(setScreen("TEMPLATE"));
-    dispatch(setSelectedTemplate(template));
+    if (template.status !== "DEFAULT") {
+      dispatch(setScreen("TEMPLATE"));
+      dispatch(setSelectedTemplate(template));
+    }
   };
 
   const createTemplate = () => {
@@ -179,7 +181,7 @@ export default function TemplatesComponent() {
                     return dateB - dateA;
                   })
                   .map((template) => (
-                    <TableRow key={template.template_id} className={`${template.status !== "DEFAULT" ? "cursor-pointer" : "cursor-not-allowed"}`} onClick={() => selectTemplate(template)}>
+                    <TableRow key={template.template_id} className={`${template.status !== "DEFAULT" ? "cursor-pointer" : "cursor-not-allowed"}`} onClick={() => template.status !== "DEFAULT" && selectTemplate(template)}>
                       <TableCell className="font-normal text-primary p-3">
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2">

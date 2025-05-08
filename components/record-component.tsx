@@ -256,10 +256,11 @@ export default function RecordComponent() {
   const startRecording = async () => {
     setStartRecordingLoading(true);
 
-    const errors: Record<string, string> = !selectedVisit?.template_id ? { template: "Please select a template" } : {};
+    const errors: Record<string, string> = !selectedVisit?.template_id || !templates.some((template) => template.template_id === selectedVisit.template_id) ? { template: "Please select a template" } : {};
     setValidationErrors(errors);
 
     if (Object.keys(errors).length > 0) {
+      setStartRecordingLoading(false);
       return;
     }
 
