@@ -82,36 +82,34 @@ export const getTimeDifference = (olderDate: string, newerDate?: string): string
   }
 };
 
-export const printNote = (visitName: string, noteContent: string) => {
+export const printNote = (visitName: string, noteContent: string, headerContent?: string, footerContent?: string) => {
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
-
-  const currentDate = new Date().toLocaleDateString();
 
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
       <head>
-        <title>${visitName} - Halo Note</title>
         <style>
-          body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            margin: 20px;
-          }
           .header {
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+            width: 100%;
+            white-space: pre-wrap;
           }
-          .title {
-            font-size: 24px;
-            font-weight: bold;
+          .header p {
+            margin: 0;
+            line-height: 1.5;
           }
-          .date {
-            color: #666;
-            font-size: 14px;
-            margin-top: 5px;
+          .header p:empty {
+            min-height: 1.5em;
+            display: block;
+          }
+          .footer {
+            width: 100%;
+            white-space: pre-wrap;
+          }
+          .footer p {
+            margin: 0;
+            line-height: 1.5;
           }
           .content {
             white-space: pre-wrap;
@@ -124,11 +122,12 @@ export const printNote = (visitName: string, noteContent: string) => {
         </style>
       </head>
       <body>
-        <div class="header">
-          <div class="title">${visitName}</div>
-          <div class="date">Generated on ${currentDate}</div>
-        </div>
+        ${headerContent ? `<div class="header">${headerContent}</div>` : ""}
         <div class="content">${noteContent}</div>
+        ${footerContent ? `<div class="footer">${footerContent}</div>` : ""}
+        <script>
+          document.title = "";
+        </script>
       </body>
     </html>
   `);
@@ -141,37 +140,34 @@ export const printNote = (visitName: string, noteContent: string) => {
   }, 300);
 };
 
-export const downloadNoteAsPDF = async (visitName: string, noteContent: string) => {
+export const downloadNoteAsPDF = async (visitName: string, noteContent: string, headerContent?: string, footerContent?: string) => {
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
-
-  const fileName = `${visitName.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_note.pdf`;
-  const currentDate = new Date().toLocaleDateString();
 
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
       <head>
-        <title>${visitName} - Halo Note</title>
         <style>
-          body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            margin: 20px;
-          }
           .header {
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+            width: 100%;
+            white-space: pre-wrap;
           }
-          .title {
-            font-size: 24px;
-            font-weight: bold;
+          .header p {
+            margin: 0;
+            line-height: 1.5;
           }
-          .date {
-            color: #666;
-            font-size: 14px;
-            margin-top: 5px;
+          .header p:empty {
+            min-height: 1.5em;
+            display: block;
+          }
+          .footer {
+            width: 100%;
+            white-space: pre-wrap;
+          }
+          .footer p {
+            margin: 0;
+            line-height: 1.5;
           }
           .content {
             white-space: pre-wrap;
@@ -184,13 +180,11 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string) 
         </style>
       </head>
       <body>
-        <div class="header">
-          <div class="title">${visitName}</div>
-          <div class="date">Generated on ${currentDate}</div>
-        </div>
+        ${headerContent ? `<div class="header">${headerContent}</div>` : ""}
         <div class="content">${noteContent}</div>
+        ${footerContent ? `<div class="footer">${footerContent}</div>` : ""}
         <script>
-          document.title = "${fileName}";
+          document.title = "";
         </script>
       </body>
     </html>

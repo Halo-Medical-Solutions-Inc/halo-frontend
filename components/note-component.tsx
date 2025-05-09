@@ -112,7 +112,7 @@ export default function NoteComponent() {
       });
 
       if (value != selectedVisit?.template_id) {
-        regenerateNote();
+        regenerateNote(value);
       }
     }
   };
@@ -128,27 +128,42 @@ export default function NoteComponent() {
     });
   };
 
-  const regenerateNote = () => {
+  const regenerateNote = (template_id: string) => {
     send({
       type: "regenerate_note",
       session_id: session.session_id,
       data: {
         visit_id: selectedVisit?.visit_id,
+        template_id: template_id,
       },
     });
-    dispatch(setSelectedVisit({ ...selectedVisit, status: "FRONTEND_TRANSITION" }));
+    dispatch(setSelectedVisit({ ...selectedVisit, template_id: template_id, status: "FRONTEND_TRANSITION" }));
   };
 
   const printNote = () => {
     const name = selectedVisit?.name || "New Visit";
     const content = transcriptView ? selectedVisit?.transcript || "" : selectedVisit?.note || "";
-    printNoteUtil(name, content);
+
+    // Get the header and footer from the template if available
+    const templateId = selectedVisit?.template_id || "";
+    const template = templates.find((t) => t.template_id === templateId);
+    const header = template?.header || "";
+    const footer = template?.footer || "";
+
+    printNoteUtil(name, content, header, footer);
   };
 
   const downloadNote = () => {
     const name = selectedVisit?.name || "New Visit";
     const content = transcriptView ? selectedVisit?.transcript || "" : selectedVisit?.note || "";
-    downloadNoteAsPDFUtil(name, content);
+
+    // Get the header and footer from the template if available
+    const templateId = selectedVisit?.template_id || "";
+    const template = templates.find((t) => t.template_id === templateId);
+    const header = template?.header || "";
+    const footer = template?.footer || "";
+
+    downloadNoteAsPDFUtil(name, content, header, footer);
   };
 
   const copyAllNote = () => {
@@ -159,10 +174,6 @@ export default function NoteComponent() {
       setTimeout(() => setIsCopied(false), 2000);
     }
   };
-
-  console.log("Selected visit status", selectedVisit?.status);
-  console.log("Note template modified at", selectedVisit?.template_modified_at);
-  console.log("Template modified at", templates.find((t) => t.template_id === selectedVisit?.template_id)?.modified_at);
 
   return (
     <SidebarInset>
@@ -203,7 +214,7 @@ export default function NoteComponent() {
                     <Download className="h-4 w-4" />
                     <span>Download</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={regenerateNote}>
+                  <DropdownMenuItem onClick={() => regenerateNote(selectedVisit?.template_id || "")}>
                     <RefreshCw className="h-4 w-4" />
                     <span>Regenerate</span>
                   </DropdownMenuItem>
@@ -325,7 +336,7 @@ export default function NoteComponent() {
                 <span className="text-sm font-medium">Template Updated</span>
                 <span className="text-sm text-muted-foreground">The template seems to be updated. Please regenerate.</span>
               </div>
-              <Button onClick={regenerateNote}>
+              <Button onClick={() => regenerateNote(selectedVisit?.template_id || "")}>
                 {selectedVisit?.status === "FRONTEND_TRANSITION" || selectedVisit?.status === "GENERATING_NOTE" ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                 {selectedVisit?.status === "FRONTEND_TRANSITION" || selectedVisit?.status === "GENERATING_NOTE" ? "Regenerating" : "Regenerate"}
               </Button>

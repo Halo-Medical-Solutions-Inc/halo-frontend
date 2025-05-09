@@ -7,7 +7,7 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Trash2, ArrowLeft, Sparkles, Loader2 } from "lucide-react";
+import { MoreHorizontal, Trash2, ArrowLeft, Sparkles, Loader2, FileText, Printer, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ExpandingTextarea } from "@/components/ui/textarea";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,11 +18,14 @@ import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend, getTimeDifference } from "@/lib/utils";
 import AnimatedLoadingSkeleton from "@/components/ui/animated-loading-skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+
 export default function TemplateComponent() {
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
   const isMobile = useIsMobile();
+  const [activeTab, setActiveTab] = useState<"instructions" | "printer">("instructions");
 
   const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
   const session = useSelector((state: RootState) => state.session.session);
@@ -73,6 +76,30 @@ export default function TemplateComponent() {
     });
   };
 
+  const headerChange = (html: string) => {
+    dispatch(setSelectedTemplate({ ...selectedTemplate, header: html }));
+    debouncedSend({
+      type: "update_template",
+      session_id: session.session_id,
+      data: {
+        template_id: selectedTemplate?.template_id,
+        header: html,
+      },
+    });
+  };
+
+  const footerChange = (html: string) => {
+    dispatch(setSelectedTemplate({ ...selectedTemplate, footer: html }));
+    debouncedSend({
+      type: "update_template",
+      session_id: session.session_id,
+      data: {
+        template_id: selectedTemplate?.template_id,
+        footer: html,
+      },
+    });
+  };
+
   const deleteTemplate = () => {
     setIsDeletingTemplate(true);
     send({
@@ -85,6 +112,14 @@ export default function TemplateComponent() {
   };
 
   const polishTemplate = () => {};
+
+  const handleInstructionsTabClick = () => {
+    setActiveTab("instructions");
+  };
+
+  const handlePrinterTabClick = () => {
+    setActiveTab("printer");
+  };
 
   return (
     <SidebarInset>
@@ -172,6 +207,12 @@ export default function TemplateComponent() {
                   <ArrowLeft className="h-4 w-4" />
                   Back
                 </Button>
+                <Button variant={activeTab === "instructions" ? "default" : "outline"} size="icon" onClick={handleInstructionsTabClick}>
+                  <FileText className="h-4 w-4" />
+                </Button>
+                <Button variant={activeTab === "printer" ? "default" : "outline"} size="icon" onClick={handlePrinterTabClick}>
+                  <Printer className="h-4 w-4" />
+                </Button>
 
                 {/* <Button onClick={polishTemplate}>
                 <Sparkles className="h-4 w-4" />
@@ -182,17 +223,49 @@ export default function TemplateComponent() {
           </div>
           <Separator className="my-2 bg-border h-[1px]" />
 
-          <ExpandingTextarea
-            minHeight={200}
-            maxHeight={10000}
-            value={selectedTemplate?.instructions}
-            onChange={instructionsChange}
-            placeholder={`Create or insert you're EMR template here
+          {activeTab === "instructions" ? (
+            <ExpandingTextarea
+              minHeight={200}
+              maxHeight={10000}
+              value={selectedTemplate?.instructions}
+              onChange={instructionsChange}
+              placeholder={`Create or insert you're EMR template here
 - Use ##Title Name## to define sections.
 - {Use curly braces} for providing AI instructions.
 - For Epic users, Halo recognizes your @smartlinks@.`}
-            className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none"
-          />
+              className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none"
+            />
+          ) : (
+            <div className="space-y-8">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-medium">Header</h3>
+                  <div className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Info className="h-3 w-3" />
+                    <span>HTML support enabled</span>
+                  </div>
+                </div>
+                <div className="border rounded-md p-4 bg-muted/20">
+                  <RichTextEditor content={selectedTemplate?.header || ""} onChange={headerChange} minHeight={100} placeholder="Add your header content here" />
+                </div>
+                <p className="text-xs text-muted-foreground">Add HTML content for the document header. This will appear at the top of printed documents.</p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-medium">Footer</h3>
+                  <div className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Info className="h-3 w-3" />
+                    <span>HTML support enabled</span>
+                  </div>
+                </div>
+                <div className="border rounded-md p-4 bg-muted/20">
+                  <RichTextEditor content={selectedTemplate?.footer || ""} onChange={footerChange} minHeight={100} placeholder="Add your footer content here" />
+                </div>
+                <p className="text-xs text-muted-foreground">Add HTML content for the document footer. This will appear at the bottom of printed documents.</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </SidebarInset>
