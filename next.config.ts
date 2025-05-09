@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  redirects: async () => {
+    return [
+      {
+        source: "/",
+        destination: "/signin",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
