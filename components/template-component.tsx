@@ -233,7 +233,7 @@ export default function TemplateComponent() {
 - Use ##Title Name## to define sections.
 - {Use curly braces} for providing AI instructions.
 - For Epic users, Halo recognizes your @smartlinks@.`}
-              className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none"
+              className="w-full text-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none"
             />
           ) : (
             <div className="space-y-8">
@@ -245,7 +245,7 @@ export default function TemplateComponent() {
                     <span>HTML support enabled</span>
                   </div>
                 </div>
-                <div className="border rounded-md p-4 bg-muted/20">
+                <div className="rounded-md bg-muted/20">
                   <RichTextEditor content={selectedTemplate?.header || ""} onChange={headerChange} minHeight={100} placeholder="Add your header content here" />
                 </div>
                 <p className="text-xs text-muted-foreground">Add HTML content for the document header. This will appear at the top of printed documents.</p>
@@ -259,7 +259,7 @@ export default function TemplateComponent() {
                     <span>HTML support enabled</span>
                   </div>
                 </div>
-                <div className="border rounded-md p-4 bg-muted/20">
+                <div className="rounded-md bg-muted/20">
                   <RichTextEditor content={selectedTemplate?.footer || ""} onChange={footerChange} minHeight={100} placeholder="Add your footer content here" />
                 </div>
                 <p className="text-xs text-muted-foreground">Add HTML content for the document footer. This will appear at the bottom of printed documents.</p>
