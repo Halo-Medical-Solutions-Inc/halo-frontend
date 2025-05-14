@@ -53,7 +53,7 @@ export default function RecordComponent() {
     const deleteVisitHandler = handle("delete_visit", "record", (data) => {
       if (data.was_requested) {
         console.log("Processing delete_visit in record");
-        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
+        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id && visit.status !== "RECORDING");
         dispatch(setVisits(filteredVisits));
 
         if (filteredVisits.length > 0) {
@@ -69,7 +69,7 @@ export default function RecordComponent() {
 
         setIsDeletingVisit(false);
       } else {
-        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
+        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id && visit.status !== "RECORDING");
 
         if (filteredVisits.length > 0) {
           const lastVisit = filteredVisits[filteredVisits.length - 1];

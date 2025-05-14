@@ -36,7 +36,7 @@ export default function NoteComponent() {
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "note", (data) => {
       if (data.was_requested) {
-        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
+        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id && visit.status !== "RECORDING");
         dispatch(setVisits(filteredVisits));
 
         if (filteredVisits.length > 0) {
@@ -52,7 +52,7 @@ export default function NoteComponent() {
 
         setIsDeletingVisit(false);
       } else {
-        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
+        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id && visit.status !== "RECORDING");
 
         if (filteredVisits.length > 0) {
           const lastVisit = filteredVisits[filteredVisits.length - 1];

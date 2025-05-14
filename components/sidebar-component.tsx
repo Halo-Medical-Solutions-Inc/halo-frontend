@@ -49,7 +49,7 @@ export default function SidebarComponent() {
     const deleteVisitHandler = handle("delete_visit", "sidebar", (data) => {
       if (data.was_requested) {
         console.log("Processing delete_visit in sidebar");
-        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
+        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id && visit.status !== "RECORDING");
         dispatch(setVisits(filteredVisits));
 
         if (filteredVisits.length > 0) {
