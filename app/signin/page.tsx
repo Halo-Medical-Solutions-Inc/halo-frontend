@@ -71,7 +71,7 @@ export default function Page() {
           password: "Incorrect email or password",
         });
       } finally {
-        // setIsLoading(false);
+        setIsLoading(false);
       }
     }
   };

@@ -168,6 +168,11 @@ export default function Page() {
   }, [user]);
 
   useEffect(() => {
+    if (!session) {
+      window.location.href = "/signin";
+      return;
+    }
+    
     setInitialLoad(true);
     connect(session.session_id);
 
