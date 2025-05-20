@@ -172,7 +172,7 @@ export default function Page() {
       window.location.href = "/signin";
       return;
     }
-    
+
     setInitialLoad(true);
     connect(session.session_id);
 

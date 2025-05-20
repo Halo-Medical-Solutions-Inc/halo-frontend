@@ -84,22 +84,22 @@ export const getTimeDifference = (olderDate: string, newerDate?: string): string
 
 export const formatText = (text: string): string => {
   let formattedText = text;
-  
-  formattedText = formattedText.replace(/\*\*--([^*]*?)--\*\*/g, '<strong><u>$1</u></strong>');
-  formattedText = formattedText.replace(/--\*\*([^-]*?)\*\*--/g, '<strong><u>$1</u></strong>');
-  
-  formattedText = formattedText.replace(/\*\*\/\/([^*]*?)\/\/\*\*/g, '<strong><em>$1</em></strong>');
-  formattedText = formattedText.replace(/\/\/\*\*([^/]*?)\*\*\/\//g, '<strong><em>$1</em></strong>');
-  
-  formattedText = formattedText.replace(/--\/\/([^-]*?)\/\/--/g, '<u><em>$1</em></u>');
-  formattedText = formattedText.replace(/\/\/--([^/]*?)--\/\//g, '<u><em>$1</em></u>');
-  
-  formattedText = formattedText.replace(/\*\*--\/\/([^*]*?)\/\/--\*\*/g, '<strong><u><em>$1</em></u></strong>');
-  
-  formattedText = formattedText.replace(/\*\*([^*]*?)\*\*/g, '<strong>$1</strong>');
-  formattedText = formattedText.replace(/--([^-]*?)--/g, '<u>$1</u>');
-  formattedText = formattedText.replace(/\/\/([^/]*?)\/\//g, '<em>$1</em>');
-  
+
+  formattedText = formattedText.replace(/\*\*--([^*]*?)--\*\*/g, "<strong><u>$1</u></strong>");
+  formattedText = formattedText.replace(/--\*\*([^-]*?)\*\*--/g, "<strong><u>$1</u></strong>");
+
+  formattedText = formattedText.replace(/\*\*\/\/([^*]*?)\/\/\*\*/g, "<strong><em>$1</em></strong>");
+  formattedText = formattedText.replace(/\/\/\*\*([^/]*?)\*\*\/\//g, "<strong><em>$1</em></strong>");
+
+  formattedText = formattedText.replace(/--\/\/([^-]*?)\/\/--/g, "<u><em>$1</em></u>");
+  formattedText = formattedText.replace(/\/\/--([^/]*?)--\/\//g, "<u><em>$1</em></u>");
+
+  formattedText = formattedText.replace(/\*\*--\/\/([^*]*?)\/\/--\*\*/g, "<strong><u><em>$1</em></u></strong>");
+
+  formattedText = formattedText.replace(/\*\*([^*]*?)\*\*/g, "<strong>$1</strong>");
+  formattedText = formattedText.replace(/--([^-]*?)--/g, "<u>$1</u>");
+  formattedText = formattedText.replace(/\/\/([^/]*?)\/\//g, "<em>$1</em>");
+
   return formattedText;
 };
 
@@ -108,8 +108,8 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
   if (!printWindow) return;
 
   const formattedNoteContent = formatText(noteContent);
-  const formattedHeaderContent = headerContent ? formatText(headerContent) : '';
-  const formattedFooterContent = footerContent ? formatText(footerContent) : '';
+  const formattedHeaderContent = headerContent ? formatText(headerContent) : "";
+  const formattedFooterContent = footerContent ? formatText(footerContent) : "";
 
   printWindow.document.write(`
     <!DOCTYPE html>
@@ -170,8 +170,8 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
   if (!printWindow) return;
 
   const formattedNoteContent = formatText(noteContent);
-  const formattedHeaderContent = headerContent ? formatText(headerContent) : '';
-  const formattedFooterContent = footerContent ? formatText(footerContent) : '';
+  const formattedHeaderContent = headerContent ? formatText(headerContent) : "";
+  const formattedFooterContent = footerContent ? formatText(footerContent) : "";
 
   printWindow.document.write(`
     <!DOCTYPE html>
