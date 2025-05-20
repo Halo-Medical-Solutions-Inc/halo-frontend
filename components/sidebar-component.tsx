@@ -144,7 +144,7 @@ export default function SidebarComponent() {
             </SidebarMenuItem>
           </SidebarMenu>
           <div className="relative flex w-full min-w-0 flex-col p-2 rounded-md">
-            <Button className="font-normal" onClick={createVisit} disabled={isCreatingVisit}>
+            <Button className="font-normal" onClick={createVisit} disabled={isCreatingVisit} id="onboarding-new-visit">
               {isCreatingVisit ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : (

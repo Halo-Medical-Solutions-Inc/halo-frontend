@@ -438,7 +438,7 @@ export default function RecordComponent() {
               <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-center" />
             </div>
 
-            <div className="flex items-center justify-between w-full">
+            <div id="visit-details" className="flex items-center justify-between w-full">
               <Label className="text-sm font-normal text-muted-foreground">
                 Select template
                 <span className="text-destructive">*</span>
@@ -527,7 +527,7 @@ export default function RecordComponent() {
             )}
 
             {selectedVisit?.status === "RECORDING" && (
-              <div className="flex items-center justify-between w-full gap-2">
+              <div id="recording-status" className="flex items-center justify-between w-full gap-2">
                 <Button variant="outline" className="flex-1 border-destructive-border text-destructive hover:opacity-80 hover:text-destructive" onClick={pauseRecording} disabled={!connected || !online}>
                   {pauseRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -542,7 +542,7 @@ export default function RecordComponent() {
                     </>
                   )}
                 </Button>
-                <Button className="flex-1" onClick={finishRecording} disabled={!connected || !online}>
+                <Button id="finish-recording-button" className="flex-1" onClick={finishRecording} disabled={!connected || !online}>
                   {finishRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -583,7 +583,7 @@ export default function RecordComponent() {
             )}
 
             {!selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
-              <Button className="w-full" onClick={startRecording} disabled={!connected || !online}>
+              <Button id="start-recording-button" className="w-full" onClick={startRecording} disabled={!connected || !online}>
                 {startRecordingLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (

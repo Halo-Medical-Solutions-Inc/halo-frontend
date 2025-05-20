@@ -370,7 +370,7 @@ export default function NoteComponent() {
                 </div>
               </>
             ) : (
-              <div className="relative group">
+              <div id="note-view" className="relative group">
                 {selectedVisit?.status === "FRONTEND_TRANSITION" ? (
                   <div className="space-y-4">
                     <div className="flex gap-2">
