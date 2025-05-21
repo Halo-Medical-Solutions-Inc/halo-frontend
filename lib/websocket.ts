@@ -49,10 +49,12 @@ export interface WebSocketResponse {
 }
 
 type MessageHandler = (data: WebSocketResponse) => void;
+type StatusListener = (status: { online: boolean, connected: boolean }) => void;
 
 let websocket: WebSocket | null = null;
 let isConnecting = false;
 const messageHandlers: Record<string, Record<string, MessageHandler>> = {};
+const statusListeners: Record<string, StatusListener> = {};
 
 export let online = typeof navigator !== "undefined" ? navigator.onLine : false;
 export let connected = false;
@@ -60,31 +62,36 @@ export let connected = false;
 export const isOnline = () => online;
 export const isConnected = () => connected;
 
+const notifyStatusChange = () => {
+  Object.values(statusListeners).forEach(listener => {
+    listener({ online, connected });
+  });
+};
+
 export const useConnectionStatus = () => {
   const [onlineStatus, setOnlineStatus] = useState(online);
   const [connectedStatus, setConnectedStatus] = useState(connected);
 
   useEffect(() => {
+    const listenerId = `conn-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    statusListeners[listenerId] = ({ online: updatedOnlineStatus, connected: updatedConnectionStatus }) => {
+      setOnlineStatus(updatedOnlineStatus);
+      setConnectedStatus(updatedConnectionStatus);
+    };
+    
     setOnlineStatus(online);
     setConnectedStatus(connected);
 
     const handleOnline = () => {
       online = true;
-      setOnlineStatus(true);
+      notifyStatusChange();
     };
 
     const handleOffline = () => {
       online = false;
-      setOnlineStatus(false);
+      notifyStatusChange();
     };
-
-    const checkWebsocket = () => {
-      if (connectedStatus !== connected) {
-        setConnectedStatus(connected);
-      }
-    };
-
-    const interval = setInterval(checkWebsocket, 1000);
 
     if (typeof window !== "undefined") {
       window.addEventListener("online", handleOnline);
@@ -96,7 +103,7 @@ export const useConnectionStatus = () => {
         window.removeEventListener("online", handleOnline);
         window.removeEventListener("offline", handleOffline);
       }
-      clearInterval(interval);
+      delete statusListeners[listenerId];
     };
   }, []);
 
@@ -116,6 +123,8 @@ export const connect = (sessionId: string) => {
   websocket.onopen = () => {
     isConnecting = false;
     connected = true;
+    console.log("connected", connected);
+    notifyStatusChange();
   };
 
   websocket.onmessage = (event: MessageEvent) => {
@@ -130,12 +139,15 @@ export const connect = (sessionId: string) => {
   websocket.onclose = () => {
     isConnecting = false;
     connected = false;
+    console.log("disconnected", connected);
+    notifyStatusChange();
     setTimeout(() => connect(sessionId), 1000);
   };
 
   websocket.onerror = (error: Event) => {
     isConnecting = false;
     connected = false;
+    notifyStatusChange();
     if (websocket) {
       websocket.close();
     }
@@ -175,9 +187,11 @@ export default useWebSocket;
 if (typeof window !== "undefined") {
   window.addEventListener("online", () => {
     online = true;
+    notifyStatusChange();
   });
 
   window.addEventListener("offline", () => {
     online = false;
+    notifyStatusChange();
   });
 }

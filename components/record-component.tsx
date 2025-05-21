@@ -19,7 +19,6 @@ import { setSelectedVisit } from "@/store/slices/visitSlice";
 import { useDispatch } from "react-redux";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
-import { setScreen } from "@/store/slices/sessionSlice";
 import { useConnectionStatus } from "@/lib/websocket";
 
 export default function RecordComponent() {
@@ -142,6 +141,21 @@ export default function RecordComponent() {
       }
     };
   }, [selectedVisit]);
+
+  useEffect(() => {
+    if (selectedVisit?.status === "RECORDING" && (!online || !connected)) {
+      dispatch(setSelectedVisit({ ...selectedVisit, status: "PAUSED" }));
+      stopAudioProcessing();
+      isRecordingRef.current = false;
+      send({
+        type: "pause_recording",
+        session_id: session.session_id,
+        data: {
+          visit_id: selectedVisit?.visit_id,
+        },
+      });
+    }
+  }, [online, connected, selectedVisit?.status]);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedVisit({ ...selectedVisit, name: e.target.value }));
@@ -293,10 +307,7 @@ export default function RecordComponent() {
       processorNodeRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
       processorNodeRef.current.connect(audioContextRef.current.destination);
 
-      console.log("Processor node connected in record");
-
       processorNodeRef.current.onaudioprocess = (e) => {
-        console.log("Processing audio chunk in record");
         if (isRecordingRef.current) {
           const inputData = e.inputBuffer.getChannelData(0);
 
