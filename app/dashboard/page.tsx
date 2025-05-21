@@ -19,12 +19,13 @@ import { clearSession, setScreen } from "@/store/slices/sessionSlice";
 import { Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNextStep } from "nextstepjs";
+import AskAIComponent from "@/components/ask-ai-component";
 
 export default function Page() {
   const dispatch = useDispatch();
   const { connect } = useWebSocket();
   const { startNextStep } = useNextStep();
-
+  const { currentTour, setCurrentStep } = useNextStep();
   const user = useSelector((state: RootState) => state.user.user);
   const session = useSelector((state: RootState) => state.session.session);
   const screen = useSelector((state: RootState) => state.session.screen);
@@ -205,10 +206,6 @@ export default function Page() {
     }
   }, [visits]);
 
-  const startOnboarding = () => {
-    startNextStep("onboarding");
-  };
-
   return (
     <>
       {initialLoad && (
@@ -225,21 +222,8 @@ export default function Page() {
         {screen === "RECORD" && <RecordComponent />}
         {screen === "TEMPLATE" && <TemplateComponent />}
         {screen === "TEMPLATES" && <TemplatesComponent />}
-        <div className="fixed bottom-4 right-4">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-10 w-10 rounded-full shadow-lg"
-            onClick={() => {
-              startNextStep("onboardingTour");
-            }}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-        <button onClick={startOnboarding} className="fixed bottom-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded-md shadow-lg hover:bg-primary/90 transition-colors">
-          Start Onboarding
-        </button>
+
+        <AskAIComponent />
       </Application>
     </>
   );

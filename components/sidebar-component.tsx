@@ -19,11 +19,13 @@ import { clearSelectedTemplate } from "@/store/slices/templateSlice";
 import { clearUser } from "@/store/slices/userSlice";
 import { clearSession } from "@/store/slices/sessionSlice";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNextStep } from "nextstepjs";
 
 export default function SidebarComponent() {
   const dispatch = useDispatch();
   const isMobile = useIsMobile();
   const { send } = useWebSocket();
+  const { currentTour, setCurrentStep } = useNextStep();
 
   const [isCreatingVisit, setIsCreatingVisit] = useState(false);
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
@@ -43,6 +45,11 @@ export default function SidebarComponent() {
         dispatch(setSelectedVisit(data.data));
         dispatch(setScreen("RECORD"));
         setIsCreatingVisit(false);
+
+        if (currentTour === "onboarding") {
+          console.log("Setting current step to 1");
+          setCurrentStep(1, 100);
+        }
       }
     });
 

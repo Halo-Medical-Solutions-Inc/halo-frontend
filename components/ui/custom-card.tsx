@@ -2,8 +2,7 @@
 
 import React from "react";
 import { Step } from "nextstepjs";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 
@@ -19,7 +18,7 @@ interface CustomCardProps {
 
 const CustomCard = ({ step, currentStep, totalSteps, nextStep, prevStep, skipTour, arrow }: CustomCardProps) => {
   const visits = useSelector((state: RootState) => state.visit.visits);
-  
+
   // Disable next button if we're on the first step of onboarding tour and no visits exist
   const isNextDisabled = step.tour === "onboarding" && currentStep === 0 && visits.length === 0;
 
@@ -34,30 +33,17 @@ const CustomCard = ({ step, currentStep, totalSteps, nextStep, prevStep, skipTou
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <div className="text-sm font-semibold text-primary">{step.title}</div>
-          {step.icon}
         </div>
         <div className="text-sm text-primary">{step.content}</div>
         {arrow}
       </div>
 
-      <div className="mt-auto pt-8 flex flex-col gap-4">
-        <div className="flex justify-between items-center">
+      <div className="mt-auto pt-8">
+        <div className="flex justify-end">
           <div className="flex gap-1">
             {Array.from({ length: totalSteps }).map((_, i) => (
               <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === currentStep ? "bg-primary" : "bg-primary/20"}`} />
             ))}
-          </div>
-
-          <div className="flex gap-2">
-            {currentStep > 0 && (
-              <Button variant="outline" size="icon" onClick={prevStep}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            )}
-
-            <Button size="icon" onClick={nextStep} disabled={isNextDisabled}>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       </div>
