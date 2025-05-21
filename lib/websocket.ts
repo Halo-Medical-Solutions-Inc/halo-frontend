@@ -1,55 +1,21 @@
 import React, { useState, useEffect } from "react";
 
-const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL; 
+const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
 
 export interface WebSocketMessage {
-  type: (
-    | "create_template"
-    | "update_template"
-    | "delete_template"
-    | "duplicate_template"
-    | "create_visit"
-    | "update_visit"
-    | "delete_visit"
-    | "update_user"
-    | "error"
-    | "start_recording"
-    | "pause_recording"
-    | "finish_recording"
-    | "resume_recording"
-    | "audio_chunk"
-    | "note_generated"
-    | "regenerate_note"
-  );
+  type: "create_template" | "update_template" | "delete_template" | "duplicate_template" | "create_visit" | "update_visit" | "delete_visit" | "update_user" | "error" | "start_recording" | "pause_recording" | "finish_recording" | "resume_recording" | "audio_chunk" | "note_generated" | "regenerate_note";
   session_id: string;
   data: Record<string, any>;
 }
 
 export interface WebSocketResponse {
-  type: (
-    | "create_template"
-    | "update_template"
-    | "delete_template"
-    | "duplicate_template"
-    | "create_visit"
-    | "update_visit"
-    | "delete_visit"
-    | "update_user"
-    | "error"
-    | "start_recording"
-    | "pause_recording"
-    | "finish_recording"
-    | "resume_recording"
-    | "audio_chunk"
-    | "note_generated"
-    | "regenerate_note"
-  );
+  type: "create_template" | "update_template" | "delete_template" | "duplicate_template" | "create_visit" | "update_visit" | "delete_visit" | "update_user" | "error" | "start_recording" | "pause_recording" | "finish_recording" | "resume_recording" | "audio_chunk" | "note_generated" | "regenerate_note";
   data: Record<string, any>;
   was_requested: boolean;
 }
 
 type MessageHandler = (data: WebSocketResponse) => void;
-type StatusListener = (status: { online: boolean, connected: boolean }) => void;
+type StatusListener = (status: { online: boolean; connected: boolean }) => void;
 
 let websocket: WebSocket | null = null;
 let isConnecting = false;
@@ -63,7 +29,7 @@ export const isOnline = () => online;
 export const isConnected = () => connected;
 
 const notifyStatusChange = () => {
-  Object.values(statusListeners).forEach(listener => {
+  Object.values(statusListeners).forEach((listener) => {
     listener({ online, connected });
   });
 };
@@ -74,12 +40,12 @@ export const useConnectionStatus = () => {
 
   useEffect(() => {
     const listenerId = `conn-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    
+
     statusListeners[listenerId] = ({ online: updatedOnlineStatus, connected: updatedConnectionStatus }) => {
       setOnlineStatus(updatedOnlineStatus);
       setConnectedStatus(updatedConnectionStatus);
     };
-    
+
     setOnlineStatus(online);
     setConnectedStatus(connected);
 

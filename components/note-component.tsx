@@ -322,14 +322,7 @@ export default function NoteComponent() {
                     </div>
                   </div>
                   <div className="relative group mt-2">
-                    <ExpandingTextarea 
-                      id={`transcript`} 
-                      minHeight={0} 
-                      maxHeight={10000} 
-                      value={formatTranscriptTime(selectedVisit?.transcript)} 
-                      disabled={true} 
-                      className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" 
-                    />
+                    <ExpandingTextarea id={`transcript`} minHeight={0} maxHeight={10000} value={formatTranscriptTime(selectedVisit?.transcript)} disabled={true} className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" />
                   </div>
                 </div>
                 <div className="flex flex-col">
