@@ -13,6 +13,7 @@ const steps = [
     tour: "mainTour",
     steps: [
       {
+        tour: "mainTour",
         icon: "👋",
         title: "Header",
         content: "Read this",
@@ -22,6 +23,7 @@ const steps = [
         showSkip: true,
       },
       {
+        tour: "mainTour",
         icon: "📝",
         title: "Body",
         content: "Read this",
@@ -31,6 +33,7 @@ const steps = [
         showSkip: true,
       },
       {
+        tour: "mainTour",
         icon: "✅",
         title: "Finish",
         content: "Read this",
@@ -45,6 +48,7 @@ const steps = [
     tour: "onboarding",
     steps: [
       {
+        tour: "onboarding",
         icon: "➕",
         title: "Create New Visit",
         content: "Let's start by creating a new visit",
@@ -56,6 +60,7 @@ const steps = [
         pointerRadius: 8,
       },
       {
+        tour: "onboarding",
         icon: "📝",
         title: "Name the Patient",
         content: "Enter the patient's name",
@@ -67,6 +72,7 @@ const steps = [
         pointerRadius: 8,
       },
       {
+        tour: "onboarding",
         icon: "📋",
         title: "Select Template",
         content: "Choose a template for the visit",
@@ -78,6 +84,7 @@ const steps = [
         pointerRadius: 8,
       },
       {
+        tour: "onboarding",
         icon: "🎙️",
         title: "Start Recording",
         content: "Click start recording to begin",
@@ -89,6 +96,7 @@ const steps = [
         pointerRadius: 8,
       },
       {
+        tour: "onboarding",
         icon: "🗣️",
         title: "Speak Naturally",
         content: "Just talk normally like you would with your patient",
@@ -100,6 +108,7 @@ const steps = [
         pointerRadius: 8,
       },
       {
+        tour: "onboarding",
         icon: "✅",
         title: "Finish Recording",
         content: "Click finish recording when done",

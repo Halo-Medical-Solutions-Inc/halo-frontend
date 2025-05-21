@@ -433,12 +433,12 @@ export default function RecordComponent() {
           </div>
         </header>
         <div className={`flex flex-1 flex-col items-center justify-center gap-4 px-4 py-10 relative ${selectedVisit?.status === "RECORDING" ? "z-50" : ""}`}>
-          <div className="mx-auto w-[320px] max-w-3xl rounded-xl space-y-4">
-            <div className="relative group flex justify-center items-center">
+          <div className="mx-auto w-[320px] max-w-3xl rounded-xl space-y-4" id="onboarding-speak-naturally">
+            <div className="relative group flex justify-center items-center" id="onboarding-name-patient">
               <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-center" />
             </div>
 
-            <div id="visit-details" className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-between w-full" id="onboarding-select-template">
               <Label className="text-sm font-normal text-muted-foreground">
                 Select template
                 <span className="text-destructive">*</span>
@@ -505,7 +505,7 @@ export default function RecordComponent() {
 
             {selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
               <div className="flex items-center justify-between w-full gap-2">
-                <Button variant="outline" className="flex-1" onClick={finishRecording} disabled={!connected || !online}>
+                <Button variant="outline" className="flex-1" onClick={finishRecording} disabled={!connected || !online} id="onboarding-finish-recording">
                   {finishRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -514,7 +514,7 @@ export default function RecordComponent() {
                     </>
                   )}
                 </Button>
-                <Button className="flex-1" onClick={startRecording} disabled={!connected || !online}>
+                <Button className="flex-1" onClick={startRecording} disabled={!connected || !online} id="onboarding-start-recording">
                   {startRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -527,7 +527,7 @@ export default function RecordComponent() {
             )}
 
             {selectedVisit?.status === "RECORDING" && (
-              <div id="recording-status" className="flex items-center justify-between w-full gap-2">
+              <div className="flex items-center justify-between w-full gap-2">
                 <Button variant="outline" className="flex-1 border-destructive-border text-destructive hover:opacity-80 hover:text-destructive" onClick={pauseRecording} disabled={!connected || !online}>
                   {pauseRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -542,7 +542,7 @@ export default function RecordComponent() {
                     </>
                   )}
                 </Button>
-                <Button id="finish-recording-button" className="flex-1" onClick={finishRecording} disabled={!connected || !online}>
+                <Button className="flex-1" onClick={finishRecording} disabled={!connected || !online} id="onboarding-finish-recording">
                   {finishRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -570,7 +570,7 @@ export default function RecordComponent() {
                     </>
                   )}
                 </Button>
-                <Button className="flex-1" onClick={finishRecording} disabled={!connected || !online}>
+                <Button className="flex-1" onClick={finishRecording} disabled={!connected || !online} id="onboarding-finish-recording">
                   {finishRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -583,7 +583,7 @@ export default function RecordComponent() {
             )}
 
             {!selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
-              <Button id="start-recording-button" className="w-full" onClick={startRecording} disabled={!connected || !online}>
+              <Button className="w-full" onClick={startRecording} disabled={!connected || !online} id="onboarding-start-recording">
                 {startRecordingLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (

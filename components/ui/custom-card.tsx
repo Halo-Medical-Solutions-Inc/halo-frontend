@@ -4,9 +4,11 @@ import React from "react";
 import { Step } from "nextstepjs";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 interface CustomCardProps {
-  step: Step;
+  step: Step & { tour?: string };
   currentStep: number;
   totalSteps: number;
   nextStep: () => void;
@@ -16,6 +18,11 @@ interface CustomCardProps {
 }
 
 const CustomCard = ({ step, currentStep, totalSteps, nextStep, prevStep, skipTour, arrow }: CustomCardProps) => {
+  const visits = useSelector((state: RootState) => state.visit.visits);
+  
+  // Disable next button if we're on the first step of onboarding tour and no visits exist
+  const isNextDisabled = step.tour === "onboarding" && currentStep === 0 && visits.length === 0;
+
   return (
     <div className="bg-white text-primary rounded-lg shadow-lg p-6 min-w-[400px] max-w-md relative flex flex-col h-full">
       {step.showSkip && skipTour && (
@@ -48,7 +55,7 @@ const CustomCard = ({ step, currentStep, totalSteps, nextStep, prevStep, skipTou
               </Button>
             )}
 
-            <Button size="icon" onClick={nextStep}>
+            <Button size="icon" onClick={nextStep} disabled={isNextDisabled}>
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
