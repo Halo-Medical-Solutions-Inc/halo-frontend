@@ -13,7 +13,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { setSelectedVisit } from "@/store/slices/visitSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
-import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as downloadNoteAsPDFUtil } from "@/lib/utils";
+import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as downloadNoteAsPDFUtil, formatTranscriptTime } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -322,7 +322,14 @@ export default function NoteComponent() {
                     </div>
                   </div>
                   <div className="relative group mt-2">
-                    <ExpandingTextarea id={`transcript`} minHeight={0} maxHeight={10000} value={selectedVisit?.transcript} disabled={true} className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" />
+                    <ExpandingTextarea 
+                      id={`transcript`} 
+                      minHeight={0} 
+                      maxHeight={10000} 
+                      value={formatTranscriptTime(selectedVisit?.transcript)} 
+                      disabled={true} 
+                      className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" 
+                    />
                   </div>
                 </div>
                 <div className="flex flex-col">

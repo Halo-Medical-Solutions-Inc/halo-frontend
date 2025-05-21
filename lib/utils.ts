@@ -19,6 +19,7 @@ export const useDebouncedSend = (send: (data: WebSocketMessage) => void, delay =
   );
 };
 
+
 export const groupVisitsByDate = (visits: Visit[]) => {
   const grouped: Record<string, Visit[]> = {};
 
@@ -224,4 +225,14 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
   setTimeout(() => {
     printWindow.print();
   }, 300);
+};
+
+export const formatTranscriptTime = (transcript: string | undefined): string => {
+  if (!transcript) return "";
+  return transcript.replace(/\[(\d{2}:\d{2}:\d{2})\]/g, (match, time) => {
+    const [hours, minutes, seconds] = time.split(':');
+    const date = new Date();
+    date.setUTCHours(parseInt(hours), parseInt(minutes), parseInt(seconds));
+    return `[${date.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]`;
+  });
 };
