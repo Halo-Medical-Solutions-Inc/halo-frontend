@@ -1,15 +1,49 @@
 import React, { useState, useEffect } from "react";
 
-const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "ws://localhost:8000/user/ws";
+const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL; 
 
 export interface WebSocketMessage {
-  type: "create_template" | "update_template" | "delete_template" | "duplicate_template" | "create_visit" | "update_visit" | "delete_visit" | "update_user" | "error" | "start_recording" | "pause_recording" | "finish_recording" | "resume_recording" | "audio_chunk" | "note_generated" | "regenerate_note";
+  type: (
+    | "create_template"
+    | "update_template"
+    | "delete_template"
+    | "duplicate_template"
+    | "create_visit"
+    | "update_visit"
+    | "delete_visit"
+    | "update_user"
+    | "error"
+    | "start_recording"
+    | "pause_recording"
+    | "finish_recording"
+    | "resume_recording"
+    | "audio_chunk"
+    | "note_generated"
+    | "regenerate_note"
+  );
   session_id: string;
   data: Record<string, any>;
 }
 
 export interface WebSocketResponse {
-  type: "create_template" | "update_template" | "delete_template" | "duplicate_template" | "create_visit" | "update_visit" | "delete_visit" | "update_user" | "error" | "start_recording" | "pause_recording" | "finish_recording" | "resume_recording" | "audio_chunk" | "note_generated" | "regenerate_note";
+  type: (
+    | "create_template"
+    | "update_template"
+    | "delete_template"
+    | "duplicate_template"
+    | "create_visit"
+    | "update_visit"
+    | "delete_visit"
+    | "update_user"
+    | "error"
+    | "start_recording"
+    | "pause_recording"
+    | "finish_recording"
+    | "resume_recording"
+    | "audio_chunk"
+    | "note_generated"
+    | "regenerate_note"
+  );
   data: Record<string, any>;
   was_requested: boolean;
 }
@@ -20,25 +54,20 @@ let websocket: WebSocket | null = null;
 let isConnecting = false;
 const messageHandlers: Record<string, Record<string, MessageHandler>> = {};
 
-// Export connection status variables
 export let online = typeof navigator !== "undefined" ? navigator.onLine : false;
 export let connected = false;
 
-// Simple functions to check connection status
 export const isOnline = () => online;
 export const isConnected = () => connected;
 
-// Create a hook for connection status
 export const useConnectionStatus = () => {
   const [onlineStatus, setOnlineStatus] = useState(online);
   const [connectedStatus, setConnectedStatus] = useState(connected);
 
   useEffect(() => {
-    // Update initial values
     setOnlineStatus(online);
     setConnectedStatus(connected);
 
-    // Setup listeners for online/offline status
     const handleOnline = () => {
       online = true;
       setOnlineStatus(true);
@@ -49,7 +78,6 @@ export const useConnectionStatus = () => {
       setOnlineStatus(false);
     };
 
-    // Setup interval to check websocket status
     const checkWebsocket = () => {
       if (connectedStatus !== connected) {
         setConnectedStatus(connected);
@@ -125,14 +153,12 @@ export const handle = (type: WebSocketResponse["type"], id: string, handler: Mes
     messageHandlers[type] = {};
   }
 
-  // If a handler with the same ID exists, it will be replaced
   messageHandlers[type][id] = handler;
 
   return () => {
     if (messageHandlers[type] && messageHandlers[type][id]) {
       delete messageHandlers[type][id];
 
-      // Clean up the type object if no handlers remain
       if (Object.keys(messageHandlers[type]).length === 0) {
         delete messageHandlers[type];
       }
@@ -146,7 +172,6 @@ export const useWebSocket = () => {
 
 export default useWebSocket;
 
-// Original event listeners for online/offline status
 if (typeof window !== "undefined") {
   window.addEventListener("online", () => {
     online = true;

@@ -70,6 +70,10 @@ export default function RecordComponent() {
     });
 
     const pauseRecordingHandler = handle("pause_recording", "record", (data) => {
+      if (selectedVisit?.visit_id == data.data.visit_id) {
+        stopAudioProcessing();
+      }
+
       if (data.was_requested) {
         console.log("Processing pause_recording in record");
         setPauseRecordingLoading(false);
@@ -77,6 +81,10 @@ export default function RecordComponent() {
     });
 
     const finishRecordingHandler = handle("finish_recording", "record", (data) => {
+      if (selectedVisit?.visit_id == data.data.visit_id) {
+        stopAudioProcessing();
+      }
+
       if (data.was_requested) {
         console.log("Processing finish_recording in record");
         setFinishRecordingLoading(false);

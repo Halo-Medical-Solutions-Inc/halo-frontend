@@ -49,9 +49,16 @@ export default function SidebarComponent() {
       }
     });
 
+    const pauseRecordingHandler = handle("pause_recording", "sidebar", (data) => {
+      if (data.was_requested) {
+        setIsPausingVisit(false);
+      }
+    });
+
     return () => {
       createVisitHandler();
       deleteVisitHandler();
+      pauseRecordingHandler();
     };
   }, []);
 
@@ -84,8 +91,16 @@ export default function SidebarComponent() {
     });
   };
 
-  const pauseVisit = (visit: Visit) => {
-    // TODO: Implement pause visit
+  const pauseRecording = (visit: Visit) => {
+    setIsPausingVisit(true);
+
+    send({
+      type: "pause_recording",
+      session_id: session.session_id,
+      data: {
+        visit_id: visit.visit_id,
+      },
+    });
   };
 
   const templatesClick = () => {
@@ -171,8 +186,18 @@ export default function SidebarComponent() {
                             {visit.status === "RECORDING" ? (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem className="text-destructive focus:text-destructive hover:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                  <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive hover:text-destructive"
+                                    onSelect={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                    }}
+                                  >
                                     <StopCircle className="h-4 w-4 text-destructive" />
+
                                     <span>Pause Recording</span>
                                   </DropdownMenuItem>
                                 </AlertDialogTrigger>
@@ -183,7 +208,17 @@ export default function SidebarComponent() {
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Pause</AlertDialogAction>
+                                    <AlertDialogAction
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        pauseRecording(visit);
+                                      }}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      disabled={isPausingVisit}
+                                    >
+                                      {isPausingVisit ? <Loader2 className="h-4 w-4 animate-spin" /> : "Pause"}
+                                    </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
