@@ -14,13 +14,15 @@ import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
 import { setUser } from "@/store/slices/userSlice";
 import { Loader2 } from "lucide-react";
+
 export default function AccountComponent() {
   const dispatch = useDispatch();
+  const { send } = useWebSocket();
+  const debouncedSend = useDebouncedSend(send);
+
   const user = useSelector((state: RootState) => state.user.user);
   const templates = useSelector((state: RootState) => state.template.templates);
   const session = useSelector((state: RootState) => state.session.session);
-  const { send } = useWebSocket();
-  const debouncedSend = useDebouncedSend(send);
 
   const [isSavingAccount, setIsSavingAccount] = useState(false);
   const [isSavingDefault, setIsSavingDefault] = useState(false);

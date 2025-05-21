@@ -12,46 +12,37 @@ import { Input } from "@/components/ui/input";
 import { ExpandingTextarea } from "@/components/ui/textarea";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { setSelectedTemplate, clearSelectedTemplate, setTemplates } from "@/store/slices/templateSlice";
+import { setSelectedTemplate } from "@/store/slices/templateSlice";
 import { setScreen } from "@/store/slices/sessionSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend, getTimeDifference } from "@/lib/utils";
-import AnimatedLoadingSkeleton from "@/components/ui/animated-loading-skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
 export default function TemplateComponent() {
+  const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
-  const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState<"instructions" | "printer">("instructions");
 
-  const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
   const session = useSelector((state: RootState) => state.session.session);
   const selectedTemplate = useSelector((state: RootState) => state.template.selectedTemplate);
-  const templates = useSelector((state: RootState) => state.template.templates);
+
+  const [activeTab, setActiveTab] = useState<"instructions" | "printer">("instructions");
+  const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
 
   useEffect(() => {
     const deleteTemplateHandler = handle("delete_template", "template", (data) => {
       if (data.was_requested) {
         console.log("Processing delete_template in template");
-        dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
-        dispatch(clearSelectedTemplate());
-        dispatch(setScreen("TEMPLATES"));
         setIsDeletingTemplate(false);
-      } else {
-        if (selectedTemplate?.template_id === data.data.template_id) {
-          dispatch(clearSelectedTemplate());
-          dispatch(setScreen("TEMPLATES"));
-        }
       }
     });
 
     return () => {
       deleteTemplateHandler();
     };
-  }, [templates]);
+  }, []);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedTemplate({ ...selectedTemplate, name: e.target.value }));

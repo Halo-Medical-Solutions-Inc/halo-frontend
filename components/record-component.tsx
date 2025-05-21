@@ -9,13 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "./ui/textarea";
-import { CheckCircle, Loader2, Mic, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2, Wifi, WifiOff } from "lucide-react";
+import { CheckCircle, Loader2, Mic, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2, WifiOff } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "./ui/input";
 import { AudioVisualizer } from "./ui/audio-visualizer";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { setSelectedVisit, setVisit, setVisits } from "@/store/slices/visitSlice";
+import { setSelectedVisit } from "@/store/slices/visitSlice";
 import { useDispatch } from "react-redux";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
@@ -29,7 +29,6 @@ export default function RecordComponent() {
   const { online, connected } = useConnectionStatus();
 
   const session = useSelector((state: RootState) => state.session.session);
-  const visits = useSelector((state: RootState) => state.visit.visits);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
 
@@ -47,47 +46,18 @@ export default function RecordComponent() {
   const processorNodeRef = useRef<ScriptProcessorNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const isRecordingRef = useRef<boolean>(false);
-  const isInternetConnectedRef = useRef<boolean>(navigator.onLine);
 
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "record", (data) => {
       if (data.was_requested) {
         console.log("Processing delete_visit in record");
-        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id && visit.status !== "RECORDING");
-        dispatch(setVisits(filteredVisits));
-
-        if (filteredVisits.length > 0) {
-          const lastVisit = filteredVisits[filteredVisits.length - 1];
-          dispatch(setSelectedVisit(lastVisit));
-
-          if (lastVisit.status === "FINISHED" || lastVisit.status === "GENERATING_NOTE") {
-            dispatch(setScreen("NOTE"));
-          } else {
-            dispatch(setScreen("RECORD"));
-          }
-        }
-
         setIsDeletingVisit(false);
-      } else {
-        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id && visit.status !== "RECORDING");
-
-        if (filteredVisits.length > 0) {
-          const lastVisit = filteredVisits[filteredVisits.length - 1];
-          dispatch(setSelectedVisit(lastVisit));
-
-          if (lastVisit.status === "FINISHED" || lastVisit.status === "GENERATING_NOTE") {
-            dispatch(setScreen("NOTE"));
-          } else {
-            dispatch(setScreen("RECORD"));
-          }
-        }
       }
     });
 
     const startRecordingHandler = handle("start_recording", "record", (data) => {
       if (data.was_requested) {
         console.log("Processing start_recording in record");
-        dispatch(setVisit(data.data));
         setStartRecordingLoading(false);
       }
     });
@@ -95,7 +65,6 @@ export default function RecordComponent() {
     const resumeRecordingHandler = handle("resume_recording", "record", (data) => {
       if (data.was_requested) {
         console.log("Processing resume_recording in record");
-        dispatch(setVisit(data.data));
         setResumeRecordingLoading(false);
       }
     });
@@ -103,7 +72,6 @@ export default function RecordComponent() {
     const pauseRecordingHandler = handle("pause_recording", "record", (data) => {
       if (data.was_requested) {
         console.log("Processing pause_recording in record");
-        dispatch(setVisit(data.data));
         setPauseRecordingLoading(false);
       }
     });
@@ -111,9 +79,7 @@ export default function RecordComponent() {
     const finishRecordingHandler = handle("finish_recording", "record", (data) => {
       if (data.was_requested) {
         console.log("Processing finish_recording in record");
-        dispatch(setVisit({ ...data.data, status: "FRONTEND_TRANSITION" }));
         setFinishRecordingLoading(false);
-        dispatch(setScreen("NOTE"));
       }
     });
 
@@ -124,7 +90,7 @@ export default function RecordComponent() {
       pauseRecordingHandler();
       finishRecordingHandler();
     };
-  }, [visits]);
+  }, []);
 
   useEffect(() => {
     if (selectedVisit?.additional_context?.trim() !== "") {
@@ -143,6 +109,32 @@ export default function RecordComponent() {
     }
   }, [selectedVisit]);
 
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    if (selectedVisit?.status === "RECORDING") {
+      intervalId = setInterval(() => {
+        const currentDuration = (selectedVisit.recording_duration || 0) + 1;
+
+        dispatch(setSelectedVisit({ ...selectedVisit, recording_duration: currentDuration }));
+        send({
+          type: "update_visit",
+          session_id: session.session_id,
+          data: {
+            visit_id: selectedVisit?.visit_id,
+            recording_duration: currentDuration,
+          },
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [selectedVisit]);
+
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedVisit({ ...selectedVisit, name: e.target.value }));
     debouncedSend({
@@ -153,57 +145,6 @@ export default function RecordComponent() {
         name: e.target.value,
       },
     });
-  };
-
-  const startAudioProcessing = () => {
-    try {
-      console.log("Starting audio processing in record");
-      if (!streamRef.current) return;
-
-      audioContextRef.current = new AudioContext({
-        sampleRate: 16000,
-      });
-
-      const source = audioContextRef.current.createMediaStreamSource(streamRef.current);
-
-      processorNodeRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
-      processorNodeRef.current.connect(audioContextRef.current.destination);
-
-      console.log("Processor node connected in record");
-
-      processorNodeRef.current.onaudioprocess = (e) => {
-        console.log("Processing audio chunk in record");
-        if (isRecordingRef.current) {
-          const inputData = e.inputBuffer.getChannelData(0);
-
-          const pcmData = new Int16Array(inputData.length);
-          for (let i = 0; i < inputData.length; i++) {
-            pcmData[i] = Math.max(-1, Math.min(1, inputData[i])) * 0x7fff;
-          }
-
-          const binary = new Uint8Array(pcmData.buffer);
-          const base64 = btoa(binary.reduce((data, byte) => data + String.fromCharCode(byte), ""));
-          send({
-            type: "audio_chunk",
-            session_id: session.session_id,
-            data: { audio: base64 },
-          });
-        }
-      };
-
-      source.connect(processorNodeRef.current);
-      console.log("Audio processing initialized");
-    } catch (error) {
-      console.error("Error initializing audio processing:", error);
-      return;
-    }
-  };
-
-  const stopAudioProcessing = () => {
-    if (processorNodeRef.current) {
-      processorNodeRef.current.disconnect();
-      processorNodeRef.current = null;
-    }
   };
 
   const additionalContextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -330,31 +271,56 @@ export default function RecordComponent() {
     stopAudioProcessing();
   };
 
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null;
+  const startAudioProcessing = () => {
+    try {
+      console.log("Starting audio processing in record");
+      if (!streamRef.current) return;
 
-    if (selectedVisit?.status === "RECORDING") {
-      intervalId = setInterval(() => {
-        const currentDuration = (selectedVisit.recording_duration || 0) + 1;
+      audioContextRef.current = new AudioContext({
+        sampleRate: 16000,
+      });
 
-        dispatch(setSelectedVisit({ ...selectedVisit, recording_duration: currentDuration }));
-        send({
-          type: "update_visit",
-          session_id: session.session_id,
-          data: {
-            visit_id: selectedVisit?.visit_id,
-            recording_duration: currentDuration,
-          },
-        });
-      }, 1000);
+      const source = audioContextRef.current.createMediaStreamSource(streamRef.current);
+
+      processorNodeRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
+      processorNodeRef.current.connect(audioContextRef.current.destination);
+
+      console.log("Processor node connected in record");
+
+      processorNodeRef.current.onaudioprocess = (e) => {
+        console.log("Processing audio chunk in record");
+        if (isRecordingRef.current) {
+          const inputData = e.inputBuffer.getChannelData(0);
+
+          const pcmData = new Int16Array(inputData.length);
+          for (let i = 0; i < inputData.length; i++) {
+            pcmData[i] = Math.max(-1, Math.min(1, inputData[i])) * 0x7fff;
+          }
+
+          const binary = new Uint8Array(pcmData.buffer);
+          const base64 = btoa(binary.reduce((data, byte) => data + String.fromCharCode(byte), ""));
+          send({
+            type: "audio_chunk",
+            session_id: session.session_id,
+            data: { audio: base64 },
+          });
+        }
+      };
+
+      source.connect(processorNodeRef.current);
+      console.log("Audio processing initialized");
+    } catch (error) {
+      console.error("Error initializing audio processing:", error);
+      return;
     }
+  };
 
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [selectedVisit]);
+  const stopAudioProcessing = () => {
+    if (processorNodeRef.current) {
+      processorNodeRef.current.disconnect();
+      processorNodeRef.current = null;
+    }
+  };
 
   return (
     <>

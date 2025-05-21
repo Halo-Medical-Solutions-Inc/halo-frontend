@@ -13,16 +13,15 @@ import { setSession } from "@/store/slices/sessionSlice";
 import { setTemplates } from "@/store/slices/templateSlice";
 import { setVisits } from "@/store/slices/visitSlice";
 import { setUser } from "@/store/slices/userSlice";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Page() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const router = useRouter();
-  const dispatch = useAppDispatch();
-  const isMobile = useIsMobile();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -21,13 +21,9 @@ import { clearSession } from "@/store/slices/sessionSlice";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function SidebarComponent() {
-  const dispatch = useDispatch();
   const isMobile = useIsMobile();
+  const dispatch = useDispatch();
   const { send } = useWebSocket();
-
-  const [isCreatingVisit, setIsCreatingVisit] = useState(false);
-  const [isDeletingVisit, setIsDeletingVisit] = useState(false);
-  const [isPausingVisit, setIsPausingVisit] = useState(false);
 
   const session = useSelector((state: RootState) => state.session.session);
   const user = useSelector((state: RootState) => state.user.user);
@@ -35,13 +31,13 @@ export default function SidebarComponent() {
   const groupedVisits = groupVisitsByDate(visits);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
 
+  const [isCreatingVisit, setIsCreatingVisit] = useState(false);
+  const [isDeletingVisit, setIsDeletingVisit] = useState(false);
+  const [isPausingVisit, setIsPausingVisit] = useState(false);
+
   useEffect(() => {
     const createVisitHandler = handle("create_visit", "sidebar", (data) => {
       if (data.was_requested) {
-        console.log("Processing create_visit in sidebar");
-        dispatch(setVisits([...visits, data.data]));
-        dispatch(setSelectedVisit(data.data));
-        dispatch(setScreen("RECORD"));
         setIsCreatingVisit(false);
       }
     });
@@ -49,20 +45,6 @@ export default function SidebarComponent() {
     const deleteVisitHandler = handle("delete_visit", "sidebar", (data) => {
       if (data.was_requested) {
         console.log("Processing delete_visit in sidebar");
-        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id && visit.status !== "RECORDING");
-        dispatch(setVisits(filteredVisits));
-
-        if (filteredVisits.length > 0) {
-          const lastVisit = filteredVisits[filteredVisits.length - 1];
-          dispatch(setSelectedVisit(lastVisit));
-
-          if (lastVisit.status === "FINISHED" || lastVisit.status === "GENERATING_NOTE") {
-            dispatch(setScreen("NOTE"));
-          } else {
-            dispatch(setScreen("RECORD"));
-          }
-        }
-
         setIsDeletingVisit(false);
       }
     });
@@ -71,7 +53,7 @@ export default function SidebarComponent() {
       createVisitHandler();
       deleteVisitHandler();
     };
-  }, [visits]);
+  }, []);
 
   const selectVisit = (visit: Visit) => {
     dispatch(setSelectedVisit(visit));

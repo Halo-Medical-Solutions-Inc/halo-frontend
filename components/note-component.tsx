@@ -11,23 +11,21 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
-import { setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
+import { setSelectedVisit } from "@/store/slices/visitSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as downloadNoteAsPDFUtil } from "@/lib/utils";
-import { setScreen } from "@/store/slices/sessionSlice";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function NoteComponent() {
+  const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
-  const isMobile = useIsMobile();
 
   const session = useSelector((state: RootState) => state.session.session);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
-  const visits = useSelector((state: RootState) => state.visit.visits);
 
   const [transcriptView, setTranscriptView] = useState(false);
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
@@ -36,41 +34,15 @@ export default function NoteComponent() {
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "note", (data) => {
       if (data.was_requested) {
-        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id && visit.status !== "RECORDING");
-        dispatch(setVisits(filteredVisits));
-
-        if (filteredVisits.length > 0) {
-          const lastVisit = filteredVisits[filteredVisits.length - 1];
-          dispatch(setSelectedVisit(lastVisit));
-
-          if (lastVisit.status === "FINISHED" || lastVisit.status === "GENERATING_NOTE") {
-            dispatch(setScreen("NOTE"));
-          } else {
-            dispatch(setScreen("RECORD"));
-          }
-        }
-
+        console.log("Processing delete_visit in note");
         setIsDeletingVisit(false);
-      } else {
-        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id && visit.status !== "RECORDING");
-
-        if (filteredVisits.length > 0) {
-          const lastVisit = filteredVisits[filteredVisits.length - 1];
-          dispatch(setSelectedVisit(lastVisit));
-
-          if (lastVisit.status === "FINISHED" || lastVisit.status === "GENERATING_NOTE") {
-            dispatch(setScreen("NOTE"));
-          } else {
-            dispatch(setScreen("RECORD"));
-          }
-        }
       }
     });
 
     return () => {
       deleteVisitHandler();
     };
-  }, [visits]);
+  }, []);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedVisit({ ...selectedVisit, name: e.target.value }));
@@ -143,21 +115,16 @@ export default function NoteComponent() {
   const printNote = () => {
     const name = selectedVisit?.name || "New Visit";
     const content = transcriptView ? selectedVisit?.transcript || "" : selectedVisit?.note || "";
-
-    // Get the header and footer from the template if available
     const templateId = selectedVisit?.template_id || "";
     const template = templates.find((t) => t.template_id === templateId);
     const header = template?.header || "";
     const footer = template?.footer || "";
-
     printNoteUtil(name, content, header, footer);
   };
 
   const downloadNote = () => {
     const name = selectedVisit?.name || "New Visit";
     const content = transcriptView ? selectedVisit?.transcript || "" : selectedVisit?.note || "";
-
-    // Get the header and footer from the template if available
     const templateId = selectedVisit?.template_id || "";
     const template = templates.find((t) => t.template_id === templateId);
     const header = template?.header || "";
