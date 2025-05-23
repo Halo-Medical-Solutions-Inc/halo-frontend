@@ -42,7 +42,8 @@ export default function RecordComponent() {
   const [pauseRecordingLoading, setPauseRecordingLoading] = useState(false);
   const [resumeRecordingLoading, setResumeRecordingLoading] = useState(false);
   const [finishRecordingLoading, setFinishRecordingLoading] = useState(false);
-
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "record", (data) => {
       if (data.was_requested) {
@@ -81,7 +82,6 @@ export default function RecordComponent() {
 
     const pauseRecordingHandler = handle("pause_recording", "record", async (data) => {
       if (selectedVisit?.visit_id == data.data.visit_id) {
-        // Stop transcriber
         await stopTranscriber();
       }
 
@@ -93,7 +93,6 @@ export default function RecordComponent() {
 
     const finishRecordingHandler = handle("finish_recording", "record", async (data) => {
       if (selectedVisit?.visit_id == data.data.visit_id) {
-        // Stop transcriber
         await stopTranscriber();
       }
 
@@ -130,30 +129,24 @@ export default function RecordComponent() {
   }, [selectedVisit]);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null;
+    if (selectedVisit?.status !== "RECORDING") {
+      setRecordingDuration(selectedVisit?.recording_duration || 0);
+    }
+  }, [selectedVisit?.recording_duration, selectedVisit?.status]);
 
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+    
     if (selectedVisit?.status === "RECORDING") {
       intervalId = setInterval(() => {
-        const currentDuration = (selectedVisit.recording_duration || 0) + 1;
-
-        dispatch(setSelectedVisit({ ...selectedVisit, recording_duration: currentDuration }));
-        send({
-          type: "update_visit",
-          session_id: session.session_id,
-          data: {
-            visit_id: selectedVisit?.visit_id,
-            recording_duration: currentDuration,
-          },
-        });
+        setRecordingDuration(prev => Number(prev) + 1);
       }, 1000);
     }
-
+      
     return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
+      if (intervalId) clearInterval(intervalId);
     };
-  }, [selectedVisit]);
+  }, [selectedVisit?.status]);
 
   useEffect(() => {
     if (selectedVisit?.status === "RECORDING" && (!connected || !online || !websocketConnected)) {
@@ -318,10 +311,8 @@ export default function RecordComponent() {
             <div className="flex items-center gap-2 text-sm">
               <div className="flex items-center">
                 <span className="font-normal text-muted-foreground md:inline-block">
-                  {selectedVisit?.recording_duration
-                    ? `${Math.floor(selectedVisit.recording_duration / 60)
-                        .toString()
-                        .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
+                  {recordingDuration
+                    ? recordingDuration + " seconds"
                     : "Not started"}
                 </span>
                 <DropdownMenu>
@@ -476,10 +467,10 @@ export default function RecordComponent() {
                   ) : (
                     <>
                       <PauseCircle className="h-4 w-4 text-destructive" />{" "}
-                      {selectedVisit?.recording_duration
-                        ? `${Math.floor(selectedVisit.recording_duration / 60)
+                      {recordingDuration
+                        ? `${Math.floor(recordingDuration / 60)
                             .toString()
-                            .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
+                            .padStart(2, "0")}:${(recordingDuration % 60).toString().padStart(2, "0")}`
                         : "00:00"}
                     </>
                   )}
@@ -504,10 +495,10 @@ export default function RecordComponent() {
                   ) : (
                     <>
                       <PlayCircle className="h-4 w-4 text-warning" />{" "}
-                      {selectedVisit?.recording_duration
-                        ? `${Math.floor(selectedVisit.recording_duration / 60)
+                      {recordingDuration
+                        ? `${Math.floor(recordingDuration / 60)
                             .toString()
-                            .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
+                            .padStart(2, "0")}:${(recordingDuration % 60).toString().padStart(2, "0")}`
                         : "00:00"}
                     </>
                   )}

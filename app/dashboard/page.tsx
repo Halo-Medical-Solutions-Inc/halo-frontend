@@ -45,7 +45,6 @@ export default function Page() {
     });
 
     const updateVisitHandler = handle("update_visit", "dashboard", (data) => {
-      console.log("Data updated", data.data);
       console.log("Processing update_visit in dashboard");
       dispatch(setVisit(data.data));
     });
