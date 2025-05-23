@@ -102,7 +102,7 @@ export default function NoteComponent() {
 
   const regenerateNote = (template_id: string) => {
     send({
-      type: "regenerate_note",
+      type: "generate_note",
       session_id: session.session_id,
       data: {
         visit_id: selectedVisit?.visit_id,
