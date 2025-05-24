@@ -181,7 +181,7 @@ export default function RecordComponent() {
       },
     });
 
-    if (e.target.value.trim() === "John Doe" && currentTour === "onboarding") {
+    if (e.target.value.trim() === "John Doe" && currentTour === "visit-tour") {
       setCurrentStep(2);
     }
   };
@@ -209,7 +209,7 @@ export default function RecordComponent() {
       },
     });
 
-    if (templates.find((template) => template.template_id === value)?.name === "SOAP" && currentTour === "onboarding") {
+    if (templates.find((template) => template.template_id === value)?.name === "SOAP" && currentTour === "visit-tour") {
       setCurrentStep(3);
     }
   };
@@ -262,7 +262,7 @@ export default function RecordComponent() {
       },
     });
 
-    if (currentTour === "onboarding") {
+    if (currentTour === "visit-tour") {
       setCurrentStep(4);
     }
   };
@@ -294,7 +294,7 @@ export default function RecordComponent() {
   const finishRecording = () => {
     setFinishRecordingLoading(true);
 
-    if (currentTour === "onboarding") {
+    if (currentTour === "visit-tour") {
       closeNextStep();
       setShowConfetti(true);
 
@@ -408,12 +408,12 @@ export default function RecordComponent() {
           </div>
         </header>
         <div className={`flex flex-1 flex-col items-center justify-center gap-4 px-4 py-10 relative ${selectedVisit?.status === "RECORDING" ? "z-50" : ""}`}>
-          <div className="mx-auto w-[320px] max-w-3xl rounded-xl space-y-4" id="onboarding-natural-finish">
+          <div className="mx-auto w-[320px] max-w-3xl rounded-xl space-y-4" id="visit-tour-natural-finish">
             <div className="relative group flex justify-center items-center">
-              <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-center" id="onboarding-name-patient" />
+              <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-center" id="visit-tour-name-patient" />
             </div>
 
-            <div className="flex items-center justify-between w-full" id="onboarding-select-template">
+            <div className="flex items-center justify-between w-full" id="visit-tour-select-template">
               <Label className="text-sm font-normal text-muted-foreground">
                 Select template
                 <span className="text-destructive">*</span>
@@ -489,7 +489,7 @@ export default function RecordComponent() {
                     </>
                   )}
                 </Button>
-                <Button className="flex-1" onClick={startRecording} id="onboarding-start-recording" disabled={!online || !websocketConnected}>
+                <Button className="flex-1" onClick={startRecording} id="visit-tour-start-recording" disabled={!online || !websocketConnected}>
                   {startRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -558,7 +558,7 @@ export default function RecordComponent() {
             )}
 
             {!selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
-              <Button className="w-full" onClick={startRecording} id="onboarding-start-recording" disabled={!online || !websocketConnected}>
+              <Button className="w-full" onClick={startRecording} id="visit-tour-start-recording" disabled={!online || !websocketConnected}>
                 {startRecordingLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (

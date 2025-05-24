@@ -148,11 +148,16 @@ export default function Page() {
       dispatch(setTemplates([...templates, data.data]));
     });
 
+    const templateGeneratedHandler = handle("template_generated", "dashboard", (data) => {
+      dispatch(setTemplate(data.data));
+    });
+
     return () => {
       createTemplateHandler();
       updateTemplateHandler();
       deleteTemplateHandler();
       duplicateTemplateHandler();
+      templateGeneratedHandler();
     };
   }, [templates]);
 

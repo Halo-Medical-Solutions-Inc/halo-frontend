@@ -21,12 +21,14 @@ import useWebSocket, { handle } from "@/lib/websocket";
 import { formatLocalDateAndTime, useDebouncedSend } from "@/lib/utils";
 import { setUser } from "@/store/slices/userSlice";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNextStep } from "nextstepjs";
 
 export default function TemplatesComponent() {
   const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
+  const { setCurrentStep, currentTour } = useNextStep();
 
   const session = useSelector((state: RootState) => state.session.session);
   const user = useSelector((state: RootState) => state.user.user);
@@ -42,6 +44,10 @@ export default function TemplatesComponent() {
         console.log("Processing create_template in templates");
 
         setIsCreatingTemplate(false);
+
+        if (currentTour === "template-tour") {
+          setCurrentStep(1);
+        }
       }
     });
 
@@ -146,7 +152,7 @@ export default function TemplatesComponent() {
             </div>
             {!isMobile && (
               <div className="flex items-center gap-2">
-                <Button onClick={createTemplate} disabled={isCreatingTemplate}>
+                <Button onClick={createTemplate} disabled={isCreatingTemplate} id="template-tour-create-new">
                   {isCreatingTemplate ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (

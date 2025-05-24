@@ -18,7 +18,7 @@ interface CustomCardProps {
 
 const CustomCard = ({ step, currentStep, totalSteps, nextStep, prevStep, skipTour, arrow }: CustomCardProps) => {
   const visits = useSelector((state: RootState) => state.visit.visits);
-  const isNextDisabled = step.tour === "onboarding" && currentStep === 0 && visits.length === 0;
+  const isNextDisabled = step.tour === "visit-tour" && currentStep === 0 && visits.length === 0;
 
   return (
     <div className="bg-white text-primary rounded-lg shadow-lg p-6 relative flex flex-col h-full" style={{ width: "400px", minWidth: "400px" }}>

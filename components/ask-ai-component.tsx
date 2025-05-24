@@ -1,19 +1,23 @@
 "use client";
 
 import { ExpandableChat, ExpandableChatHeader, ExpandableChatBody, ExpandableChatFooter } from "@/components/ui/expandable-chat";
+import { setScreen } from "@/store/slices/sessionSlice";
 import { Sparkles, FileText, Edit, GraduationCap } from "lucide-react";
 import { useNextStep } from "nextstepjs";
+import { useDispatch } from "react-redux";
 
 export default function AskAIComponent() {
+  const dispatch = useDispatch();
   const { startNextStep, setCurrentStep } = useNextStep();
 
   const handleTutorialClick = (tutorial: string) => {
-    if (tutorial === "onboarding") {
-      startNextStep("onboarding");
-      setTimeout(() => {
-        setCurrentStep(0);
-      }, 1000);
+    if (tutorial === "template-tour") {
+      dispatch(setScreen("TEMPLATES"));
     }
+    startNextStep(tutorial);
+    setTimeout(() => {
+      setCurrentStep(0);
+    }, 1000);
   };
 
   const TutorialOption = ({ title, subtitle, icon: Icon, onClick }: { title: string; subtitle: string; icon: any; onClick: () => void }) => (
@@ -35,9 +39,8 @@ export default function AskAIComponent() {
 
       <ExpandableChatBody>
         <div className="space-y-2 p-4">
-          <TutorialOption title="Creating Visit" subtitle="Learn how to create and manage visits" icon={FileText} onClick={() => handleTutorialClick("onboarding")} />
-          <TutorialOption title="Modifying Template" subtitle="Learn how to customize templates" icon={Edit} onClick={() => handleTutorialClick("onboarding")} />
-          <TutorialOption title="Onboarding" subtitle="Complete the full onboarding process" icon={GraduationCap} onClick={() => handleTutorialClick("onboarding")} />
+          <TutorialOption title="Creating Visit" subtitle="Learn how to create and manage visits" icon={FileText} onClick={() => handleTutorialClick("visit-tour")} />
+          <TutorialOption title="Modifying Template" subtitle="Learn how to customize templates" icon={Edit} onClick={() => handleTutorialClick("template-tour")} />
         </div>
       </ExpandableChatBody>
     </ExpandableChat>

@@ -18,12 +18,14 @@ import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend, getTimeDifference } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { useNextStep } from "nextstepjs";
 
 export default function TemplateComponent() {
   const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
+  const { setCurrentStep, currentTour } = useNextStep();
 
   const session = useSelector((state: RootState) => state.session.session);
   const selectedTemplate = useSelector((state: RootState) => state.template.selectedTemplate);
@@ -65,6 +67,10 @@ export default function TemplateComponent() {
         instructions: e.target.value,
       },
     });
+
+    if (currentTour === "template-tour" && e.target.value.trim() === "SOAP") {
+      setCurrentStep(2);
+    }
   };
 
   const headerChange = (html: string) => {
@@ -102,7 +108,21 @@ export default function TemplateComponent() {
     });
   };
 
-  const polishTemplate = () => {};
+  const polishTemplate = () => {
+    dispatch(setSelectedTemplate({ ...selectedTemplate, status: "GENERATING_TEMPLATE" }));
+
+    send({
+      type: "polish_template",
+      session_id: session.session_id,
+      data: {
+        template_id: selectedTemplate?.template_id,
+      },
+    });
+
+    if (currentTour === "template-tour") {
+      setCurrentStep(3);
+    }
+  };
 
   const handleInstructionsTabClick = () => {
     setActiveTab("instructions");
@@ -202,9 +222,14 @@ export default function TemplateComponent() {
                   <ArrowLeft className="h-4 w-4" />
                   Back
                 </Button>
-                <Button onClick={polishTemplate} disabled={activeTab === "printer"} className={activeTab === "printer" ? "cursor-not-allowed" : ""}>
-                  <Sparkles className="h-4 w-4" />
-                  Polish
+                <Button onClick={polishTemplate} disabled={activeTab === "printer"} className={activeTab === "printer" ? "cursor-not-allowed" : ""} id="template-tour-polish-button">
+                  {selectedTemplate?.status === "GENERATING_TEMPLATE" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" /> Polish
+                    </>
+                  )}
                 </Button>
                 <Button variant={activeTab === "printer" ? "default" : "secondary"} size="icon" onClick={handleSettingsToggle}>
                   <Settings className="h-4 w-4" />
@@ -225,6 +250,7 @@ export default function TemplateComponent() {
 - {Use curly braces} for providing AI instructions.
 - For Epic users, Halo recognizes your @smartlinks@.`}
               className="w-full text-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none"
+              id="template-tour-content-textarea"
             />
           ) : (
             <div className="space-y-8">
