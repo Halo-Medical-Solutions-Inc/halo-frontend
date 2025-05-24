@@ -7,7 +7,7 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Trash2, ArrowLeft, Sparkles, Loader2, FileText, Printer, Info } from "lucide-react";
+import { MoreHorizontal, Trash2, ArrowLeft, Sparkles, Loader2, FileText, Printer, Info, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ExpandingTextarea } from "@/components/ui/textarea";
 import { useDispatch, useSelector } from "react-redux";
@@ -112,6 +112,10 @@ export default function TemplateComponent() {
     setActiveTab("printer");
   };
 
+  const handleSettingsToggle = () => {
+    setActiveTab(activeTab === "instructions" ? "printer" : "instructions");
+  };
+
   return (
     <SidebarInset>
       <header className="flex h-14 shrink-0 items-center gap-2">
@@ -198,17 +202,13 @@ export default function TemplateComponent() {
                   <ArrowLeft className="h-4 w-4" />
                   Back
                 </Button>
-                <Button variant={activeTab === "instructions" ? "default" : "outline"} size="icon" onClick={handleInstructionsTabClick}>
-                  <FileText className="h-4 w-4" />
+                <Button onClick={polishTemplate} disabled={activeTab === "printer"} className={activeTab === "printer" ? "cursor-not-allowed" : ""}>
+                  <Sparkles className="h-4 w-4" />
+                  Polish
                 </Button>
-                <Button variant={activeTab === "printer" ? "default" : "outline"} size="icon" onClick={handlePrinterTabClick}>
-                  <Printer className="h-4 w-4" />
+                <Button variant={activeTab === "printer" ? "default" : "secondary"} size="icon" onClick={handleSettingsToggle}>
+                  <Settings className="h-4 w-4" />
                 </Button>
-
-                {/* <Button onClick={polishTemplate}>
-                <Sparkles className="h-4 w-4" />
-                Polish
-              </Button> */}
               </div>
             )}
           </div>

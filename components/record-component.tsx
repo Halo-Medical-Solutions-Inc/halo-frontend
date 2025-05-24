@@ -297,7 +297,7 @@ export default function RecordComponent() {
     if (currentTour === "onboarding") {
       closeNextStep();
       setShowConfetti(true);
-      
+
       setTimeout(() => {
         send({
           type: "finish_recording",
