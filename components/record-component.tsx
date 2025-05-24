@@ -297,9 +297,17 @@ export default function RecordComponent() {
     if (currentTour === "onboarding") {
       closeNextStep();
       setShowConfetti(true);
-    }
-
-    setTimeout(() => {
+      
+      setTimeout(() => {
+        send({
+          type: "finish_recording",
+          session_id: session.session_id,
+          data: {
+            visit_id: selectedVisit?.visit_id,
+          },
+        });
+      }, 5000);
+    } else {
       send({
         type: "finish_recording",
         session_id: session.session_id,
@@ -307,7 +315,7 @@ export default function RecordComponent() {
           visit_id: selectedVisit?.visit_id,
         },
       });
-    }, 5000);
+    }
   };
 
   useEffect(() => {
