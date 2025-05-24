@@ -58,7 +58,7 @@ export default function SidebarComponent() {
     const pauseRecordingHandler = handle("pause_recording", "sidebar", (data) => {
       if (data.was_requested) {
         setIsPausingVisit(false);
-      }
+``      }
     });
 
     return () => {
@@ -289,7 +289,14 @@ export default function SidebarComponent() {
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarFallback className="rounded-lg">{user?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback className="rounded-lg">
+                        {user?.name
+                          ? (user.name.indexOf(' ') > 0
+                              ? user.name.charAt(0) + user.name.charAt(user.name.indexOf(' ') + 1)
+                              : user.name.substring(0, 2))
+                            .toUpperCase()
+                          : ''}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
                       <span className="truncate font-medium">{user?.name}</span>
