@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export type ChatPosition = "bottom-right" | "bottom-left";
-export type ChatSize = "sm" | "md" | "lg" | "xl" | "full";
+export type ChatSize = "sm" | "md" | "lg" | "xl" | "full" | "fit";
 
 const chatConfig = {
   dimensions: {
