@@ -18,6 +18,7 @@ import { apiGetUser, apiGetUserTemplates, apiGetUserVisits } from "@/store/api";
 import { clearSession, setScreen } from "@/store/slices/sessionSlice";
 import { Loader2 } from "lucide-react";
 import { Template } from "@/store/types";
+import AskAIComponent from "@/components/ask-ai-component";
 
 export default function Page() {
   const dispatch = useDispatch();
@@ -230,6 +231,7 @@ export default function Page() {
         {screen === "RECORD" && <RecordComponent />}
         {screen === "TEMPLATE" && <TemplateComponent />}
         {screen === "TEMPLATES" && <TemplatesComponent />}
+        <AskAIComponent />
       </Application>
     </>
   );

@@ -24,10 +24,8 @@ class AudioTranscriber {
   async connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        // Get the backend URL from environment or use default
         const backendUrl = process.env.NEXT_PUBLIC_TRANSCRIBE_URL;
         const wsUrl = backendUrl?.replace("http", "ws");
-
         this.ws = new WebSocket(`${wsUrl}/${this.config.visitId}`);
 
         this.ws.onopen = () => {
@@ -63,7 +61,6 @@ class AudioTranscriber {
           this.config.onStatusUpdate?.("disconnected");
           this.cleanup();
 
-          // Attempt to reconnect if it was an unexpected close
           if (this.isRecording && this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
             console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
@@ -79,7 +76,6 @@ class AudioTranscriber {
           }
         };
 
-        // Set a timeout for connection
         setTimeout(() => {
           if (this.ws?.readyState !== WebSocket.OPEN) {
             this.ws?.close();
@@ -97,7 +93,6 @@ class AudioTranscriber {
       throw new Error("WebSocket not connected");
     }
 
-    // Get user media
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     this.isRecording = true;
 
@@ -121,13 +116,11 @@ class AudioTranscriber {
         if (this.isRecording && this.ws?.readyState === WebSocket.OPEN) {
           const inputData = e.inputBuffer.getChannelData(0);
 
-          // Convert float32 to int16
           const pcmData = new Int16Array(inputData.length);
           for (let i = 0; i < inputData.length; i++) {
             pcmData[i] = Math.max(-1, Math.min(1, inputData[i])) * 0x7fff;
           }
 
-          // Send as binary data
           this.ws.send(pcmData.buffer);
         }
       };
@@ -183,19 +176,16 @@ class AudioTranscriber {
   }
 }
 
-// Simplified hook interface
 export function useTranscriber(visitId?: string) {
   const transcriberRef = useRef<AudioTranscriber | null>(null);
   const [connected, setConnected] = useState(false);
   const [microphone, setMicrophone] = useState(false);
 
-  // Check microphone availability on mount
   useEffect(() => {
     const checkMicrophone = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         setMicrophone(true);
-        // Clean up the stream immediately since we're just checking availability
         stream.getTracks().forEach((track) => track.stop());
       } catch (error) {
         console.error("Microphone not available:", error);
@@ -216,7 +206,6 @@ export function useTranscriber(visitId?: string) {
     }
 
     try {
-      // Clean up any existing transcriber
       if (transcriberRef.current) {
         await transcriberRef.current.disconnect();
       }
@@ -253,7 +242,6 @@ export function useTranscriber(visitId?: string) {
     setConnected(false);
   }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (transcriberRef.current) {

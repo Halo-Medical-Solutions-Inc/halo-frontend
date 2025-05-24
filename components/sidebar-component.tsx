@@ -19,11 +19,13 @@ import { clearSelectedTemplate } from "@/store/slices/templateSlice";
 import { clearUser } from "@/store/slices/userSlice";
 import { clearSession } from "@/store/slices/sessionSlice";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNextStep } from "nextstepjs";
 
 export default function SidebarComponent() {
   const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const { send } = useWebSocket();
+  const { currentTour, setCurrentStep } = useNextStep();
 
   const session = useSelector((state: RootState) => state.session.session);
   const user = useSelector((state: RootState) => state.user.user);
@@ -39,6 +41,10 @@ export default function SidebarComponent() {
     const createVisitHandler = handle("create_visit", "sidebar", (data) => {
       if (data.was_requested) {
         setIsCreatingVisit(false);
+        console.log("Received create_visit in sidebar", currentTour);
+        if (currentTour === "onboarding") {
+          setCurrentStep(1);
+        }
       }
     });
 
@@ -60,7 +66,7 @@ export default function SidebarComponent() {
       deleteVisitHandler();
       pauseRecordingHandler();
     };
-  }, []);
+  }, [currentTour]);
 
   const selectVisit = (visit: Visit) => {
     dispatch(setSelectedVisit(visit));
@@ -141,7 +147,7 @@ export default function SidebarComponent() {
             </SidebarMenuItem>
           </SidebarMenu>
           <div className="relative flex w-full min-w-0 flex-col p-2 rounded-md">
-            <Button className="font-normal" onClick={createVisit} disabled={isCreatingVisit}>
+            <Button className="font-normal" onClick={createVisit} disabled={isCreatingVisit} id="onboarding-new-visit">
               {isCreatingVisit ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : (

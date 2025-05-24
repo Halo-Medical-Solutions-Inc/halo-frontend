@@ -15,6 +15,7 @@ const chatConfig = {
     lg: "sm:max-w-lg sm:max-h-[700px]",
     xl: "sm:max-w-xl sm:max-h-[800px]",
     full: "sm:w-full sm:h-full",
+    fit: "sm:max-w-xs sm:max-h-fit",
   },
   positions: {
     "bottom-right": "bottom-5 right-5",

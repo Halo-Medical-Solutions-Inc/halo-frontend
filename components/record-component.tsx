@@ -20,6 +20,8 @@ import { useDispatch } from "react-redux";
 import useWebSocket, { connected, handle, online, useConnectionStatus } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
 import { useTranscriber } from "@/lib/transcriber";
+import { useNextStep } from "nextstepjs";
+import Confetti from "react-confetti";
 
 export default function RecordComponent() {
   const dispatch = useDispatch();
@@ -43,6 +45,10 @@ export default function RecordComponent() {
   const [resumeRecordingLoading, setResumeRecordingLoading] = useState(false);
   const [finishRecordingLoading, setFinishRecordingLoading] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
+
+  const { currentTour, setCurrentStep, closeNextStep } = useNextStep();
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: typeof window !== "undefined" ? window.innerWidth : 0, height: typeof window !== "undefined" ? window.innerHeight : 0 });
 
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "record", (data) => {
@@ -174,6 +180,10 @@ export default function RecordComponent() {
         name: e.target.value,
       },
     });
+
+    if (e.target.value.trim() === "John Doe" && currentTour === "onboarding") {
+      setCurrentStep(2);
+    }
   };
 
   const additionalContextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -198,6 +208,10 @@ export default function RecordComponent() {
         template_id: value,
       },
     });
+
+    if (templates.find((template) => template.template_id === value)?.name === "SOAP" && currentTour === "onboarding") {
+      setCurrentStep(3);
+    }
   };
 
   const selectLanguage = (value: string) => {
@@ -247,6 +261,10 @@ export default function RecordComponent() {
         visit_id: selectedVisit?.visit_id,
       },
     });
+
+    if (currentTour === "onboarding") {
+      setCurrentStep(4);
+    }
   };
 
   const pauseRecording = () => {
@@ -276,14 +294,33 @@ export default function RecordComponent() {
   const finishRecording = () => {
     setFinishRecordingLoading(true);
 
-    send({
-      type: "finish_recording",
-      session_id: session.session_id,
-      data: {
-        visit_id: selectedVisit?.visit_id,
-      },
-    });
+    if (currentTour === "onboarding") {
+      closeNextStep();
+      setShowConfetti(true);
+    }
+
+    setTimeout(() => {
+      send({
+        type: "finish_recording",
+        session_id: session.session_id,
+        data: {
+          visit_id: selectedVisit?.visit_id,
+        },
+      });
+    }, 5000);
   };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -294,6 +331,7 @@ export default function RecordComponent() {
   return (
     <>
       {selectedVisit?.status === "RECORDING" && <div className="fixed inset-0 bg-background/10 backdrop-blur-[4px] z-40" style={{ pointerEvents: "all" }} />}
+      {showConfetti && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={200} gravity={0.3} />}
       <SidebarInset>
         <header className={`flex h-14 shrink-0 items-center gap-2 relative ${selectedVisit?.status === "RECORDING" ? "z-30" : "z-50"}`}>
           <div className="flex flex-1 items-center gap-2 px-3">
@@ -362,12 +400,12 @@ export default function RecordComponent() {
           </div>
         </header>
         <div className={`flex flex-1 flex-col items-center justify-center gap-4 px-4 py-10 relative ${selectedVisit?.status === "RECORDING" ? "z-50" : ""}`}>
-          <div className="mx-auto w-[320px] max-w-3xl rounded-xl space-y-4">
+          <div className="mx-auto w-[320px] max-w-3xl rounded-xl space-y-4" id="onboarding-natural-finish">
             <div className="relative group flex justify-center items-center">
-              <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-center" />
+              <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-center" id="onboarding-name-patient" />
             </div>
 
-            <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-between w-full" id="onboarding-select-template">
               <Label className="text-sm font-normal text-muted-foreground">
                 Select template
                 <span className="text-destructive">*</span>
@@ -376,7 +414,7 @@ export default function RecordComponent() {
                 <SelectTrigger className={`min-w-[50px] max-w-[160px] w-auto ${validationErrors.template ? "!border-destructive !ring-destructive" : ""}`}>
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
-                <SelectContent align="end">
+                <SelectContent align="end" style={{ zIndex: 9999 }}>
                   <SelectGroup>
                     <SelectLabel>Templates</SelectLabel>
                     {templates.map((template) => (
@@ -443,7 +481,7 @@ export default function RecordComponent() {
                     </>
                   )}
                 </Button>
-                <Button className="flex-1" onClick={startRecording} disabled={!online || !websocketConnected}>
+                <Button className="flex-1" onClick={startRecording} id="onboarding-start-recording" disabled={!online || !websocketConnected}>
                   {startRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -512,7 +550,7 @@ export default function RecordComponent() {
             )}
 
             {!selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
-              <Button className="w-full" onClick={startRecording} disabled={!online || !websocketConnected}>
+              <Button className="w-full" onClick={startRecording} id="onboarding-start-recording" disabled={!online || !websocketConnected}>
                 {startRecordingLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
