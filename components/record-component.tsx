@@ -43,7 +43,7 @@ export default function RecordComponent() {
   const [resumeRecordingLoading, setResumeRecordingLoading] = useState(false);
   const [finishRecordingLoading, setFinishRecordingLoading] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
-  
+
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "record", (data) => {
       if (data.was_requested) {
@@ -136,13 +136,13 @@ export default function RecordComponent() {
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
-    
+
     if (selectedVisit?.status === "RECORDING") {
       intervalId = setInterval(() => {
-        setRecordingDuration(prev => Number(prev) + 1);
+        setRecordingDuration((prev) => Number(prev) + 1);
       }, 1000);
     }
-      
+
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
@@ -310,11 +310,7 @@ export default function RecordComponent() {
           <div className="ml-auto px-3">
             <div className="flex items-center gap-2 text-sm">
               <div className="flex items-center">
-                <span className="font-normal text-muted-foreground md:inline-block">
-                  {recordingDuration
-                    ? recordingDuration + " seconds"
-                    : "Not started"}
-                </span>
+                <span className="font-normal text-muted-foreground md:inline-block">{recordingDuration ? recordingDuration + " seconds" : "Not started"}</span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
@@ -527,13 +523,14 @@ export default function RecordComponent() {
               </Button>
             )}
 
-            {!online || !websocketConnected && (
-              <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
-                <WifiOff className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span>Recording may not be saved due to connectivity issues</span>
-              </div>
-            )}
-            
+            {!online ||
+              (!websocketConnected && (
+                <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
+                  <WifiOff className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span>Recording may not be saved due to connectivity issues</span>
+                </div>
+              ))}
+
             {!microphone && (
               <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">
                 <MicOff className="h-4 w-4 mr-2 flex-shrink-0" />

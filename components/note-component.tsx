@@ -1,9 +1,9 @@
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Printer, Download, RefreshCw, Trash2, Copy, Check, Loader2, DownloadCloud, FileText } from "lucide-react";
+import { MoreHorizontal, Printer, Download, RefreshCw, Trash2, Copy, Check, Loader2, DownloadCloud, FileText, FileImage } from "lucide-react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ExpandingTextarea } from "@/components/ui/textarea";
@@ -13,7 +13,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { setSelectedVisit } from "@/store/slices/visitSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
-import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as downloadNoteAsPDFUtil, formatTranscriptTime } from "@/lib/utils";
+import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as downloadNoteAsPDFUtil, formatTranscriptTime, downloadNoteAsWord as downloadNoteAsWordUtil } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -122,7 +122,7 @@ export default function NoteComponent() {
     printNoteUtil(name, content, header, footer);
   };
 
-  const downloadNote = () => {
+  const downloadNote = (format: "pdf" | "docx") => {
     const name = selectedVisit?.name || "New Visit";
     const content = transcriptView ? selectedVisit?.transcript || "" : selectedVisit?.note || "";
     const templateId = selectedVisit?.template_id || "";
@@ -130,7 +130,11 @@ export default function NoteComponent() {
     const header = template?.header || "";
     const footer = template?.footer || "";
 
-    downloadNoteAsPDFUtil(name, content, header, footer);
+    if (format === "pdf") {
+      downloadNoteAsPDFUtil(name, content, header, footer);
+    } else {
+      downloadNoteAsWordUtil(name, content, header, footer);
+    }
   };
 
   const copyAllNote = () => {
@@ -177,10 +181,22 @@ export default function NoteComponent() {
                     <Printer className="h-4 w-4" />
                     <span>Print</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={downloadNote}>
-                    <Download className="h-4 w-4" />
-                    <span>Download</span>
-                  </DropdownMenuItem>
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <Download className="h-4 w-4 text-muted-foreground mr-2" />
+                      <span>Download</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => downloadNote("pdf")}>
+                        <FileImage className="h-4 w-4" />
+                        <span>PDF</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => downloadNote("docx")}>
+                        <FileText className="h-4 w-4" />
+                        <span>Word</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
                   <DropdownMenuItem onClick={() => regenerateNote(selectedVisit?.template_id || "")}>
                     <RefreshCw className="h-4 w-4" />
                     <span>Regenerate</span>
