@@ -173,6 +173,11 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
 
+  const now = new Date();
+  const dateTimeString = format(now, "yyyy-MM-dd_HHmm");
+  const safeVisitName = visitName.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+  const filename = `${safeVisitName}-${dateTimeString}.pdf`;
+
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
@@ -213,7 +218,7 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
         <div class="content">${formattedNoteContent}</div>
         ${formattedFooterContent ? `<div class="footer">${formattedFooterContent}</div>` : ""}
         <script>
-          document.title = "";
+          document.title = "${filename}";
         </script>
       </body>
     </html>
@@ -231,6 +236,11 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
   const formattedHeaderContent = headerContent ? formatText(headerContent) : "";
   const formattedFooterContent = footerContent ? formatText(footerContent) : "";
 
+  const now = new Date();
+  const dateTimeString = format(now, "yyyy-MM-dd_HHmm");
+  const safeVisitName = visitName.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+  const filename = `${safeVisitName}-${dateTimeString}`;
+
   const convertToWordParagraphs = (text: string) => {
     if (!text) return "";
     return text
@@ -246,7 +256,7 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/1999/xhtml">
       <head>
         <meta charset="utf-8">
-        <title>${visitName}</title>
+        <title>${filename}</title>
         <!--[if gte mso 9]>
         <xml>
           <w:WordDocument>
@@ -305,7 +315,7 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
   const link = document.createElement("a");
 
   link.href = url;
-  link.download = `${visitName}.doc`;
+  link.download = `${filename}.doc`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
