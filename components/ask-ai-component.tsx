@@ -6,6 +6,8 @@ import { setScreen } from "@/store/slices/sessionSlice";
 import { Sparkles, FileText, Edit, GraduationCap } from "lucide-react";
 import { useNextStep } from "nextstepjs";
 import { useDispatch } from "react-redux";
+import { clearSelectedVisit } from "@/store/slices/visitSlice";
+import { clearSelectedTemplate } from "@/store/slices/templateSlice";
 
 export default function AskAIComponent() {
   const dispatch = useDispatch();
@@ -14,6 +16,8 @@ export default function AskAIComponent() {
 
   const handleTutorialClick = (tutorial: string) => {
     if (tutorial === "template-tour") {
+      dispatch(clearSelectedTemplate());
+      dispatch(clearSelectedVisit());
       dispatch(setScreen("TEMPLATES"));
     }
     startNextStep(tutorial);
