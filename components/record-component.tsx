@@ -181,7 +181,7 @@ export default function RecordComponent() {
       },
     });
 
-    if (e.target.value.trim() === "John Doe" && currentTour === "visit-tour") {
+    if (e.target.value.trim() === "Alex Patient" && currentTour === "visit-tour") {
       setCurrentStep(2);
     }
   };
@@ -209,7 +209,7 @@ export default function RecordComponent() {
       },
     });
 
-    if (templates.find((template) => template.template_id === value)?.name === "SOAP" && currentTour === "visit-tour") {
+    if (templates.find((template) => template.template_id === value)?.name === "H&P" && currentTour === "visit-tour") {
       setCurrentStep(3);
     }
   };
@@ -306,7 +306,7 @@ export default function RecordComponent() {
             visit_id: selectedVisit?.visit_id,
           },
         });
-      }, 5000);
+      }, 3000);
     } else {
       send({
         type: "finish_recording",

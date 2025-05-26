@@ -35,11 +35,16 @@ interface ExpandableChatProps extends React.HTMLAttributes<HTMLDivElement> {
   position?: ChatPosition;
   size?: ChatSize;
   icon?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const ExpandableChat: React.FC<ExpandableChatProps> = ({ className, position = "bottom-right", size = "md", icon, children, ...props }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const ExpandableChat: React.FC<ExpandableChatProps> = ({ className, position = "bottom-right", size = "md", icon, open, onOpenChange, children, ...props }) => {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
+
+  const isOpen = open !== undefined ? open : internalIsOpen;
+  const setIsOpen = onOpenChange || setInternalIsOpen;
 
   const toggleChat = () => setIsOpen(!isOpen);
 

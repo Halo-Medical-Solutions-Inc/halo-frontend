@@ -19,6 +19,7 @@ import { useDebouncedSend, getTimeDifference } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { useNextStep } from "nextstepjs";
+import Confetti from "react-confetti";
 
 export default function TemplateComponent() {
   const isMobile = useIsMobile();
@@ -32,6 +33,9 @@ export default function TemplateComponent() {
 
   const [activeTab, setActiveTab] = useState<"instructions" | "printer">("instructions");
   const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
+
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: typeof window !== "undefined" ? window.innerWidth : 0, height: typeof window !== "undefined" ? window.innerHeight : 0 });
 
   useEffect(() => {
     const deleteTemplateHandler = handle("delete_template", "template", (data) => {
@@ -68,7 +72,7 @@ export default function TemplateComponent() {
       },
     });
 
-    if (currentTour === "template-tour" && e.target.value.trim() === "SOAP") {
+    if (currentTour === "template-tour" && e.target.value.includes("FINISHED")) {
       setCurrentStep(2);
     }
   };
@@ -121,6 +125,7 @@ export default function TemplateComponent() {
 
     if (currentTour === "template-tour") {
       setCurrentStep(3);
+      setShowConfetti(true);
     }
   };
 
@@ -136,8 +141,21 @@ export default function TemplateComponent() {
     setActiveTab(activeTab === "instructions" ? "printer" : "instructions");
   };
 
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <SidebarInset>
+      {showConfetti && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={200} gravity={0.3} />}
       <header className="flex h-14 shrink-0 items-center gap-2">
         <div className="flex flex-1 items-center gap-2 px-3">
           <SidebarTrigger />
