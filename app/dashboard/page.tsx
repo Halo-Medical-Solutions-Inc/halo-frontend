@@ -195,20 +195,44 @@ export default function Page() {
     connect(session.session_id);
 
     Promise.all([
-      apiGetUser(session.session_id).then((user) => {
-        dispatch(setUser(user));
-      }),
-      apiGetUserTemplates(session.session_id).then((templates) => {
-        dispatch(setTemplates(templates));
-      }),
-      apiGetUserVisits(session.session_id).then((visits) => {
-        dispatch(setVisits(visits));
-        const lastNonRecordingVisit = [...visits].reverse().find((visit) => visit.status !== "RECORDING");
-        if (lastNonRecordingVisit) {
-          dispatch(setSelectedVisit(lastNonRecordingVisit));
-          dispatch(setScreen(lastNonRecordingVisit.status === "FINISHED" || lastNonRecordingVisit.status === "GENERATING_NOTE" ? "NOTE" : "RECORD"));
-        }
-      }),
+      apiGetUser(session.session_id)
+        .then((user) => {
+          if (!user) {
+            window.location.href = "/signin";
+            return;
+          }
+          dispatch(setUser(user));
+        })
+        .catch(() => {
+          window.location.href = "/signin";
+        }),
+      apiGetUserTemplates(session.session_id)
+        .then((templates) => {
+          if (!templates) {
+            window.location.href = "/signin";
+            return;
+          }
+          dispatch(setTemplates(templates));
+        })
+        .catch(() => {
+          window.location.href = "/signin";
+        }),
+      apiGetUserVisits(session.session_id)
+        .then((visits) => {
+          if (!visits) {
+            window.location.href = "/signin";
+            return;
+          }
+          dispatch(setVisits(visits));
+          const lastNonRecordingVisit = [...visits].reverse().find((visit) => visit.status !== "RECORDING");
+          if (lastNonRecordingVisit) {
+            dispatch(setSelectedVisit(lastNonRecordingVisit));
+            dispatch(setScreen(lastNonRecordingVisit.status === "FINISHED" || lastNonRecordingVisit.status === "GENERATING_NOTE" ? "NOTE" : "RECORD"));
+          }
+        })
+        .catch(() => {
+          window.location.href = "/signin";
+        }),
     ]).finally(() => {
       setInitialLoad(false);
     });
