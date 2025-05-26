@@ -29,7 +29,6 @@ class AudioTranscriber {
         this.ws = new WebSocket(`${wsUrl}/${this.config.visitId}`);
 
         this.ws.onopen = () => {
-          console.log("Audio WebSocket connected");
           this.config.onStatusUpdate?.("connected");
           this.reconnectAttempts = 0;
           resolve();
@@ -40,7 +39,6 @@ class AudioTranscriber {
             const data = JSON.parse(event.data);
 
             if (data.status === "ready") {
-              console.log("Audio WebSocket ready to receive audio");
             } else if (data.transcript) {
               this.config.onTranscript?.(data.transcript);
             }
@@ -57,13 +55,11 @@ class AudioTranscriber {
         };
 
         this.ws.onclose = () => {
-          console.log("Audio WebSocket disconnected");
           this.config.onStatusUpdate?.("disconnected");
           this.cleanup();
 
           if (this.isRecording && this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
-            console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
             setTimeout(() => {
               this.connect()
                 .then(() => {
@@ -127,8 +123,6 @@ class AudioTranscriber {
 
       source.connect(this.processorNode);
       this.processorNode.connect(this.audioContext.destination);
-
-      console.log("Audio processing started");
     } catch (error) {
       console.error("Error starting audio processing:", error);
       throw error;
@@ -213,12 +207,9 @@ export function useTranscriber(visitId?: string) {
       transcriberRef.current = new AudioTranscriber({
         visitId,
         onStatusUpdate: (status) => {
-          console.log("Transcriber status:", status);
           setConnected(status === "connected");
         },
-        onTranscript: (transcript) => {
-          console.log("Received transcript:", transcript);
-        },
+        onTranscript: (transcript) => {},
         onError: (error) => {
           console.error("Transcriber error:", error);
           setConnected(false);

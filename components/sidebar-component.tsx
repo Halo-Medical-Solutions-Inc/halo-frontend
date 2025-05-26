@@ -41,7 +41,6 @@ export default function SidebarComponent() {
     const createVisitHandler = handle("create_visit", "sidebar", (data) => {
       if (data.was_requested) {
         setIsCreatingVisit(false);
-        console.log("Received create_visit in sidebar", currentTour);
         if (currentTour === "visit-tour") {
           setCurrentStep(1);
         }
@@ -50,7 +49,6 @@ export default function SidebarComponent() {
 
     const deleteVisitHandler = handle("delete_visit", "sidebar", (data) => {
       if (data.was_requested) {
-        console.log("Processing delete_visit in sidebar");
         setIsDeletingVisit(false);
       }
     });

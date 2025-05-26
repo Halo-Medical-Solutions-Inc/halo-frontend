@@ -36,7 +36,6 @@ export default function Page() {
 
   useEffect(() => {
     const createVisitHandler = handle("create_visit", "dashboard", (data) => {
-      console.log("Processing create_visit in dashboard");
       dispatch(setVisits([...visits, data.data]));
 
       if (data.was_requested) {
@@ -46,12 +45,10 @@ export default function Page() {
     });
 
     const updateVisitHandler = handle("update_visit", "dashboard", (data) => {
-      console.log("Processing update_visit in dashboard");
       dispatch(setVisit(data.data));
     });
 
     const deleteVisitHandler = handle("delete_visit", "dashboard", (data) => {
-      console.log("Processing delete_visit in dashboard");
       dispatch(setVisits(visits.filter((visit) => visit.visit_id !== data.data.visit_id)));
 
       if (selectedVisit?.visit_id === data.data.visit_id) {
@@ -61,7 +58,6 @@ export default function Page() {
     });
 
     const startRecordingHandler = handle("start_recording", "dashboard", (data) => {
-      console.log("Processing start_recording in dashboard");
       dispatch(setVisit(data.data));
 
       if (!data.was_requested) {
@@ -73,12 +69,10 @@ export default function Page() {
     });
 
     const pauseRecordingHandler = handle("pause_recording", "dashboard", (data) => {
-      console.log("Processing pause_recording in dashboard");
       dispatch(setVisit(data.data));
     });
 
     const resumeRecordingHandler = handle("resume_recording", "dashboard", (data) => {
-      console.log("Processing resume_recording in dashboard");
       dispatch(setVisit(data.data));
 
       if (!data.was_requested) {
@@ -90,7 +84,6 @@ export default function Page() {
     });
 
     const finishRecordingHandler = handle("finish_recording", "dashboard", (data) => {
-      console.log("Processing finish_recording in dashboard");
       dispatch(setVisit(data.data));
 
       if (selectedVisit?.visit_id == data.data.visit_id) {
@@ -117,7 +110,6 @@ export default function Page() {
 
   useEffect(() => {
     const createTemplateHandler = handle("create_template", "dashboard", (data) => {
-      console.log("Processing create_template in dashboard");
       dispatch(setTemplates([...templates, data.data]));
 
       if (data.was_requested) {
@@ -127,12 +119,10 @@ export default function Page() {
     });
 
     const updateTemplateHandler = handle("update_template", "dashboard", (data) => {
-      console.log("Processing update_template in dashboard");
       dispatch(setTemplate(data.data));
     });
 
     const deleteTemplateHandler = handle("delete_template", "dashboard", (data) => {
-      console.log("Processing delete_template in dashboard");
       dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
 
       if (screen === "TEMPLATE") {
@@ -144,7 +134,6 @@ export default function Page() {
     });
 
     const duplicateTemplateHandler = handle("duplicate_template", "dashboard", (data) => {
-      console.log("Processing duplicate_template in dashboard");
       dispatch(setTemplates([...templates, data.data]));
     });
 
@@ -163,13 +152,10 @@ export default function Page() {
 
   useEffect(() => {
     const updateUserHandler = handle("update_user", "dashboard", (data) => {
-      console.log("Processing update_user in dashboard");
       dispatch(setUser(data.data));
     });
 
     const errorHandler = handle("error", "dashboard", (data) => {
-      console.log("Processing error in dashboard, data:", data);
-
       if (data.was_requested && data.data.message === "Session expired") {
         dispatch(clearSelectedTemplate());
         dispatch(clearSelectedVisit());

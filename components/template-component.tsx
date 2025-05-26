@@ -40,7 +40,6 @@ export default function TemplateComponent() {
   useEffect(() => {
     const deleteTemplateHandler = handle("delete_template", "template", (data) => {
       if (data.was_requested) {
-        console.log("Processing delete_template in template");
         setIsDeletingTemplate(false);
       }
     });

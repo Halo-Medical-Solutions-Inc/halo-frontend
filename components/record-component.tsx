@@ -53,15 +53,12 @@ export default function RecordComponent() {
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "record", (data) => {
       if (data.was_requested) {
-        console.log("Processing delete_visit in record");
         setIsDeletingVisit(false);
       }
     });
 
     const startRecordingHandler = handle("start_recording", "record", async (data) => {
       if (data.was_requested) {
-        console.log("Processing start_recording in record");
-
         try {
           await startTranscriber();
         } catch (error) {
@@ -74,8 +71,6 @@ export default function RecordComponent() {
 
     const resumeRecordingHandler = handle("resume_recording", "record", async (data) => {
       if (data.was_requested) {
-        console.log("Processing resume_recording in record");
-
         try {
           await startTranscriber();
         } catch (error) {
@@ -92,7 +87,6 @@ export default function RecordComponent() {
       }
 
       if (data.was_requested) {
-        console.log("Processing pause_recording in record");
         setPauseRecordingLoading(false);
       }
     });
@@ -103,7 +97,6 @@ export default function RecordComponent() {
       }
 
       if (data.was_requested) {
-        console.log("Processing finish_recording in record");
         setFinishRecordingLoading(false);
       }
     });

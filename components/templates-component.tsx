@@ -41,8 +41,6 @@ export default function TemplatesComponent() {
   useEffect(() => {
     const createTemplateHandler = handle("create_template", "templates", (data) => {
       if (data.was_requested) {
-        console.log("Processing create_template in templates");
-
         setIsCreatingTemplate(false);
 
         if (currentTour === "template-tour") {
@@ -53,14 +51,12 @@ export default function TemplatesComponent() {
 
     const deleteTemplateHandler = handle("delete_template", "templates", (data) => {
       if (data.was_requested) {
-        console.log("Processing delete_template in templates");
         setIsDeletingTemplate(false);
       }
     });
 
     const duplicateTemplateHandler = handle("duplicate_template", "templates", (data) => {
       if (data.was_requested) {
-        console.log("Processing duplicate_template in templates");
         setIsDuplicatingTemplate(false);
       }
     });
