@@ -180,6 +180,13 @@ export default function Page() {
     setInitialLoad(true);
     connect(session.session_id);
 
+    const cleanup = () => {
+      dispatch(clearSelectedTemplate());
+      dispatch(clearSelectedVisit());
+      dispatch(clearUser());
+      dispatch(clearSession());
+    };
+
     Promise.all([
       apiGetUser(session.session_id)
         .then((user) => {
@@ -190,22 +197,26 @@ export default function Page() {
           dispatch(setUser(user));
         })
         .catch(() => {
+          cleanup();
           window.location.href = "/signin";
         }),
       apiGetUserTemplates(session.session_id)
         .then((templates) => {
           if (!templates) {
+            cleanup();
             window.location.href = "/signin";
             return;
           }
           dispatch(setTemplates(templates));
         })
         .catch(() => {
+          cleanup();
           window.location.href = "/signin";
         }),
       apiGetUserVisits(session.session_id)
         .then((visits) => {
           if (!visits) {
+            cleanup();
             window.location.href = "/signin";
             return;
           }
@@ -217,6 +228,7 @@ export default function Page() {
           }
         })
         .catch(() => {
+          cleanup();
           window.location.href = "/signin";
         }),
     ]).finally(() => {
