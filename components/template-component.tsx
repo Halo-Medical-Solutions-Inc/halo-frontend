@@ -155,156 +155,156 @@ export default function TemplateComponent() {
 
   return (
     <>
-    {showConfetti && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={200} gravity={0.3} />}
-    <SidebarInset>
-      <header className="flex h-14 shrink-0 items-center gap-2">
-        <div className="flex flex-1 items-center gap-2 px-3">
-          <SidebarTrigger />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          {!isMobile && (
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="line-clamp-1">{selectedTemplate?.name || "New Template"}</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          )}
-        </div>
-        <div className="ml-auto px-3">
-          <div className="flex items-center gap-2 text-sm">
-            <div className="flex items-center">
-              {!isMobile && <span className="font-normal text-muted-foreground md:inline-block">Last saved {selectedTemplate?.modified_at ? getTimeDifference(selectedTemplate?.modified_at.replace(" ", "T") + "Z", new Date().toISOString()) : ""}</span>}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
-                    <MoreHorizontal />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-auto" align="end">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive hover:text-destructive"
-                        onSelect={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                        <span>Delete Template</span>
-                      </DropdownMenuItem>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>This will permanently delete the template. This action cannot be undone.</AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            deleteTemplate();
-                          }}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          {isDeletingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </header>
-      <div className="flex flex-1 flex-col gap-4 px-4 py-10">
-        <div className="mx-auto h-full w-full max-w-3xl rounded-xl space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-4">
-            <div className="flex items-center gap-2 w-full">
-              <Input value={selectedTemplate?.name} onChange={nameChange} placeholder="New Template" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-left" />
-              {isMobile && (
-                <Button variant="outline" size="icon" onClick={() => dispatch(setScreen("TEMPLATES"))}>
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+      {showConfetti && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={200} gravity={0.3} />}
+      <SidebarInset>
+        <header className="flex h-14 shrink-0 items-center gap-2">
+          <div className="flex flex-1 items-center gap-2 px-3">
+            <SidebarTrigger />
+            <Separator orientation="vertical" className="mr-2 h-4" />
             {!isMobile && (
-              <div className="flex items-center gap-2 shrink-0">
-                <Button variant="outline" onClick={() => dispatch(setScreen("TEMPLATES"))}>
-                  <ArrowLeft className="h-4 w-4" />
-                  Back
-                </Button>
-                <Button onClick={polishTemplate} disabled={activeTab === "printer"} className={activeTab === "printer" ? "cursor-not-allowed" : ""} id="template-tour-polish-button">
-                  {selectedTemplate?.status === "GENERATING_TEMPLATE" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4" /> Polish
-                    </>
-                  )}
-                </Button>
-                <Button variant={activeTab === "printer" ? "default" : "secondary"} size="icon" onClick={handleSettingsToggle}>
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </div>
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbPage className="line-clamp-1">{selectedTemplate?.name || "New Template"}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
             )}
           </div>
-          <Separator className="my-2 bg-border h-[1px]" />
+          <div className="ml-auto px-3">
+            <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center">
+                {!isMobile && <span className="font-normal text-muted-foreground md:inline-block">Last saved {selectedTemplate?.modified_at ? getTimeDifference(selectedTemplate?.modified_at.replace(" ", "T") + "Z", new Date().toISOString()) : ""}</span>}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
+                      <MoreHorizontal />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-auto" align="end">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive hover:text-destructive"
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <span>Delete Template</span>
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>This will permanently delete the template. This action cannot be undone.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              deleteTemplate();
+                            }}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            {isDeletingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 px-4 py-10">
+          <div className="mx-auto h-full w-full max-w-3xl rounded-xl space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-4">
+              <div className="flex items-center gap-2 w-full">
+                <Input value={selectedTemplate?.name} onChange={nameChange} placeholder="New Template" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-left" />
+                {isMobile && (
+                  <Button variant="outline" size="icon" onClick={() => dispatch(setScreen("TEMPLATES"))}>
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              {!isMobile && (
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button variant="outline" onClick={() => dispatch(setScreen("TEMPLATES"))}>
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                  </Button>
+                  <Button onClick={polishTemplate} disabled={activeTab === "printer"} className={activeTab === "printer" ? "cursor-not-allowed" : ""} id="template-tour-polish-button">
+                    {selectedTemplate?.status === "GENERATING_TEMPLATE" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4" /> Polish
+                      </>
+                    )}
+                  </Button>
+                  <Button variant={activeTab === "printer" ? "default" : "secondary"} size="icon" onClick={handleSettingsToggle}>
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+            <Separator className="my-2 bg-border h-[1px]" />
 
-          {activeTab === "instructions" ? (
-            <ExpandingTextarea
-              minHeight={200}
-              maxHeight={10000}
-              value={selectedTemplate?.instructions}
-              onChange={instructionsChange}
-              placeholder={`Create or insert you're EMR template here
+            {activeTab === "instructions" ? (
+              <ExpandingTextarea
+                minHeight={200}
+                maxHeight={10000}
+                value={selectedTemplate?.instructions}
+                onChange={instructionsChange}
+                placeholder={`Create or insert you're EMR template here
 - Use ##Title Name## to define sections.
 - {Use curly braces} for providing AI instructions.
 - For Epic users, Halo recognizes your @smartlinks@.`}
-              className="w-full text-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none"
-              id="template-tour-content-textarea"
-            />
-          ) : (
-            <div className="space-y-8">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-medium">Header</h3>
-                  <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Info className="h-3 w-3" />
-                    <span>HTML support enabled</span>
+                className="w-full text-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none"
+                id="template-tour-content-textarea"
+              />
+            ) : (
+              <div className="space-y-8">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-medium">Header</h3>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Info className="h-3 w-3" />
+                      <span>HTML support enabled</span>
+                    </div>
                   </div>
+                  <div className="rounded-md bg-muted/20">
+                    <RichTextEditor content={selectedTemplate?.header || ""} onChange={headerChange} minHeight={100} placeholder="Add your header content here" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Add HTML content for the document header. This will appear at the top of printed documents.</p>
                 </div>
-                <div className="rounded-md bg-muted/20">
-                  <RichTextEditor content={selectedTemplate?.header || ""} onChange={headerChange} minHeight={100} placeholder="Add your header content here" />
-                </div>
-                <p className="text-xs text-muted-foreground">Add HTML content for the document header. This will appear at the top of printed documents.</p>
-              </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-medium">Footer</h3>
-                  <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Info className="h-3 w-3" />
-                    <span>HTML support enabled</span>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-medium">Footer</h3>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Info className="h-3 w-3" />
+                      <span>HTML support enabled</span>
+                    </div>
                   </div>
+                  <div className="rounded-md bg-muted/20">
+                    <RichTextEditor content={selectedTemplate?.footer || ""} onChange={footerChange} minHeight={100} placeholder="Add your footer content here" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Add HTML content for the document footer. This will appear at the bottom of printed documents.</p>
                 </div>
-                <div className="rounded-md bg-muted/20">
-                  <RichTextEditor content={selectedTemplate?.footer || ""} onChange={footerChange} minHeight={100} placeholder="Add your footer content here" />
-                </div>
-                <p className="text-xs text-muted-foreground">Add HTML content for the document footer. This will appear at the bottom of printed documents.</p>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
-    </SidebarInset>
+      </SidebarInset>
     </>
   );
 }
