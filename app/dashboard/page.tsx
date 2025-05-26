@@ -36,7 +36,6 @@ export default function Page() {
 
   useEffect(() => {
     const createVisitHandler = handle("create_visit", "dashboard", (data) => {
-      console.log("Processing create_visit in dashboard");
       dispatch(setVisits([...visits, data.data]));
 
       if (data.was_requested) {
@@ -46,12 +45,10 @@ export default function Page() {
     });
 
     const updateVisitHandler = handle("update_visit", "dashboard", (data) => {
-      console.log("Processing update_visit in dashboard");
       dispatch(setVisit(data.data));
     });
 
     const deleteVisitHandler = handle("delete_visit", "dashboard", (data) => {
-      console.log("Processing delete_visit in dashboard");
       dispatch(setVisits(visits.filter((visit) => visit.visit_id !== data.data.visit_id)));
 
       if (selectedVisit?.visit_id === data.data.visit_id) {
@@ -61,7 +58,6 @@ export default function Page() {
     });
 
     const startRecordingHandler = handle("start_recording", "dashboard", (data) => {
-      console.log("Processing start_recording in dashboard");
       dispatch(setVisit(data.data));
 
       if (!data.was_requested) {
@@ -73,12 +69,10 @@ export default function Page() {
     });
 
     const pauseRecordingHandler = handle("pause_recording", "dashboard", (data) => {
-      console.log("Processing pause_recording in dashboard");
       dispatch(setVisit(data.data));
     });
 
     const resumeRecordingHandler = handle("resume_recording", "dashboard", (data) => {
-      console.log("Processing resume_recording in dashboard");
       dispatch(setVisit(data.data));
 
       if (!data.was_requested) {
@@ -90,7 +84,6 @@ export default function Page() {
     });
 
     const finishRecordingHandler = handle("finish_recording", "dashboard", (data) => {
-      console.log("Processing finish_recording in dashboard");
       dispatch(setVisit(data.data));
 
       if (selectedVisit?.visit_id == data.data.visit_id) {
@@ -117,7 +110,6 @@ export default function Page() {
 
   useEffect(() => {
     const createTemplateHandler = handle("create_template", "dashboard", (data) => {
-      console.log("Processing create_template in dashboard");
       dispatch(setTemplates([...templates, data.data]));
 
       if (data.was_requested) {
@@ -127,12 +119,10 @@ export default function Page() {
     });
 
     const updateTemplateHandler = handle("update_template", "dashboard", (data) => {
-      console.log("Processing update_template in dashboard");
       dispatch(setTemplate(data.data));
     });
 
     const deleteTemplateHandler = handle("delete_template", "dashboard", (data) => {
-      console.log("Processing delete_template in dashboard");
       dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
 
       if (screen === "TEMPLATE") {
@@ -144,7 +134,6 @@ export default function Page() {
     });
 
     const duplicateTemplateHandler = handle("duplicate_template", "dashboard", (data) => {
-      console.log("Processing duplicate_template in dashboard");
       dispatch(setTemplates([...templates, data.data]));
     });
 
@@ -163,13 +152,10 @@ export default function Page() {
 
   useEffect(() => {
     const updateUserHandler = handle("update_user", "dashboard", (data) => {
-      console.log("Processing update_user in dashboard");
       dispatch(setUser(data.data));
     });
 
     const errorHandler = handle("error", "dashboard", (data) => {
-      console.log("Processing error in dashboard, data:", data);
-
       if (data.was_requested && data.data.message === "Session expired") {
         dispatch(clearSelectedTemplate());
         dispatch(clearSelectedVisit());
@@ -194,21 +180,57 @@ export default function Page() {
     setInitialLoad(true);
     connect(session.session_id);
 
+    const cleanup = () => {
+      dispatch(clearSelectedTemplate());
+      dispatch(clearSelectedVisit());
+      dispatch(clearUser());
+      dispatch(clearSession());
+    };
+
     Promise.all([
-      apiGetUser(session.session_id).then((user) => {
-        dispatch(setUser(user));
-      }),
-      apiGetUserTemplates(session.session_id).then((templates) => {
-        dispatch(setTemplates(templates));
-      }),
-      apiGetUserVisits(session.session_id).then((visits) => {
-        dispatch(setVisits(visits));
-        const lastNonRecordingVisit = [...visits].reverse().find((visit) => visit.status !== "RECORDING");
-        if (lastNonRecordingVisit) {
-          dispatch(setSelectedVisit(lastNonRecordingVisit));
-          dispatch(setScreen(lastNonRecordingVisit.status === "FINISHED" || lastNonRecordingVisit.status === "GENERATING_NOTE" ? "NOTE" : "RECORD"));
-        }
-      }),
+      apiGetUser(session.session_id)
+        .then((user) => {
+          if (!user) {
+            window.location.href = "/signin";
+            return;
+          }
+          dispatch(setUser(user));
+        })
+        .catch(() => {
+          cleanup();
+          window.location.href = "/signin";
+        }),
+      apiGetUserTemplates(session.session_id)
+        .then((templates) => {
+          if (!templates) {
+            cleanup();
+            window.location.href = "/signin";
+            return;
+          }
+          dispatch(setTemplates(templates));
+        })
+        .catch(() => {
+          cleanup();
+          window.location.href = "/signin";
+        }),
+      apiGetUserVisits(session.session_id)
+        .then((visits) => {
+          if (!visits) {
+            cleanup();
+            window.location.href = "/signin";
+            return;
+          }
+          dispatch(setVisits(visits));
+          const lastNonRecordingVisit = [...visits].reverse().find((visit) => visit.status !== "RECORDING");
+          if (lastNonRecordingVisit) {
+            dispatch(setSelectedVisit(lastNonRecordingVisit));
+            dispatch(setScreen(lastNonRecordingVisit.status === "FINISHED" || lastNonRecordingVisit.status === "GENERATING_NOTE" ? "NOTE" : "RECORD"));
+          }
+        })
+        .catch(() => {
+          cleanup();
+          window.location.href = "/signin";
+        }),
     ]).finally(() => {
       setInitialLoad(false);
     });

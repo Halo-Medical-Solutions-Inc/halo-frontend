@@ -34,7 +34,6 @@ export default function NoteComponent() {
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "note", (data) => {
       if (data.was_requested) {
-        console.log("Processing delete_visit in note");
         setIsDeletingVisit(false);
       }
     });

@@ -89,7 +89,6 @@ export const connect = (sessionId: string) => {
   websocket.onopen = () => {
     isConnecting = false;
     connected = true;
-    console.log("connected", connected);
     notifyStatusChange();
   };
 
@@ -105,7 +104,6 @@ export const connect = (sessionId: string) => {
   websocket.onclose = () => {
     isConnecting = false;
     connected = false;
-    console.log("disconnected", connected);
     notifyStatusChange();
     setTimeout(() => connect(sessionId), 1000);
   };
