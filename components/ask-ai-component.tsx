@@ -36,8 +36,8 @@ export default function AskAIComponent() {
   return (
     <ExpandableChat size="fit" position="bottom-right" icon={<Sparkles className="h-4 w-4" />} open={isChatOpen} onOpenChange={setIsChatOpen}>
       <ExpandableChatHeader className="flex-col text-center justify-center">
-        <h1 className="text-md font-semibold">Tutorials & Help ✨</h1>
-        <p className="text-sm text-muted-foreground font-normal">Choose a tutorial to get started</p>
+        <h1 className="text-md font-semibold">How to use Halo ✨</h1>
+        <p className="text-sm text-muted-foreground">Quick start guide in under 2 minutes</p>
       </ExpandableChatHeader>
 
       <ExpandableChatBody>
