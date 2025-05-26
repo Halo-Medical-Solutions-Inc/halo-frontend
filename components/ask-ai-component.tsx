@@ -34,13 +34,7 @@ export default function AskAIComponent() {
   );
 
   return (
-    <ExpandableChat 
-      size="fit" 
-      position="bottom-right" 
-      icon={<Sparkles className="h-4 w-4" />} 
-      open={isChatOpen} 
-      onOpenChange={setIsChatOpen}
-    >
+    <ExpandableChat size="fit" position="bottom-right" icon={<Sparkles className="h-4 w-4" />} open={isChatOpen} onOpenChange={setIsChatOpen}>
       <ExpandableChatHeader className="flex-col text-center justify-center">
         <h1 className="text-md font-semibold">Tutorials & Help ✨</h1>
         <p className="text-sm text-muted-foreground font-normal">Choose a tutorial to get started</p>

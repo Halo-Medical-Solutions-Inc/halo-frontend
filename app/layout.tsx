@@ -93,7 +93,7 @@ const steps = [
         tour: "template-tour",
         icon: "📝",
         title: "Copy or Describe Your Template",
-        content: "Paste an existing note here — or describe what you want, like:\n\n//\"Referral letter template for cardiology\"//\n//\"Create an H&P format with CC, HPI, ROS, and A/P.\"//\nHALO will generate a structured template from your input. \n\nWhen done pasting or writing instructions, write **FINISHED**",
+        content: 'Paste an existing note here — or describe what you want, like:\n\n//"Referral letter template for cardiology"//\n//"Create an H&P format with CC, HPI, ROS, and A/P."//\nHALO will generate a structured template from your input. \n\nWhen done pasting or writing instructions, write **FINISHED**',
         selector: "#template-tour-content-textarea",
         side: "left" as "left",
         showControls: true,
