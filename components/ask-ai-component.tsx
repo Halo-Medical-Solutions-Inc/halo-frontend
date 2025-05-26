@@ -6,7 +6,7 @@ import { setScreen } from "@/store/slices/sessionSlice";
 import { Sparkles, FileText, Edit, GraduationCap } from "lucide-react";
 import { useNextStep } from "nextstepjs";
 import { useDispatch } from "react-redux";
-
+ 
 export default function AskAIComponent() {
   const dispatch = useDispatch();
   const { startNextStep, setCurrentStep } = useNextStep();
