@@ -47,6 +47,11 @@ export default function Page() {
 
     const updateVisitHandler = handle("update_visit", "dashboard", (data) => {
       console.log("Processing update_visit in dashboard");
+
+      if (data.was_requested && ('name' in data.data || 'note' in data.data || 'additional_context' in data.data)) {
+        return;
+      }
+      
       dispatch(setVisit(data.data));
     });
 
@@ -128,6 +133,11 @@ export default function Page() {
 
     const updateTemplateHandler = handle("update_template", "dashboard", (data) => {
       console.log("Processing update_template in dashboard");
+      
+      if (data.was_requested && ('name' in data.data || 'instructions' in data.data)) {
+        return;
+      }
+      
       dispatch(setTemplate(data.data));
     });
 
