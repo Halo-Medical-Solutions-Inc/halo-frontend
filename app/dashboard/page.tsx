@@ -8,7 +8,7 @@ import RecordComponent from "@/components/record-component";
 import TemplateComponent from "@/components/template-component";
 import TemplatesComponent from "@/components/templates-component";
 import { clearUser, setUser } from "@/store/slices/userSlice";
-import { clearSelectedTemplate, setTemplate, setTemplates } from "@/store/slices/templateSlice";
+import { clearSelectedTemplate, setSelectedTemplate, setTemplate, setTemplates } from "@/store/slices/templateSlice";
 import { clearSelectedVisit, setSelectedVisit, setVisit, setVisits } from "@/store/slices/visitSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
@@ -17,6 +17,8 @@ import useWebSocket, { handle } from "@/lib/websocket";
 import { apiGetUser, apiGetUserTemplates, apiGetUserVisits } from "@/store/api";
 import { clearSession, setScreen } from "@/store/slices/sessionSlice";
 import { Loader2 } from "lucide-react";
+import { Template } from "@/store/types";
+import AskAIComponent from "@/components/ask-ai-component";
 
 export default function Page() {
   const dispatch = useDispatch();
@@ -26,6 +28,7 @@ export default function Page() {
   const session = useSelector((state: RootState) => state.session.session);
   const screen = useSelector((state: RootState) => state.session.screen);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
+  const selectedTemplate = useSelector((state: RootState) => state.template.selectedTemplate);
   const templates = useSelector((state: RootState) => state.template.templates);
   const visits = useSelector((state: RootState) => state.visit.visits);
 
@@ -33,65 +36,76 @@ export default function Page() {
 
   useEffect(() => {
     const createVisitHandler = handle("create_visit", "dashboard", (data) => {
-      if (!data.was_requested) {
-        console.log("Processing create_visit in dashboard");
-        dispatch(setVisits([...visits, data.data]));
+      console.log("Processing create_visit in dashboard");
+      dispatch(setVisits([...visits, data.data]));
+
+      if (data.was_requested) {
+        dispatch(setSelectedVisit(data.data));
+        dispatch(setScreen("RECORD"));
       }
     });
 
     const updateVisitHandler = handle("update_visit", "dashboard", (data) => {
-      console.log("Data updated", data.data);
-      if (!data.was_requested) {
-        console.log("Processing update_visit in dashboard");
-        dispatch(setVisit(data.data));
+      console.log("Processing update_visit in dashboard");
+
+      if (data.was_requested && ('name' in data.data || 'note' in data.data || 'additional_context' in data.data) && 'modified_at' in data.data) {
+        dispatch(setVisit({visit_id: data.data.visit_id, modified_at: data.data.modified_at}));
+        return;
       }
+
+      dispatch(setVisit(data.data));
     });
 
     const deleteVisitHandler = handle("delete_visit", "dashboard", (data) => {
-      if (!data.was_requested) {
-        console.log("Processing delete_visit in dashboard");
-        dispatch(setVisits(visits.filter((visit) => visit.visit_id !== data.data.visit_id)));
+      console.log("Processing delete_visit in dashboard");
+      dispatch(setVisits(visits.filter((visit) => visit.visit_id !== data.data.visit_id)));
+
+      if (selectedVisit?.visit_id === data.data.visit_id) {
+        dispatch(clearSelectedVisit());
+        dispatch(setScreen("ACCOUNT"));
       }
     });
 
     const startRecordingHandler = handle("start_recording", "dashboard", (data) => {
+      console.log("Processing start_recording in dashboard");
+      dispatch(setVisit(data.data));
+
       if (!data.was_requested) {
-        console.log("Processing start_recording in dashboard");
         if (selectedVisit?.visit_id == data.data.visit_id) {
           dispatch(clearSelectedVisit());
           dispatch(setScreen("ACCOUNT"));
         }
-        dispatch(setVisit(data.data));
       }
     });
 
     const pauseRecordingHandler = handle("pause_recording", "dashboard", (data) => {
-      if (!data.was_requested) {
-        console.log("Processing pause_recording in dashboard");
-        dispatch(setVisit(data.data));
-      }
+      console.log("Processing pause_recording in dashboard");
+      dispatch(setVisit(data.data));
     });
 
     const resumeRecordingHandler = handle("resume_recording", "dashboard", (data) => {
+      console.log("Processing resume_recording in dashboard");
+      dispatch(setVisit(data.data));
+
       if (!data.was_requested) {
-        console.log("Processing resume_recording in dashboard");
         if (selectedVisit?.visit_id == data.data.visit_id) {
           dispatch(clearSelectedVisit());
           dispatch(setScreen("ACCOUNT"));
         }
-        dispatch(setVisit(data.data));
       }
     });
 
     const finishRecordingHandler = handle("finish_recording", "dashboard", (data) => {
-      if (!data.was_requested) {
-        console.log("Processing finish_recording in dashboard");
-        dispatch(setVisit(data.data));
+      console.log("Processing finish_recording in dashboard");
+      dispatch(setVisit(data.data));
+
+      if (selectedVisit?.visit_id == data.data.visit_id) {
+        dispatch(setVisit({ ...data.data, status: "FRONTEND_TRANSITION" }));
+        dispatch(setScreen("NOTE"));
       }
     });
 
     const noteGeneratedHandler = handle("note_generated", "dashboard", (data) => {
-      // console.log("Processing note_generated in dashboard");
       dispatch(setVisit(data.data));
     });
 
@@ -109,29 +123,45 @@ export default function Page() {
 
   useEffect(() => {
     const createTemplateHandler = handle("create_template", "dashboard", (data) => {
-      if (!data.was_requested) {
-        console.log("Processing create_template in dashboard");
-        dispatch(setTemplates([...templates, data.data]));
+      console.log("Processing create_template in dashboard");
+      dispatch(setTemplates([...templates, data.data]));
+
+      if (data.was_requested) {
+        dispatch(setSelectedTemplate(data.data as Template));
+        dispatch(setScreen("TEMPLATE"));
       }
     });
 
     const updateTemplateHandler = handle("update_template", "dashboard", (data) => {
       console.log("Processing update_template in dashboard");
+
+      if (data.was_requested && ('name' in data.data || 'instructions' in data.data) && 'modified_at' in data.data)  {
+        dispatch(setTemplate({template_id: data.data.template_id, modified_at: data.data.modified_at}));
+        return;
+      }
+      
       dispatch(setTemplate(data.data));
     });
 
     const deleteTemplateHandler = handle("delete_template", "dashboard", (data) => {
-      if (!data.was_requested) {
-        console.log("Processing delete_template in dashboard");
-        dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
+      console.log("Processing delete_template in dashboard");
+      dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
+
+      if (screen === "TEMPLATE") {
+        if (selectedTemplate?.template_id === data.data.template_id) {
+          dispatch(clearSelectedTemplate());
+          dispatch(setScreen("TEMPLATES"));
+        }
       }
     });
 
     const duplicateTemplateHandler = handle("duplicate_template", "dashboard", (data) => {
-      if (!data.was_requested) {
-        console.log("Processing duplicate_template in dashboard");
-        dispatch(setTemplates([...templates, data.data]));
-      }
+      console.log("Processing duplicate_template in dashboard");
+      dispatch(setTemplates([...templates, data.data]));
+    });
+
+    const templateGeneratedHandler = handle("template_generated", "dashboard", (data) => {
+      dispatch(setTemplate(data.data));
     });
 
     return () => {
@@ -139,18 +169,19 @@ export default function Page() {
       updateTemplateHandler();
       deleteTemplateHandler();
       duplicateTemplateHandler();
+      templateGeneratedHandler();
     };
   }, [templates]);
 
   useEffect(() => {
     const updateUserHandler = handle("update_user", "dashboard", (data) => {
-      if (!data.was_requested) {
-        console.log("Processing update_user in dashboard");
-        dispatch(setUser(data.data));
-      }
+      console.log("Processing update_user in dashboard");
+      dispatch(setUser(data.data));
     });
 
     const errorHandler = handle("error", "dashboard", (data) => {
+      console.log("Processing error in dashboard, data:", data);
+
       if (data.was_requested && data.data.message === "Session expired") {
         dispatch(clearSelectedTemplate());
         dispatch(clearSelectedVisit());
@@ -158,7 +189,6 @@ export default function Page() {
         dispatch(clearSession());
         window.location.href = "/signin";
       }
-      console.log("Processing error in dashboard, data:", data);
     });
 
     return () => {
@@ -172,7 +202,7 @@ export default function Page() {
       window.location.href = "/signin";
       return;
     }
-    
+
     setInitialLoad(true);
     connect(session.session_id);
 
@@ -218,6 +248,7 @@ export default function Page() {
         {screen === "RECORD" && <RecordComponent />}
         {screen === "TEMPLATE" && <TemplateComponent />}
         {screen === "TEMPLATES" && <TemplatesComponent />}
+        <AskAIComponent />
       </Application>
     </>
   );

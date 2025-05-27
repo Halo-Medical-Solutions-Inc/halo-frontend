@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export type ChatPosition = "bottom-right" | "bottom-left";
-export type ChatSize = "sm" | "md" | "lg" | "xl" | "full";
+export type ChatSize = "sm" | "md" | "lg" | "xl" | "full" | "fit";
 
 const chatConfig = {
   dimensions: {
@@ -15,6 +15,7 @@ const chatConfig = {
     lg: "sm:max-w-lg sm:max-h-[700px]",
     xl: "sm:max-w-xl sm:max-h-[800px]",
     full: "sm:w-full sm:h-full",
+    fit: "sm:max-w-xs sm:max-h-fit",
   },
   positions: {
     "bottom-right": "bottom-5 right-5",
@@ -34,11 +35,16 @@ interface ExpandableChatProps extends React.HTMLAttributes<HTMLDivElement> {
   position?: ChatPosition;
   size?: ChatSize;
   icon?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const ExpandableChat: React.FC<ExpandableChatProps> = ({ className, position = "bottom-right", size = "md", icon, children, ...props }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const ExpandableChat: React.FC<ExpandableChatProps> = ({ className, position = "bottom-right", size = "md", icon, open, onOpenChange, children, ...props }) => {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
+
+  const isOpen = open !== undefined ? open : internalIsOpen;
+  const setIsOpen = onOpenChange || setInternalIsOpen;
 
   const toggleChat = () => setIsOpen(!isOpen);
 

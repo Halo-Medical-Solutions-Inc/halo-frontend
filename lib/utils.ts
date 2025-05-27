@@ -84,22 +84,22 @@ export const getTimeDifference = (olderDate: string, newerDate?: string): string
 
 export const formatText = (text: string): string => {
   let formattedText = text;
-  
-  formattedText = formattedText.replace(/\*\*--([^*]*?)--\*\*/g, '<strong><u>$1</u></strong>');
-  formattedText = formattedText.replace(/--\*\*([^-]*?)\*\*--/g, '<strong><u>$1</u></strong>');
-  
-  formattedText = formattedText.replace(/\*\*\/\/([^*]*?)\/\/\*\*/g, '<strong><em>$1</em></strong>');
-  formattedText = formattedText.replace(/\/\/\*\*([^/]*?)\*\*\/\//g, '<strong><em>$1</em></strong>');
-  
-  formattedText = formattedText.replace(/--\/\/([^-]*?)\/\/--/g, '<u><em>$1</em></u>');
-  formattedText = formattedText.replace(/\/\/--([^/]*?)--\/\//g, '<u><em>$1</em></u>');
-  
-  formattedText = formattedText.replace(/\*\*--\/\/([^*]*?)\/\/--\*\*/g, '<strong><u><em>$1</em></u></strong>');
-  
-  formattedText = formattedText.replace(/\*\*([^*]*?)\*\*/g, '<strong>$1</strong>');
-  formattedText = formattedText.replace(/--([^-]*?)--/g, '<u>$1</u>');
-  formattedText = formattedText.replace(/\/\/([^/]*?)\/\//g, '<em>$1</em>');
-  
+
+  formattedText = formattedText.replace(/\*\*--([^*]*?)--\*\*/g, "<strong><u>$1</u></strong>");
+  formattedText = formattedText.replace(/--\*\*([^-]*?)\*\*--/g, "<strong><u>$1</u></strong>");
+
+  formattedText = formattedText.replace(/\*\*\/\/([^*]*?)\/\/\*\*/g, "<strong><em>$1</em></strong>");
+  formattedText = formattedText.replace(/\/\/\*\*([^/]*?)\*\*\/\//g, "<strong><em>$1</em></strong>");
+
+  formattedText = formattedText.replace(/--\/\/([^-]*?)\/\/--/g, "<u><em>$1</em></u>");
+  formattedText = formattedText.replace(/\/\/--([^/]*?)--\/\//g, "<u><em>$1</em></u>");
+
+  formattedText = formattedText.replace(/\*\*--\/\/([^*]*?)\/\/--\*\*/g, "<strong><u><em>$1</em></u></strong>");
+
+  formattedText = formattedText.replace(/\*\*([^*]*?)\*\*/g, "<strong>$1</strong>");
+  formattedText = formattedText.replace(/--([^-]*?)--/g, "<u>$1</u>");
+  formattedText = formattedText.replace(/\/\/([^/]*?)\/\//g, "<em>$1</em>");
+
   return formattedText;
 };
 
@@ -108,8 +108,8 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
   if (!printWindow) return;
 
   const formattedNoteContent = formatText(noteContent);
-  const formattedHeaderContent = headerContent ? formatText(headerContent) : '';
-  const formattedFooterContent = footerContent ? formatText(footerContent) : '';
+  const formattedHeaderContent = headerContent ? formatText(headerContent) : "";
+  const formattedFooterContent = footerContent ? formatText(footerContent) : "";
 
   printWindow.document.write(`
     <!DOCTYPE html>
@@ -166,12 +166,17 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
 };
 
 export const downloadNoteAsPDF = async (visitName: string, noteContent: string, headerContent?: string, footerContent?: string) => {
+  const formattedNoteContent = formatText(noteContent);
+  const formattedHeaderContent = headerContent ? formatText(headerContent) : "";
+  const formattedFooterContent = footerContent ? formatText(footerContent) : "";
+
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
 
-  const formattedNoteContent = formatText(noteContent);
-  const formattedHeaderContent = headerContent ? formatText(headerContent) : '';
-  const formattedFooterContent = footerContent ? formatText(footerContent) : '';
+  const now = new Date();
+  const dateTimeString = format(now, "yyyy-MM-dd_HHmm");
+  const safeVisitName = visitName.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+  const filename = `${safeVisitName}-${dateTimeString}.pdf`;
 
   printWindow.document.write(`
     <!DOCTYPE html>
@@ -213,7 +218,7 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
         <div class="content">${formattedNoteContent}</div>
         ${formattedFooterContent ? `<div class="footer">${formattedFooterContent}</div>` : ""}
         <script>
-          document.title = "";
+          document.title = "${filename}";
         </script>
       </body>
     </html>
@@ -224,4 +229,105 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
   setTimeout(() => {
     printWindow.print();
   }, 300);
+};
+
+export const downloadNoteAsWord = async (visitName: string, noteContent: string, headerContent?: string, footerContent?: string) => {
+  const formattedNoteContent = formatText(noteContent);
+  const formattedHeaderContent = headerContent ? formatText(headerContent) : "";
+  const formattedFooterContent = footerContent ? formatText(footerContent) : "";
+
+  const now = new Date();
+  const dateTimeString = format(now, "yyyy-MM-dd_HHmm");
+  const safeVisitName = visitName.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+  const filename = `${safeVisitName}-${dateTimeString}`;
+
+  const convertToWordParagraphs = (text: string) => {
+    if (!text) return "";
+    return text
+      .split(/\n\s*\n/)
+      .map((paragraph) => {
+        if (!paragraph.trim()) return "";
+        return `<p>${paragraph.replace(/\n/g, "<br/>")}</p>`;
+      })
+      .join("");
+  };
+
+  const htmlContent = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/1999/xhtml">
+      <head>
+        <meta charset="utf-8">
+        <title>${filename}</title>
+        <!--[if gte mso 9]>
+        <xml>
+          <w:WordDocument>
+            <w:View>Print</w:View>
+            <w:Zoom>100</w:Zoom>
+            <w:DoNotOptimizeForBrowser/>
+          </w:WordDocument>
+        </xml>
+        <![endif]-->
+        <style>
+          body { 
+            font-family: 'Calibri', 'Arial', sans-serif; 
+            font-size: 11pt; 
+            line-height: 1.5; 
+            margin: 0;
+            padding: 20px;
+            color: #000000;
+          }
+          @page { margin: 1in; }
+          .header { 
+            margin-bottom: 20px; 
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+          }
+          .footer { 
+            margin-top: 20px; 
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+          }
+          .content { margin: 0; padding: 0; }
+          p { margin: 0 0 12px 0; padding: 0; line-height: 1.6; }
+          strong, b { font-weight: bold !important; }
+          em, i { font-style: italic !important; }
+          u { text-decoration: underline !important; }
+          br { mso-data-placement: same-cell; }
+          strong u, u strong { font-weight: bold !important; text-decoration: underline !important; }
+          strong em, em strong { font-weight: bold !important; font-style: italic !important; }
+          em u, u em { font-style: italic !important; text-decoration: underline !important; }
+          strong em u, strong u em, em strong u, em u strong, u strong em, u em strong {
+            font-weight: bold !important;
+            font-style: italic !important;
+            text-decoration: underline !important;
+          }
+        </style>
+      </head>
+      <body>
+        ${formattedHeaderContent ? `<div class="header">${convertToWordParagraphs(formattedHeaderContent)}</div>` : ""}
+        <div class="content">${convertToWordParagraphs(formattedNoteContent)}</div>
+        ${formattedFooterContent ? `<div class="footer">${convertToWordParagraphs(formattedFooterContent)}</div>` : ""}
+      </body>
+    </html>
+  `;
+
+  const blob = new Blob(["\ufeff" + htmlContent], { type: "application/vnd.ms-word;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `${filename}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+export const formatTranscriptTime = (transcript: string | undefined): string => {
+  if (!transcript) return "";
+  return transcript.replace(/\[(\d{2}:\d{2}:\d{2})\]/g, (match, time) => {
+    const [hours, minutes, seconds] = time.split(":");
+    const date = new Date();
+    date.setUTCHours(parseInt(hours), parseInt(minutes), parseInt(seconds));
+    return `[${date.toLocaleTimeString("en-US", { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" })}]`;
+  });
 };

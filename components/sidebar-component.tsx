@@ -5,7 +5,7 @@ import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, Si
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { CirclePlus, MoreHorizontal, StopCircle, Trash2, LogOut, Sparkles, BadgeCheck, ChevronsUpDown, Loader2 } from "lucide-react";
+import { CirclePlus, MoreHorizontal, StopCircle, Trash2, LogOut, Sparkles, BadgeCheck, ChevronsUpDown, Loader2, MicOff, FileText, Info } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { RootState } from "@/store/store";
 import { useSelector, useDispatch } from "react-redux";
@@ -19,15 +19,13 @@ import { clearSelectedTemplate } from "@/store/slices/templateSlice";
 import { clearUser } from "@/store/slices/userSlice";
 import { clearSession } from "@/store/slices/sessionSlice";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNextStep } from "nextstepjs";
 
 export default function SidebarComponent() {
-  const dispatch = useDispatch();
   const isMobile = useIsMobile();
+  const dispatch = useDispatch();
   const { send } = useWebSocket();
-
-  const [isCreatingVisit, setIsCreatingVisit] = useState(false);
-  const [isDeletingVisit, setIsDeletingVisit] = useState(false);
-  const [isPausingVisit, setIsPausingVisit] = useState(false);
+  const { currentTour, setCurrentStep } = useNextStep();
 
   const session = useSelector((state: RootState) => state.session.session);
   const user = useSelector((state: RootState) => state.user.user);
@@ -35,43 +33,41 @@ export default function SidebarComponent() {
   const groupedVisits = groupVisitsByDate(visits);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
 
+  const [isCreatingVisit, setIsCreatingVisit] = useState(false);
+  const [isDeletingVisit, setIsDeletingVisit] = useState(false);
+  const [isPausingVisit, setIsPausingVisit] = useState(false);
+
   useEffect(() => {
     const createVisitHandler = handle("create_visit", "sidebar", (data) => {
       if (data.was_requested) {
-        console.log("Processing create_visit in sidebar");
-        dispatch(setVisits([...visits, data.data]));
-        dispatch(setSelectedVisit(data.data));
-        dispatch(setScreen("RECORD"));
         setIsCreatingVisit(false);
+        console.log("Received create_visit in sidebar", currentTour);
+        if (currentTour === "visit-tour") {
+          setCurrentStep(1);
+        }
       }
     });
 
     const deleteVisitHandler = handle("delete_visit", "sidebar", (data) => {
       if (data.was_requested) {
         console.log("Processing delete_visit in sidebar");
-        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
-        dispatch(setVisits(filteredVisits));
-
-        if (filteredVisits.length > 0) {
-          const lastVisit = filteredVisits[filteredVisits.length - 1];
-          dispatch(setSelectedVisit(lastVisit));
-
-          if (lastVisit.status === "FINISHED" || lastVisit.status === "GENERATING_NOTE") {
-            dispatch(setScreen("NOTE"));
-          } else {
-            dispatch(setScreen("RECORD"));
-          }
-        }
-
         setIsDeletingVisit(false);
+      }
+    });
+
+    const pauseRecordingHandler = handle("pause_recording", "sidebar", (data) => {
+      if (data.was_requested) {
+        setIsPausingVisit(false);
+        ``;
       }
     });
 
     return () => {
       createVisitHandler();
       deleteVisitHandler();
+      pauseRecordingHandler();
     };
-  }, [visits]);
+  }, [currentTour]);
 
   const selectVisit = (visit: Visit) => {
     dispatch(setSelectedVisit(visit));
@@ -102,8 +98,16 @@ export default function SidebarComponent() {
     });
   };
 
-  const pauseVisit = (visit: Visit) => {
-    // TODO: Implement pause visit
+  const pauseRecording = (visit: Visit) => {
+    setIsPausingVisit(true);
+
+    send({
+      type: "pause_recording",
+      session_id: session.session_id,
+      data: {
+        visit_id: visit.visit_id,
+      },
+    });
   };
 
   const templatesClick = () => {
@@ -144,7 +148,7 @@ export default function SidebarComponent() {
             </SidebarMenuItem>
           </SidebarMenu>
           <div className="relative flex w-full min-w-0 flex-col p-2 rounded-md">
-            <Button className="font-normal" onClick={createVisit} disabled={isCreatingVisit}>
+            <Button className="font-normal" onClick={createVisit} disabled={isCreatingVisit} id="visit-tour-new-visit">
               {isCreatingVisit ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : (
@@ -189,8 +193,18 @@ export default function SidebarComponent() {
                             {visit.status === "RECORDING" ? (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem className="text-destructive focus:text-destructive hover:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                  <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive hover:text-destructive"
+                                    onSelect={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                    }}
+                                  >
                                     <StopCircle className="h-4 w-4 text-destructive" />
+
                                     <span>Pause Recording</span>
                                   </DropdownMenuItem>
                                 </AlertDialogTrigger>
@@ -201,7 +215,17 @@ export default function SidebarComponent() {
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Pause</AlertDialogAction>
+                                    <AlertDialogAction
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        pauseRecording(visit);
+                                      }}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      disabled={isPausingVisit}
+                                    >
+                                      {isPausingVisit ? <Loader2 className="h-4 w-4 animate-spin" /> : "Pause"}
+                                    </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
@@ -256,13 +280,17 @@ export default function SidebarComponent() {
           </div>
         </SidebarContent>
         <SidebarFooter>
+          <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">
+            <Info className="h-4 w-4 mr-2 flex-shrink-0" />
+            <span>Find old visits at <a href="https://scribe.halohealth.app" className="text-warning underline">scribe.halohealth.app</a></span>
+          </div>
           <SidebarMenu>
             <SidebarMenuItem>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarFallback className="rounded-lg">{user?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback className="rounded-lg">{user?.name ? (user.name.indexOf(" ") > 0 ? user.name.charAt(0) + user.name.charAt(user.name.indexOf(" ") + 1) : user.name.substring(0, 2)).toUpperCase() : ""}</AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
                       <span className="truncate font-medium">{user?.name}</span>

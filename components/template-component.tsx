@@ -7,51 +7,48 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Trash2, ArrowLeft, Sparkles, Loader2, FileText, Printer, Info } from "lucide-react";
+import { MoreHorizontal, Trash2, ArrowLeft, Sparkles, Loader2, FileText, Printer, Info, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ExpandingTextarea } from "@/components/ui/textarea";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { setSelectedTemplate, clearSelectedTemplate, setTemplates } from "@/store/slices/templateSlice";
+import { setSelectedTemplate } from "@/store/slices/templateSlice";
 import { setScreen } from "@/store/slices/sessionSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend, getTimeDifference } from "@/lib/utils";
-import AnimatedLoadingSkeleton from "@/components/ui/animated-loading-skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { useNextStep } from "nextstepjs";
+import Confetti from "react-confetti";
 
 export default function TemplateComponent() {
+  const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
-  const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState<"instructions" | "printer">("instructions");
+  const { setCurrentStep, currentTour } = useNextStep();
 
-  const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
   const session = useSelector((state: RootState) => state.session.session);
   const selectedTemplate = useSelector((state: RootState) => state.template.selectedTemplate);
-  const templates = useSelector((state: RootState) => state.template.templates);
+
+  const [activeTab, setActiveTab] = useState<"instructions" | "printer">("instructions");
+  const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
+
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: typeof window !== "undefined" ? window.innerWidth : 0, height: typeof window !== "undefined" ? window.innerHeight : 0 });
 
   useEffect(() => {
     const deleteTemplateHandler = handle("delete_template", "template", (data) => {
       if (data.was_requested) {
         console.log("Processing delete_template in template");
-        dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
-        dispatch(clearSelectedTemplate());
-        dispatch(setScreen("TEMPLATES"));
         setIsDeletingTemplate(false);
-      } else {
-        if (selectedTemplate?.template_id === data.data.template_id) {
-          dispatch(clearSelectedTemplate());
-          dispatch(setScreen("TEMPLATES"));
-        }
       }
     });
 
     return () => {
       deleteTemplateHandler();
     };
-  }, [templates]);
+  }, []);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedTemplate({ ...selectedTemplate, name: e.target.value }));
@@ -74,6 +71,10 @@ export default function TemplateComponent() {
         instructions: e.target.value,
       },
     });
+
+    if (currentTour === "template-tour" && e.target.value.includes("FINISHED")) {
+      setCurrentStep(2);
+    }
   };
 
   const headerChange = (html: string) => {
@@ -111,7 +112,22 @@ export default function TemplateComponent() {
     });
   };
 
-  const polishTemplate = () => {};
+  const polishTemplate = () => {
+    dispatch(setSelectedTemplate({ ...selectedTemplate, status: "GENERATING_TEMPLATE" }));
+
+    send({
+      type: "polish_template",
+      session_id: session.session_id,
+      data: {
+        template_id: selectedTemplate?.template_id,
+      },
+    });
+
+    if (currentTour === "template-tour") {
+      setCurrentStep(3);
+      setShowConfetti(true);
+    }
+  };
 
   const handleInstructionsTabClick = () => {
     setActiveTab("instructions");
@@ -121,7 +137,25 @@ export default function TemplateComponent() {
     setActiveTab("printer");
   };
 
+  const handleSettingsToggle = () => {
+    setActiveTab(activeTab === "instructions" ? "printer" : "instructions");
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
+    <>
+    {showConfetti && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={200} gravity={0.3} />}
     <SidebarInset>
       <header className="flex h-14 shrink-0 items-center gap-2">
         <div className="flex flex-1 items-center gap-2 px-3">
@@ -207,17 +241,18 @@ export default function TemplateComponent() {
                   <ArrowLeft className="h-4 w-4" />
                   Back
                 </Button>
-                <Button variant={activeTab === "instructions" ? "default" : "outline"} size="icon" onClick={handleInstructionsTabClick}>
-                  <FileText className="h-4 w-4" />
+                <Button onClick={polishTemplate} disabled={activeTab === "printer"} className={activeTab === "printer" ? "cursor-not-allowed" : ""} id="template-tour-polish-button">
+                  {selectedTemplate?.status === "GENERATING_TEMPLATE" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" /> Polish
+                    </>
+                  )}
                 </Button>
-                <Button variant={activeTab === "printer" ? "default" : "outline"} size="icon" onClick={handlePrinterTabClick}>
-                  <Printer className="h-4 w-4" />
+                <Button variant={activeTab === "printer" ? "default" : "secondary"} size="icon" onClick={handleSettingsToggle}>
+                  <Settings className="h-4 w-4" />
                 </Button>
-
-                {/* <Button onClick={polishTemplate}>
-                <Sparkles className="h-4 w-4" />
-                Polish
-              </Button> */}
               </div>
             )}
           </div>
@@ -234,6 +269,7 @@ export default function TemplateComponent() {
 - {Use curly braces} for providing AI instructions.
 - For Epic users, Halo recognizes your @smartlinks@.`}
               className="w-full text-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none"
+              id="template-tour-content-textarea"
             />
           ) : (
             <div className="space-y-8">
@@ -269,5 +305,6 @@ export default function TemplateComponent() {
         </div>
       </div>
     </SidebarInset>
+    </>
   );
 }

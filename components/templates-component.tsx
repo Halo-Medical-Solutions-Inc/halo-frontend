@@ -21,35 +21,39 @@ import useWebSocket, { handle } from "@/lib/websocket";
 import { formatLocalDateAndTime, useDebouncedSend } from "@/lib/utils";
 import { setUser } from "@/store/slices/userSlice";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNextStep } from "nextstepjs";
 
 export default function TemplatesComponent() {
+  const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
-  const isMobile = useIsMobile();
+  const { setCurrentStep, currentTour } = useNextStep();
+
+  const session = useSelector((state: RootState) => state.session.session);
+  const user = useSelector((state: RootState) => state.user.user);
+  const templates = useSelector((state: RootState) => state.template.templates);
 
   const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
   const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
   const [isDuplicatingTemplate, setIsDuplicatingTemplate] = useState(false);
-  const session = useSelector((state: RootState) => state.session.session);
-  const user = useSelector((state: RootState) => state.user.user);
-  const templates = useSelector((state: RootState) => state.template.templates);
 
   useEffect(() => {
     const createTemplateHandler = handle("create_template", "templates", (data) => {
       if (data.was_requested) {
         console.log("Processing create_template in templates");
-        dispatch(setTemplates([...templates, data.data as Template]));
-        dispatch(setSelectedTemplate(data.data as Template));
-        dispatch(setScreen("TEMPLATE"));
+
         setIsCreatingTemplate(false);
+
+        if (currentTour === "template-tour") {
+          setCurrentStep(1);
+        }
       }
     });
 
     const deleteTemplateHandler = handle("delete_template", "templates", (data) => {
       if (data.was_requested) {
         console.log("Processing delete_template in templates");
-        dispatch(setTemplates(templates.filter((template) => template.template_id !== data.data.template_id)));
         setIsDeletingTemplate(false);
       }
     });
@@ -57,7 +61,6 @@ export default function TemplatesComponent() {
     const duplicateTemplateHandler = handle("duplicate_template", "templates", (data) => {
       if (data.was_requested) {
         console.log("Processing duplicate_template in templates");
-        dispatch(setTemplates([...templates, data.data as Template]));
         setIsDuplicatingTemplate(false);
       }
     });
@@ -67,7 +70,7 @@ export default function TemplatesComponent() {
       deleteTemplateHandler();
       duplicateTemplateHandler();
     };
-  }, [templates]);
+  }, []);
 
   const selectTemplate = (template: Template) => {
     if (template.status !== "DEFAULT") {
@@ -149,7 +152,7 @@ export default function TemplatesComponent() {
             </div>
             {!isMobile && (
               <div className="flex items-center gap-2">
-                <Button onClick={createTemplate} disabled={isCreatingTemplate}>
+                <Button onClick={createTemplate} disabled={isCreatingTemplate} id="template-tour-create-new">
                   {isCreatingTemplate ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (

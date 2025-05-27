@@ -9,29 +9,31 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "./ui/textarea";
-import { CheckCircle, Loader2, Mic, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2, Wifi, WifiOff } from "lucide-react";
+import { CheckCircle, Loader2, Mic, MicOff, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2, WifiOff } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "./ui/input";
 import { AudioVisualizer } from "./ui/audio-visualizer";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { setSelectedVisit, setVisit, setVisits } from "@/store/slices/visitSlice";
+import { setSelectedVisit } from "@/store/slices/visitSlice";
 import { useDispatch } from "react-redux";
-import useWebSocket, { handle } from "@/lib/websocket";
+import useWebSocket, { connected, handle, online, useConnectionStatus } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
-import { setScreen } from "@/store/slices/sessionSlice";
-import { useConnectionStatus } from "@/lib/websocket";
+import { useTranscriber } from "@/lib/transcriber";
+import { useNextStep } from "nextstepjs";
+import Confetti from "react-confetti";
 
 export default function RecordComponent() {
   const dispatch = useDispatch();
   const { send } = useWebSocket();
   const debouncedSend = useDebouncedSend(send);
-  const { online, connected } = useConnectionStatus();
+  const { online, connected: websocketConnected } = useConnectionStatus();
 
   const session = useSelector((state: RootState) => state.session.session);
-  const visits = useSelector((state: RootState) => state.visit.visits);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
+
+  const { startTranscriber, stopTranscriber, connected: transcriberConnected, microphone } = useTranscriber(selectedVisit?.visit_id);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isAdditionalContextFocused, setIsAdditionalContextFocused] = useState(false);
@@ -42,78 +44,67 @@ export default function RecordComponent() {
   const [pauseRecordingLoading, setPauseRecordingLoading] = useState(false);
   const [resumeRecordingLoading, setResumeRecordingLoading] = useState(false);
   const [finishRecordingLoading, setFinishRecordingLoading] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
 
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const processorNodeRef = useRef<ScriptProcessorNode | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const isRecordingRef = useRef<boolean>(false);
-  const isInternetConnectedRef = useRef<boolean>(navigator.onLine);
+  const { currentTour, setCurrentStep, closeNextStep } = useNextStep();
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: typeof window !== "undefined" ? window.innerWidth : 0, height: typeof window !== "undefined" ? window.innerHeight : 0 });
 
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "record", (data) => {
       if (data.was_requested) {
         console.log("Processing delete_visit in record");
-        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
-        dispatch(setVisits(filteredVisits));
-
-        if (filteredVisits.length > 0) {
-          const lastVisit = filteredVisits[filteredVisits.length - 1];
-          dispatch(setSelectedVisit(lastVisit));
-
-          if (lastVisit.status === "FINISHED" || lastVisit.status === "GENERATING_NOTE") {
-            dispatch(setScreen("NOTE"));
-          } else {
-            dispatch(setScreen("RECORD"));
-          }
-        }
-
         setIsDeletingVisit(false);
-      } else {
-        const filteredVisits = visits.filter((visit) => visit.visit_id !== data.data.visit_id);
-
-        if (filteredVisits.length > 0) {
-          const lastVisit = filteredVisits[filteredVisits.length - 1];
-          dispatch(setSelectedVisit(lastVisit));
-
-          if (lastVisit.status === "FINISHED" || lastVisit.status === "GENERATING_NOTE") {
-            dispatch(setScreen("NOTE"));
-          } else {
-            dispatch(setScreen("RECORD"));
-          }
-        }
       }
     });
 
-    const startRecordingHandler = handle("start_recording", "record", (data) => {
+    const startRecordingHandler = handle("start_recording", "record", async (data) => {
       if (data.was_requested) {
         console.log("Processing start_recording in record");
-        dispatch(setVisit(data.data));
+
+        try {
+          await startTranscriber();
+        } catch (error) {
+          console.error("Error starting transcriber:", error);
+        }
+
         setStartRecordingLoading(false);
       }
     });
 
-    const resumeRecordingHandler = handle("resume_recording", "record", (data) => {
+    const resumeRecordingHandler = handle("resume_recording", "record", async (data) => {
       if (data.was_requested) {
         console.log("Processing resume_recording in record");
-        dispatch(setVisit(data.data));
+
+        try {
+          await startTranscriber();
+        } catch (error) {
+          console.error("Error resuming transcriber:", error);
+        }
+
         setResumeRecordingLoading(false);
       }
     });
 
-    const pauseRecordingHandler = handle("pause_recording", "record", (data) => {
+    const pauseRecordingHandler = handle("pause_recording", "record", async (data) => {
+      if (selectedVisit?.visit_id == data.data.visit_id) {
+        await stopTranscriber();
+      }
+
       if (data.was_requested) {
         console.log("Processing pause_recording in record");
-        dispatch(setVisit(data.data));
         setPauseRecordingLoading(false);
       }
     });
 
-    const finishRecordingHandler = handle("finish_recording", "record", (data) => {
+    const finishRecordingHandler = handle("finish_recording", "record", async (data) => {
+      if (selectedVisit?.visit_id == data.data.visit_id) {
+        await stopTranscriber();
+      }
+
       if (data.was_requested) {
         console.log("Processing finish_recording in record");
-        dispatch(setVisit({ ...data.data, status: "FRONTEND_TRANSITION" }));
         setFinishRecordingLoading(false);
-        dispatch(setScreen("NOTE"));
       }
     });
 
@@ -124,7 +115,7 @@ export default function RecordComponent() {
       pauseRecordingHandler();
       finishRecordingHandler();
     };
-  }, [visits]);
+  }, [selectedVisit?.visit_id, startTranscriber, stopTranscriber]);
 
   useEffect(() => {
     if (selectedVisit?.additional_context?.trim() !== "") {
@@ -143,6 +134,42 @@ export default function RecordComponent() {
     }
   }, [selectedVisit]);
 
+  useEffect(() => {
+    if (selectedVisit?.status !== "RECORDING") {
+      setRecordingDuration(selectedVisit?.recording_duration || 0);
+    }
+  }, [selectedVisit?.recording_duration, selectedVisit?.status]);
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    if (selectedVisit?.status === "RECORDING") {
+      intervalId = setInterval(() => {
+        setRecordingDuration((prev) => Number(prev) + 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [selectedVisit?.status]);
+
+  useEffect(() => {
+    if (selectedVisit?.status === "RECORDING" && (!connected || !online || !websocketConnected)) {
+      dispatch(setSelectedVisit({ ...selectedVisit, status: "PAUSED" }));
+
+      stopTranscriber();
+
+      send({
+        type: "pause_recording",
+        session_id: session.session_id,
+        data: {
+          visit_id: selectedVisit?.visit_id,
+        },
+      });
+    }
+  }, [connected, selectedVisit?.status]);
+
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedVisit({ ...selectedVisit, name: e.target.value }));
     debouncedSend({
@@ -153,56 +180,9 @@ export default function RecordComponent() {
         name: e.target.value,
       },
     });
-  };
 
-  const startAudioProcessing = () => {
-    try {
-      console.log("Starting audio processing in record");
-      if (!streamRef.current) return;
-
-      audioContextRef.current = new AudioContext({
-        sampleRate: 16000,
-      });
-
-      const source = audioContextRef.current.createMediaStreamSource(streamRef.current);
-
-      processorNodeRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
-      processorNodeRef.current.connect(audioContextRef.current.destination);
-
-      console.log("Processor node connected in record");
-
-      processorNodeRef.current.onaudioprocess = (e) => {
-        console.log("Processing audio chunk in record");
-        if (isRecordingRef.current) {
-          const inputData = e.inputBuffer.getChannelData(0);
-
-          const pcmData = new Int16Array(inputData.length);
-          for (let i = 0; i < inputData.length; i++) {
-            pcmData[i] = Math.max(-1, Math.min(1, inputData[i])) * 0x7fff;
-          }
-
-          const binary = new Uint8Array(pcmData.buffer);
-          const base64 = btoa(binary.reduce((data, byte) => data + String.fromCharCode(byte), ""));
-          send({
-            type: "audio_chunk",
-            session_id: session.session_id,
-            data: { audio: base64 },
-          });
-        }
-      };
-
-      source.connect(processorNodeRef.current);
-      console.log("Audio processing initialized");
-    } catch (error) {
-      console.error("Error initializing audio processing:", error);
-      return;
-    }
-  };
-
-  const stopAudioProcessing = () => {
-    if (processorNodeRef.current) {
-      processorNodeRef.current.disconnect();
-      processorNodeRef.current = null;
+    if (e.target.value.trim() === "Alex Patient" && currentTour === "visit-tour") {
+      setCurrentStep(2);
     }
   };
 
@@ -228,6 +208,10 @@ export default function RecordComponent() {
         template_id: value,
       },
     });
+
+    if (templates.find((template) => template.template_id === value)?.name === "H&P" && currentTour === "visit-tour") {
+      setCurrentStep(3);
+    }
   };
 
   const selectLanguage = (value: string) => {
@@ -264,8 +248,11 @@ export default function RecordComponent() {
       return;
     }
 
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    streamRef.current = stream;
+    if (!microphone) {
+      console.error("Microphone not available");
+      setStartRecordingLoading(false);
+      return;
+    }
 
     send({
       type: "start_recording",
@@ -275,9 +262,9 @@ export default function RecordComponent() {
       },
     });
 
-    isRecordingRef.current = true;
-
-    startAudioProcessing();
+    if (currentTour === "visit-tour") {
+      setCurrentStep(4);
+    }
   };
 
   const pauseRecording = () => {
@@ -290,17 +277,11 @@ export default function RecordComponent() {
         visit_id: selectedVisit?.visit_id,
       },
     });
-
-    isRecordingRef.current = false;
-
-    stopAudioProcessing();
   };
 
   const resumeRecording = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    streamRef.current = stream;
-
     setResumeRecordingLoading(true);
+
     send({
       type: "resume_recording",
       session_id: session.session_id,
@@ -308,57 +289,57 @@ export default function RecordComponent() {
         visit_id: selectedVisit?.visit_id,
       },
     });
-
-    isRecordingRef.current = true;
-
-    startAudioProcessing();
   };
 
   const finishRecording = () => {
     setFinishRecordingLoading(true);
 
-    send({
-      type: "finish_recording",
-      session_id: session.session_id,
-      data: {
-        visit_id: selectedVisit?.visit_id,
-      },
-    });
+    if (currentTour === "visit-tour") {
+      closeNextStep();
+      setShowConfetti(true);
 
-    isRecordingRef.current = false;
-
-    stopAudioProcessing();
-  };
-
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null;
-
-    if (selectedVisit?.status === "RECORDING") {
-      intervalId = setInterval(() => {
-        const currentDuration = (selectedVisit.recording_duration || 0) + 1;
-
-        dispatch(setSelectedVisit({ ...selectedVisit, recording_duration: currentDuration }));
+      setTimeout(() => {
         send({
-          type: "update_visit",
+          type: "finish_recording",
           session_id: session.session_id,
           data: {
             visit_id: selectedVisit?.visit_id,
-            recording_duration: currentDuration,
           },
         });
-      }, 1000);
+      }, 3000);
+    } else {
+      send({
+        type: "finish_recording",
+        session_id: session.session_id,
+        data: {
+          visit_id: selectedVisit?.visit_id,
+        },
+      });
     }
+  };
 
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
     };
-  }, [selectedVisit]);
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      stopTranscriber();
+    };
+  }, [stopTranscriber]);
 
   return (
     <>
       {selectedVisit?.status === "RECORDING" && <div className="fixed inset-0 bg-background/10 backdrop-blur-[4px] z-40" style={{ pointerEvents: "all" }} />}
+      {showConfetti && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={200} gravity={0.3} />}
       <SidebarInset>
         <header className={`flex h-14 shrink-0 items-center gap-2 relative ${selectedVisit?.status === "RECORDING" ? "z-30" : "z-50"}`}>
           <div className="flex flex-1 items-center gap-2 px-3">
@@ -375,13 +356,7 @@ export default function RecordComponent() {
           <div className="ml-auto px-3">
             <div className="flex items-center gap-2 text-sm">
               <div className="flex items-center">
-                <span className="font-normal text-muted-foreground md:inline-block">
-                  {selectedVisit?.recording_duration
-                    ? `${Math.floor(selectedVisit.recording_duration / 60)
-                        .toString()
-                        .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
-                    : "Not started"}
-                </span>
+                <span className="font-normal text-muted-foreground md:inline-block">{recordingDuration ? recordingDuration + " seconds" : "Not started"}</span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
@@ -433,12 +408,12 @@ export default function RecordComponent() {
           </div>
         </header>
         <div className={`flex flex-1 flex-col items-center justify-center gap-4 px-4 py-10 relative ${selectedVisit?.status === "RECORDING" ? "z-50" : ""}`}>
-          <div className="mx-auto w-[320px] max-w-3xl rounded-xl space-y-4">
+          <div className="mx-auto w-[320px] max-w-3xl rounded-xl space-y-4" id="visit-tour-natural-finish">
             <div className="relative group flex justify-center items-center">
-              <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-center" />
+              <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-center" id="visit-tour-name-patient" />
             </div>
 
-            <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-between w-full" id="visit-tour-select-template">
               <Label className="text-sm font-normal text-muted-foreground">
                 Select template
                 <span className="text-destructive">*</span>
@@ -447,7 +422,7 @@ export default function RecordComponent() {
                 <SelectTrigger className={`min-w-[50px] max-w-[160px] w-auto ${validationErrors.template ? "!border-destructive !ring-destructive" : ""}`}>
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
-                <SelectContent align="end">
+                <SelectContent align="end" style={{ zIndex: 9999 }}>
                   <SelectGroup>
                     <SelectLabel>Templates</SelectLabel>
                     {templates.map((template) => (
@@ -505,7 +480,7 @@ export default function RecordComponent() {
 
             {selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
               <div className="flex items-center justify-between w-full gap-2">
-                <Button variant="outline" className="flex-1" onClick={finishRecording} disabled={!connected || !online}>
+                <Button variant="outline" className="flex-1" onClick={finishRecording} disabled={!online || !websocketConnected}>
                   {finishRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -514,7 +489,7 @@ export default function RecordComponent() {
                     </>
                   )}
                 </Button>
-                <Button className="flex-1" onClick={startRecording} disabled={!connected || !online}>
+                <Button className="flex-1" onClick={startRecording} id="visit-tour-start-recording" disabled={!online || !websocketConnected}>
                   {startRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -528,21 +503,21 @@ export default function RecordComponent() {
 
             {selectedVisit?.status === "RECORDING" && (
               <div className="flex items-center justify-between w-full gap-2">
-                <Button variant="outline" className="flex-1 border-destructive-border text-destructive hover:opacity-80 hover:text-destructive" onClick={pauseRecording} disabled={!connected || !online}>
+                <Button variant="outline" className="flex-1 border-destructive-border text-destructive hover:opacity-80 hover:text-destructive" onClick={pauseRecording} disabled={!online || !websocketConnected}>
                   {pauseRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <>
                       <PauseCircle className="h-4 w-4 text-destructive" />{" "}
-                      {selectedVisit?.recording_duration
-                        ? `${Math.floor(selectedVisit.recording_duration / 60)
+                      {recordingDuration
+                        ? `${Math.floor(recordingDuration / 60)
                             .toString()
-                            .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
+                            .padStart(2, "0")}:${(recordingDuration % 60).toString().padStart(2, "0")}`
                         : "00:00"}
                     </>
                   )}
                 </Button>
-                <Button className="flex-1" onClick={finishRecording} disabled={!connected || !online}>
+                <Button className="flex-1" onClick={finishRecording} disabled={!online || !websocketConnected}>
                   {finishRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -556,21 +531,21 @@ export default function RecordComponent() {
 
             {selectedVisit?.status === "PAUSED" && (
               <div className="flex items-center justify-between w-full gap-2">
-                <Button variant="outline" className="flex-1 border-warning-border text-warning hover:opacity-80 hover:text-warning" onClick={resumeRecording} disabled={!connected || !online}>
+                <Button variant="outline" className="flex-1 border-warning-border text-warning hover:opacity-80 hover:text-warning" onClick={resumeRecording} disabled={!online || !websocketConnected}>
                   {resumeRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <>
                       <PlayCircle className="h-4 w-4 text-warning" />{" "}
-                      {selectedVisit?.recording_duration
-                        ? `${Math.floor(selectedVisit.recording_duration / 60)
+                      {recordingDuration
+                        ? `${Math.floor(recordingDuration / 60)
                             .toString()
-                            .padStart(2, "0")}:${(selectedVisit.recording_duration % 60).toString().padStart(2, "0")}`
+                            .padStart(2, "0")}:${(recordingDuration % 60).toString().padStart(2, "0")}`
                         : "00:00"}
                     </>
                   )}
                 </Button>
-                <Button className="flex-1" onClick={finishRecording} disabled={!connected || !online}>
+                <Button className="flex-1" onClick={finishRecording} disabled={!online || !websocketConnected}>
                   {finishRecordingLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -583,7 +558,7 @@ export default function RecordComponent() {
             )}
 
             {!selectedVisit?.additional_context?.trim() && selectedVisit?.status === "NOT_STARTED" && (
-              <Button className="w-full" onClick={startRecording} disabled={!connected || !online}>
+              <Button className="w-full" onClick={startRecording} id="visit-tour-start-recording" disabled={!online || !websocketConnected}>
                 {startRecordingLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -594,10 +569,18 @@ export default function RecordComponent() {
               </Button>
             )}
 
-            {(!online || !connected) && (
-              <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
-                <WifiOff className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span>Recording may not be saved due to connectivity issues</span>
+            {!online ||
+              (!websocketConnected && (
+                <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
+                  <WifiOff className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span>Recording may not be saved due to connectivity issues</span>
+                </div>
+              ))}
+
+            {!microphone && (
+              <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">
+                <MicOff className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span>Microphone not available</span>
               </div>
             )}
           </div>
