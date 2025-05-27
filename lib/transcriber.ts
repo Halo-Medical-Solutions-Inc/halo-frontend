@@ -29,7 +29,7 @@ class AudioTranscriber {
         this.ws = new WebSocket(`${wsUrl}/${this.config.visitId}`);
 
         this.ws.onopen = () => {
-          console.log("Audio WebSocket connected");
+          console.log("Audio WebSocket connected to this endpoint", `${wsUrl}/${this.config.visitId}`);
           this.config.onStatusUpdate?.("connected");
           this.reconnectAttempts = 0;
           resolve();
