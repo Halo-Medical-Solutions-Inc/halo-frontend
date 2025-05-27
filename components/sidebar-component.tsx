@@ -282,7 +282,7 @@ export default function SidebarComponent() {
         <SidebarFooter>
           <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">
             <Info className="h-4 w-4 mr-2 flex-shrink-0" />
-            <span>Visits will be auto-deleted after 14 days.</span>
+            <span>Find old visits at <a href="https://scribe.halohealth.app" className="text-warning underline">scribe.halohealth.app</a></span>
           </div>
           <SidebarMenu>
             <SidebarMenuItem>
