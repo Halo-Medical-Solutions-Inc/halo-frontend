@@ -294,16 +294,8 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
                 <SidebarMenu>
                   {!hasLoadedAll && (
                     <SidebarMenuItem>
-                      <SidebarMenuButton 
-                        className="bg-transparent hover:bg-transparent text-muted-foreground text-sm" 
-                        onClick={handleLoadAll}
-                        disabled={isLoadingAll}
-                      >
-                        {isLoadingAll ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <MoreHorizontalIcon className="h-4 w-4" />
-                        )}
+                      <SidebarMenuButton className="bg-transparent hover:bg-transparent text-muted-foreground text-sm" onClick={handleLoadAll} disabled={isLoadingAll}>
+                        {isLoadingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontalIcon className="h-4 w-4" />}
                         <span>Load all</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

@@ -37,7 +37,7 @@ export default function Page() {
 
   const loadAllVisits = async () => {
     if (!session || hasLoadedAll) return;
-    
+
     try {
       const allVisits = await apiGetUserVisits(session.session_id, false);
       dispatch(setVisits(allVisits));
@@ -228,7 +228,7 @@ export default function Page() {
       }),
       apiGetUserVisits(session.session_id, true).then((visits) => {
         dispatch(setVisits(visits));
-        const lastNonRecordingVisit = [...visits].reverse().find((visit) => visit.status !== "RECORDING");
+        const lastNonRecordingVisit = [...visits].find((visit) => visit.status !== "RECORDING");
         if (lastNonRecordingVisit) {
           dispatch(setSelectedVisit(lastNonRecordingVisit));
           dispatch(setScreen(lastNonRecordingVisit.status === "FINISHED" || lastNonRecordingVisit.status === "GENERATING_NOTE" ? "NOTE" : "RECORD"));

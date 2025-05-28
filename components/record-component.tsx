@@ -36,6 +36,8 @@ export default function RecordComponent() {
   const { startTranscriber, stopTranscriber, connected: transcriberConnected, microphone } = useTranscriber(selectedVisit?.visit_id);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
   const [isAdditionalContextFocused, setIsAdditionalContextFocused] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
@@ -336,6 +338,17 @@ export default function RecordComponent() {
     };
   }, [stopTranscriber]);
 
+  // Auto-focus name input if visit name is empty or 'New Visit' on initial load
+  useEffect(() => {
+    if (selectedVisit && nameInputRef.current) {
+      const visitName = selectedVisit.name?.trim();
+      if (!visitName || visitName === "New Visit") {
+        nameInputRef.current.focus();
+        nameInputRef.current.select();
+      }
+    }
+  }, [selectedVisit?.visit_id]); // Only run when visit changes (initial load)
+
   return (
     <>
       {selectedVisit?.status === "RECORDING" && <div className="fixed inset-0 bg-background/10 backdrop-blur-[4px] z-40" style={{ pointerEvents: "all" }} />}
@@ -410,7 +423,7 @@ export default function RecordComponent() {
         <div className={`flex flex-1 flex-col items-center justify-center gap-4 px-4 py-10 relative ${selectedVisit?.status === "RECORDING" ? "z-50" : ""}`}>
           <div className="mx-auto w-[320px] max-w-3xl rounded-xl space-y-4" id="visit-tour-natural-finish">
             <div className="relative group flex justify-center items-center">
-              <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-center" id="visit-tour-name-patient" />
+              <Input value={selectedVisit?.name} onChange={nameChange} placeholder="New Visit" className="text-xl md:text-xl font-bold w-full shadow-none border-none outline-none p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-center" id="visit-tour-name-patient" ref={nameInputRef} />
             </div>
 
             <div className="flex items-center justify-between w-full" id="visit-tour-select-template">
