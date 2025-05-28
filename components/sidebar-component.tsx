@@ -9,7 +9,7 @@ import { CirclePlus, MoreHorizontal, StopCircle, Trash2, LogOut, Sparkles, Badge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { RootState } from "@/store/store";
 import { useSelector, useDispatch } from "react-redux";
-import { groupVisitsByDate, formatLocalTime } from "@/lib/utils";
+import { groupVisitsByDate, formatLocalTime, getUserInitials } from "@/lib/utils";
 import { Visit } from "@/store/types";
 import { clearSelectedVisit, setSelectedVisit, setVisits } from "@/store/slices/visitSlice";
 import { setScreen } from "@/store/slices/sessionSlice";
@@ -294,16 +294,8 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
                 <SidebarMenu>
                   {!hasLoadedAll && (
                     <SidebarMenuItem>
-                      <SidebarMenuButton 
-                        className="bg-transparent hover:bg-transparent text-muted-foreground text-sm" 
-                        onClick={handleLoadAll}
-                        disabled={isLoadingAll}
-                      >
-                        {isLoadingAll ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <MoreHorizontalIcon className="h-4 w-4" />
-                        )}
+                      <SidebarMenuButton className="bg-transparent hover:bg-transparent text-muted-foreground text-sm" onClick={handleLoadAll} disabled={isLoadingAll}>
+                        {isLoadingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontalIcon className="h-4 w-4" />}
                         <span>Load all</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -330,7 +322,7 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarFallback className="rounded-lg">{user?.name ? (user.name.indexOf(" ") > 0 ? user.name.charAt(0) + user.name.charAt(user.name.indexOf(" ") + 1) : user.name.substring(0, 2)).toUpperCase() : ""}</AvatarFallback>
+                      <AvatarFallback className="rounded-lg">{getUserInitials(user!)}</AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
                       <span className="truncate font-medium">{user?.name}</span>
@@ -343,7 +335,7 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
                   <DropdownMenuLabel className="p-0 font-normal">
                     <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                       <Avatar className="h-8 w-8 rounded-lg">
-                        <AvatarFallback className="rounded-lg">{user?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback className="rounded-lg">{getUserInitials(user!)}</AvatarFallback>
                       </Avatar>
                       <div className="grid flex-1 text-left text-sm leading-tight">
                         <span className="truncate font-medium">{user?.name}</span>
