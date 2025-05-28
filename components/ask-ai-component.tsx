@@ -5,37 +5,75 @@ import { ExpandableChat, ExpandableChatHeader, ExpandableChatBody, ExpandableCha
 import { ChatMessageList } from "@/components/ui/chat-message-list";
 import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage } from "@/components/ui/chat-bubble";
 import { setScreen } from "@/store/slices/sessionSlice";
-import { Sparkles, FileText, Edit, MessageCircle, ChevronRight, ArrowLeft, Loader2 } from "lucide-react";
+import { Sparkles, FileText, Edit, MessageCircle, ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNextStep } from "nextstepjs";
 import { useDispatch, useSelector } from "react-redux";
 import { useChat } from "@/lib/chat";
 import { RootState } from "@/store/store";
+import { getUserInitials } from "@/lib/utils";
 
 export default function AskAIComponent() {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
+  const session = useSelector((state: RootState) => state.session.session);
+  const screen = useSelector((state: RootState) => state.session.screen);
+  const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
+
   const { startNextStep, setCurrentStep } = useNextStep();
+
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isChatMode, setIsChatMode] = useState(false);
   const [inputValue, setInputValue] = useState("");
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const sessionId = useMemo(() => `chat-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, []);
+  const defaultInstructions = useMemo(() => {
+    let instructions = `You are an AI chatbot assistant for Halo, an AI medical scribe platform. Your primary function is to assist healthcare providers by answering specific questions about patient visits based on the information provided to you.
+
+General guidelines for your responses:
+- Provide direct, concise answers to questions about the current patient visit
+- Only respond with relevant information from the visit context
+- Keep responses brief and focused only on the question asked
+- Provide medical advice based on the visit information when requested
+- Respond with "I can't answer that" for any questions not related to the medical field
+- Keep all answers specific and short
+- Format your responses for readability. Use formatting when helpful: italic (surround with //), underline (surround with --), and bold (surround with **) for important points.
+
+The user you are assisting is a healthcare provider named <user_name>${user?.name}</user_name>.`;
+
+    if ((screen === "NOTE" || screen === "RECORD") && selectedVisit) {
+      instructions += `
+
+You have access to the following patient visit information:
+<visit_info>
+- Visit Name: ${selectedVisit.name}
+- Additional Context: ${selectedVisit.additional_context || "None"}
+${selectedVisit.transcript ? `- Transcript: ${selectedVisit.transcript}` : ""}
+${selectedVisit.note ? `- Note: ${selectedVisit.note}` : ""}
+</visit_info>
+
+Only answer questions related to this specific patient visit using the information provided in the visit_info tags. You may provide relevant medical advice based on this information, but for any non-medical questions or anything not contained in this information, respond with "I can't answer that."
+`;
+    } else {
+      instructions += `
+
+No specific patient visit is currently selected. You can only answer general questions about using Halo as a medical scribe platform or general medical questions. For specific patient information, inform the user that they will need to select a visit first. For any questions not related to the medical field, respond with "I can't answer that."
+`;
+    }
+
+    instructions += `Give a clear, concise answer to the question. Do not add extra clutter to the beginning of your response, nor add a closing statement.`;
+
+    return instructions;
+  }, [user?.name, screen, selectedVisit]);
 
   const { messages, connected, loading, messageStream, connect, disconnect, send, reset } = useChat({
-    sessionId,
+    sessionId: session.id,
+    defaultInstructions,
     onError: (error) => console.error("Chat error:", error),
   });
-
-  const getUserInitials = () => {
-    if (!user?.name) return "";
-    const name = user.name;
-    const spaceIndex = name.indexOf(" ");
-    return spaceIndex > 0 ? (name.charAt(0) + name.charAt(spaceIndex + 1)).toUpperCase() : name.substring(0, 2).toUpperCase();
-  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -49,6 +87,12 @@ export default function AskAIComponent() {
       disconnect();
     }
   }, [isChatMode]);
+
+  useEffect(() => {
+    if (!loading && connected && isChatMode) {
+      inputRef.current?.focus();
+    }
+  }, [loading, connected, isChatMode]);
 
   const handleTutorialClick = (tutorial: string) => {
     if (tutorial === "template-tour") {
@@ -82,29 +126,17 @@ export default function AskAIComponent() {
     }
   };
 
-  const tutorials = [
-    { title: "Start a Visit", subtitle: "Create, record, and complete a visit.", icon: FileText, action: "visit-tour" },
-    { title: "Create a Template", subtitle: "Build custom formats for your notes.", icon: Edit, action: "template-tour" },
-    { title: "Chat with AI", subtitle: "Ask questions and get answers.", icon: MessageCircle, action: "chat-tour" },
-  ];
-
-  useEffect(() => {
-    if (!loading && connected && isChatMode) {
-      inputRef.current?.focus();
-    }
-  }, [loading, connected, isChatMode]);
-
   return (
     <ExpandableChat size={isChatMode ? "sm" : "fit"} position="bottom-right" icon={<Sparkles className="h-4 w-4" />} open={isChatOpen} onOpenChange={setIsChatOpen}>
       <ExpandableChatHeader className="flex-col text-center justify-center">
         {isChatMode ? (
           <div className="flex items-center justify-between w-full">
-            <Button variant="ghost" size="sm" onClick={() => setIsChatMode(false)} className="p-1 h-auto">
-              <ArrowLeft className="h-4 w-4" />
+            <Button variant="ghost" size="icon" onClick={() => setIsChatMode(false)} className="">
+              <ChevronLeft className="h-4 w-4" />
             </Button>
             <div className="flex-1 text-center">
-              <h1 className="text-xl font-semibold">Chat with AI ✨</h1>
-              <p className="text-sm text-muted-foreground font-normal">{connected ? "Ask me anything about the app" : "Connecting..."}</p>
+              <h1 className="text-md font-semibold">Chat with AI ✨</h1>
+              <p className="text-sm text-muted-foreground">{connected ? "Ask me anything about the app" : "Connecting..."}</p>
             </div>
             <div className="w-8"></div>
           </div>
@@ -119,11 +151,13 @@ export default function AskAIComponent() {
       <ExpandableChatBody>
         {isChatMode ? (
           <ChatMessageList>
-            {messages.length === 0 && connected && <div className="text-center text-sm text-muted-foreground p-4">Start a conversation by typing a message below</div>}
+            {messages.length === 0 && connected && <div className="text-center text-xs text-muted-foreground p-4">Start a conversation by typing a message below</div>}
             {messages.map((message) => (
               <ChatBubble key={message.id} variant={message.sender === "user" ? "sent" : "received"}>
-                <ChatBubbleAvatar className="h-8 w-8 shrink-0" fallback={message.sender === "user" ? getUserInitials() : "AI"} />
-                <ChatBubbleMessage variant={message.sender === "user" ? "sent" : "received"}>{message.id === messageStream.id ? messageStream.content || <Loader2 className="h-4 w-4 animate-spin" /> : message.content}</ChatBubbleMessage>
+                <ChatBubbleAvatar className="h-8 w-8 shrink-0" fallback={message.sender === "user" ? getUserInitials(user!) : "AI"} />
+                <ChatBubbleMessage className="text-xs" variant={message.sender === "user" ? "sent" : "received"}>
+                  {message.id === messageStream.id ? messageStream.content || <Loader2 className="h-4 w-4 animate-spin" /> : message.content}
+                </ChatBubbleMessage>
               </ChatBubble>
             ))}
             <div ref={messagesEndRef} />
@@ -137,7 +171,6 @@ export default function AskAIComponent() {
               </div>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </button>
-
             <button key="template-tour" className="w-full flex items-center justify-between p-4 border rounded-md cursor-pointer hover:bg-accent transition-colors text-left mb-2" onClick={() => handleTutorialClick("template-tour")}>
               <div>
                 <h3 className="text-xs font-semibold text-primary">Create a Template</h3>
@@ -145,14 +178,15 @@ export default function AskAIComponent() {
               </div>
               <Edit className="h-4 w-4 text-muted-foreground" />
             </button>
-
-            <button key="chat-tour" className="w-full flex items-center justify-between p-4 border rounded-md cursor-pointer hover:bg-accent transition-colors text-left" onClick={() => handleTutorialClick("chat-tour")}>
-              <div>
-                <h3 className="text-xs font-semibold text-primary">Chat with AI</h3>
-                <p className="text-xs text-muted-foreground">Ask questions and get answers.</p>
-              </div>
-              <MessageCircle className="h-4 w-4 text-muted-foreground" />
-            </button>
+            {screen === "NOTE" && selectedVisit && (
+              <button key="chat-tour" className="w-full flex items-center justify-between p-4 border rounded-md cursor-pointer hover:bg-accent transition-colors text-left" onClick={() => handleTutorialClick("chat-tour")}>
+                <div>
+                  <h3 className="text-xs font-semibold text-primary">Chat with AI</h3>
+                  <p className="text-xs text-muted-foreground">Ask questions and get answers.</p>
+                </div>
+                <MessageCircle className="h-4 w-4 text-muted-foreground" />
+              </button>
+            )}
           </div>
         )}
       </ExpandableChatBody>

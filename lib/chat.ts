@@ -9,6 +9,7 @@ interface Message {
 
 interface ChatConfig {
   sessionId: string;
+  defaultInstructions?: string;
   onError?: (error: Error) => void;
 }
 
@@ -108,11 +109,12 @@ export function useChat(config: ChatConfig) {
       setIsLoading(true);
       setCurrentStreamingMessage("");
 
-      const chatHistory = [...messages, userMessage].map((msg) => `${msg.sender}: ${msg.content}`).join("\n") + `\nuser: ${content}`;
+      const chatHistory = [...messages, userMessage].map((msg) => `${msg.sender}: ${msg.content}`).join("\n");
+      const fullMessage = config.defaultInstructions ? `${config.defaultInstructions}\n\n${chatHistory}` : chatHistory;
 
-      wsRef.current.send(JSON.stringify({ message: chatHistory }));
+      wsRef.current.send(JSON.stringify({ message: fullMessage }));
     },
-    [messages]
+    [messages, config.defaultInstructions]
   );
 
   const resetChat = useCallback(() => {

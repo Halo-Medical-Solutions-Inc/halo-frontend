@@ -1,4 +1,4 @@
-import { Visit } from "@/store/types";
+import { User, Visit } from "@/store/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format } from "date-fns";
@@ -43,6 +43,13 @@ export const groupVisitsByDate = (visits: Visit[]) => {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }),
     }));
+};
+
+export const getUserInitials = (user: User | undefined) => {
+  if (!user?.name) return "";
+  const name = user.name;
+  const spaceIndex = name.indexOf(" ");
+  return spaceIndex > 0 ? (name.charAt(0) + name.charAt(spaceIndex + 1)).toUpperCase() : name.substring(0, 2).toUpperCase();
 };
 
 export const formatLocalTime = (utcDateString: string | undefined, defaultValue: string = "00:00 AM") => {
