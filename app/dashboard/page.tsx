@@ -33,6 +33,19 @@ export default function Page() {
   const visits = useSelector((state: RootState) => state.visit.visits);
 
   const [initialLoad, setInitialLoad] = useState(true);
+  const [hasLoadedAll, setHasLoadedAll] = useState(false);
+
+  const loadAllVisits = async () => {
+    if (!session || hasLoadedAll) return;
+    
+    try {
+      const allVisits = await apiGetUserVisits(session.session_id, false);
+      dispatch(setVisits(allVisits));
+      setHasLoadedAll(true);
+    } catch (error) {
+      console.error("Failed to load all visits:", error);
+    }
+  };
 
   useEffect(() => {
     const createVisitHandler = handle("create_visit", "dashboard", (data) => {
@@ -48,8 +61,8 @@ export default function Page() {
     const updateVisitHandler = handle("update_visit", "dashboard", (data) => {
       console.log("Processing update_visit in dashboard");
 
-      if (data.was_requested && ('name' in data.data || 'note' in data.data || 'additional_context' in data.data) && 'modified_at' in data.data) {
-        dispatch(setVisit({visit_id: data.data.visit_id, modified_at: data.data.modified_at}));
+      if (data.was_requested && ("name" in data.data || "note" in data.data || "additional_context" in data.data) && "modified_at" in data.data) {
+        dispatch(setVisit({ visit_id: data.data.visit_id, modified_at: data.data.modified_at }));
         return;
       }
 
@@ -135,11 +148,11 @@ export default function Page() {
     const updateTemplateHandler = handle("update_template", "dashboard", (data) => {
       console.log("Processing update_template in dashboard");
 
-      if (data.was_requested && ('name' in data.data || 'instructions' in data.data) && 'modified_at' in data.data)  {
-        dispatch(setTemplate({template_id: data.data.template_id, modified_at: data.data.modified_at}));
+      if (data.was_requested && ("name" in data.data || "instructions" in data.data) && "modified_at" in data.data) {
+        dispatch(setTemplate({ template_id: data.data.template_id, modified_at: data.data.modified_at }));
         return;
       }
-      
+
       dispatch(setTemplate(data.data));
     });
 
@@ -213,7 +226,7 @@ export default function Page() {
       apiGetUserTemplates(session.session_id).then((templates) => {
         dispatch(setTemplates(templates));
       }),
-      apiGetUserVisits(session.session_id).then((visits) => {
+      apiGetUserVisits(session.session_id, true).then((visits) => {
         dispatch(setVisits(visits));
         const lastNonRecordingVisit = [...visits].reverse().find((visit) => visit.status !== "RECORDING");
         if (lastNonRecordingVisit) {
@@ -242,7 +255,7 @@ export default function Page() {
         </div>
       )}
       <Application>
-        <SidebarComponent />
+        <SidebarComponent loadAllVisits={loadAllVisits} hasLoadedAll={hasLoadedAll} />
         {screen === "ACCOUNT" && <AccountComponent />}
         {screen === "NOTE" && <NoteComponent />}
         {screen === "RECORD" && <RecordComponent />}

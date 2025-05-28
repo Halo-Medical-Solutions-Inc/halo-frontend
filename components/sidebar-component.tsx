@@ -5,7 +5,7 @@ import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, Si
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { CirclePlus, MoreHorizontal, StopCircle, Trash2, LogOut, Sparkles, BadgeCheck, ChevronsUpDown, Loader2, MicOff, FileText, Info } from "lucide-react";
+import { CirclePlus, MoreHorizontal, StopCircle, Trash2, LogOut, Sparkles, BadgeCheck, ChevronsUpDown, Loader2, MicOff, FileText, Info, MoreHorizontalIcon } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { RootState } from "@/store/store";
 import { useSelector, useDispatch } from "react-redux";
@@ -21,7 +21,12 @@ import { clearSession } from "@/store/slices/sessionSlice";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNextStep } from "nextstepjs";
 
-export default function SidebarComponent() {
+interface SidebarComponentProps {
+  loadAllVisits: () => Promise<void>;
+  hasLoadedAll: boolean;
+}
+
+export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: SidebarComponentProps) {
   const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const { send } = useWebSocket();
@@ -36,6 +41,7 @@ export default function SidebarComponent() {
   const [isCreatingVisit, setIsCreatingVisit] = useState(false);
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
   const [isPausingVisit, setIsPausingVisit] = useState(false);
+  const [isLoadingAll, setIsLoadingAll] = useState(false);
 
   useEffect(() => {
     const createVisitHandler = handle("create_visit", "sidebar", (data) => {
@@ -128,6 +134,15 @@ export default function SidebarComponent() {
     dispatch(clearUser());
     dispatch(clearSession());
     window.location.href = "/signin";
+  };
+
+  const handleLoadAll = async () => {
+    setIsLoadingAll(true);
+    try {
+      await loadAllVisits();
+    } finally {
+      setIsLoadingAll(false);
+    }
   };
 
   return (
@@ -275,6 +290,26 @@ export default function SidebarComponent() {
                   </SidebarMenu>
                 </SidebarGroup>
               ))}
+              <SidebarGroup>
+                <SidebarMenu>
+                  {!hasLoadedAll && (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        className="bg-transparent hover:bg-transparent text-muted-foreground text-sm" 
+                        onClick={handleLoadAll}
+                        disabled={isLoadingAll}
+                      >
+                        {isLoadingAll ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <MoreHorizontalIcon className="h-4 w-4" />
+                        )}
+                        <span>Load all</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
+                </SidebarMenu>
+              </SidebarGroup>
               {groupedVisits.length === 0 && <div className="p-4 text-sm text-muted-foreground">No visits available</div>}
             </div>
           </div>
@@ -282,7 +317,12 @@ export default function SidebarComponent() {
         <SidebarFooter>
           <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">
             <Info className="h-4 w-4 mr-2 flex-shrink-0" />
-            <span>Find old visits at <a href="https://scribe.halohealth.app" className="text-warning underline">scribe.halohealth.app</a></span>
+            <span>
+              Find old visits at{" "}
+              <a href="https://scribe.halohealth.app" className="text-warning underline">
+                scribe.halohealth.app
+              </a>
+            </span>
           </div>
           <SidebarMenu>
             <SidebarMenuItem>
