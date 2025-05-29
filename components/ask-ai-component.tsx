@@ -70,7 +70,6 @@ No specific patient visit is currently selected. You can only answer general que
   }, [user?.name, screen, selectedVisit]);
 
   const { messages, connected, loading, messageStream, connect, disconnect, send, reset } = useChat({
-    sessionId: session.id,
     defaultInstructions,
     onError: (error) => console.error("Chat error:", error),
   });
