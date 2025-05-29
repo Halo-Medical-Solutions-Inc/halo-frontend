@@ -8,7 +8,6 @@ interface Message {
 }
 
 interface ChatConfig {
-  sessionId: string;
   defaultInstructions?: string;
   onError?: (error: Error) => void;
 }
@@ -36,7 +35,7 @@ export function useChat(config: ChatConfig) {
       const backendUrl = process.env.NEXT_PUBLIC_CHAT_URL;
       if (!backendUrl) throw new Error("Chat URL not configured");
 
-      const ws = new WebSocket(`${backendUrl}/${config.sessionId}`);
+      const ws = new WebSocket(backendUrl);
 
       ws.onopen = () => {
         setIsConnected(true);
@@ -80,7 +79,7 @@ export function useChat(config: ChatConfig) {
       isConnectingRef.current = false;
       config.onError?.(error as Error);
     }
-  }, [config.sessionId, config.onError]);
+  }, [config.onError]);
 
   const disconnect = useCallback(() => {
     wsRef.current?.close();
