@@ -19,8 +19,10 @@ import { clearSession, setScreen } from "@/store/slices/sessionSlice";
 import { Loader2 } from "lucide-react";
 import { Template } from "@/store/types";
 import AskAIComponent from "@/components/ask-ai-component";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Page() {
+  const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const { connect } = useWebSocket();
 
@@ -261,7 +263,7 @@ export default function Page() {
         {screen === "RECORD" && <RecordComponent />}
         {screen === "TEMPLATE" && <TemplateComponent />}
         {screen === "TEMPLATES" && <TemplatesComponent />}
-        <AskAIComponent />
+        {!isMobile && <AskAIComponent />}
       </Application>
     </>
   );
