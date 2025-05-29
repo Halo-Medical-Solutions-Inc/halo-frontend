@@ -90,12 +90,12 @@ export const getTimeDifference = (olderDate: string, newerDate?: string): string
 };
 
 export function parseFormattedText(text: string): string {
-  if (!text) return '';
+  if (!text) return "";
   let formatted = text;
-  formatted = formatted.replace(/--([^-]+)--/g, '<u>$1</u>');
-  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  formatted = formatted.replace(/\/\/([^/]+)\/\//g, '<em>$1</em>');
-  formatted = formatted.replace(/\n/g, '<br />');
+  formatted = formatted.replace(/--([^-]+)--/g, "<u>$1</u>");
+  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  formatted = formatted.replace(/\/\/([^/]+)\/\//g, "<em>$1</em>");
+  formatted = formatted.replace(/\n/g, "<br />");
   return formatted;
 }
 
