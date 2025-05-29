@@ -16,6 +16,7 @@ import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as downloadNoteAsPDFUtil, formatTranscriptTime, downloadNoteAsWord as downloadNoteAsWordUtil } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { FormattedTextarea } from "@/components/ui/formatted-textarea";
 
 export default function NoteComponent() {
   const isMobile = useIsMobile();
@@ -376,7 +377,14 @@ export default function NoteComponent() {
                     </div>
                   </div>
                 ) : (
-                  <ExpandingTextarea id={`note`} minHeight={0} maxHeight={10000} value={selectedVisit?.note} onChange={noteChange} className="w-full text-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" />
+                  <FormattedTextarea 
+                    id={`note`} 
+                    minHeight={0} 
+                    maxHeight={10000} 
+                    value={selectedVisit?.note} 
+                    onChange={noteChange} 
+                    className="w-full text-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" 
+                  />
                 )}
               </div>
             )}

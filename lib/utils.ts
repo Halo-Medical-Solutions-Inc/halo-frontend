@@ -89,34 +89,23 @@ export const getTimeDifference = (olderDate: string, newerDate?: string): string
   }
 };
 
-export const formatText = (text: string): string => {
-  let formattedText = text;
-
-  formattedText = formattedText.replace(/\*\*--([^*]*?)--\*\*/g, "<strong><u>$1</u></strong>");
-  formattedText = formattedText.replace(/--\*\*([^-]*?)\*\*--/g, "<strong><u>$1</u></strong>");
-
-  formattedText = formattedText.replace(/\*\*\/\/([^*]*?)\/\/\*\*/g, "<strong><em>$1</em></strong>");
-  formattedText = formattedText.replace(/\/\/\*\*([^/]*?)\*\*\/\//g, "<strong><em>$1</em></strong>");
-
-  formattedText = formattedText.replace(/--\/\/([^-]*?)\/\/--/g, "<u><em>$1</em></u>");
-  formattedText = formattedText.replace(/\/\/--([^/]*?)--\/\//g, "<u><em>$1</em></u>");
-
-  formattedText = formattedText.replace(/\*\*--\/\/([^*]*?)\/\/--\*\*/g, "<strong><u><em>$1</em></u></strong>");
-
-  formattedText = formattedText.replace(/\*\*([^*]*?)\*\*/g, "<strong>$1</strong>");
-  formattedText = formattedText.replace(/--([^-]*?)--/g, "<u>$1</u>");
-  formattedText = formattedText.replace(/\/\/([^/]*?)\/\//g, "<em>$1</em>");
-
-  return formattedText;
-};
+export function parseFormattedText(text: string): string {
+  if (!text) return '';
+  let formatted = text;
+  formatted = formatted.replace(/--([^-]+)--/g, '<u>$1</u>');
+  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  formatted = formatted.replace(/\/\/([^/]+)\/\//g, '<em>$1</em>');
+  formatted = formatted.replace(/\n/g, '<br />');
+  return formatted;
+}
 
 export const printNote = (visitName: string, noteContent: string, headerContent?: string, footerContent?: string) => {
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
 
-  const formattedNoteContent = formatText(noteContent);
-  const formattedHeaderContent = headerContent ? formatText(headerContent) : "";
-  const formattedFooterContent = footerContent ? formatText(footerContent) : "";
+  const formattedNoteContent = parseFormattedText(noteContent);
+  const formattedHeaderContent = headerContent ? parseFormattedText(headerContent) : "";
+  const formattedFooterContent = footerContent ? parseFormattedText(footerContent) : "";
 
   printWindow.document.write(`
     <!DOCTYPE html>
@@ -173,9 +162,9 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
 };
 
 export const downloadNoteAsPDF = async (visitName: string, noteContent: string, headerContent?: string, footerContent?: string) => {
-  const formattedNoteContent = formatText(noteContent);
-  const formattedHeaderContent = headerContent ? formatText(headerContent) : "";
-  const formattedFooterContent = footerContent ? formatText(footerContent) : "";
+  const formattedNoteContent = parseFormattedText(noteContent);
+  const formattedHeaderContent = headerContent ? parseFormattedText(headerContent) : "";
+  const formattedFooterContent = footerContent ? parseFormattedText(footerContent) : "";
 
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
@@ -239,9 +228,9 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
 };
 
 export const downloadNoteAsWord = async (visitName: string, noteContent: string, headerContent?: string, footerContent?: string) => {
-  const formattedNoteContent = formatText(noteContent);
-  const formattedHeaderContent = headerContent ? formatText(headerContent) : "";
-  const formattedFooterContent = footerContent ? formatText(footerContent) : "";
+  const formattedNoteContent = parseFormattedText(noteContent);
+  const formattedHeaderContent = headerContent ? parseFormattedText(headerContent) : "";
+  const formattedFooterContent = footerContent ? parseFormattedText(footerContent) : "";
 
   const now = new Date();
   const dateTimeString = format(now, "yyyy-MM-dd_HHmm");
