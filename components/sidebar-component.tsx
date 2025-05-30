@@ -307,6 +307,7 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
           </div>
         </SidebarContent>
         <SidebarFooter>
+          {!isMobile && (
           <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">
             <Info className="h-4 w-4 mr-2 flex-shrink-0" />
             <span>
@@ -314,8 +315,9 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
               <a href="https://old.halohealth.app" className="text-warning underline">
                 old.halohealth.app
               </a>
-            </span>
-          </div>
+              </span>
+            </div>
+          )}
           <SidebarMenu>
             <SidebarMenuItem>
               <DropdownMenu>
