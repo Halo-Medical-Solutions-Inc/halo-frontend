@@ -96,6 +96,9 @@ No specific patient visit is currently selected. You can only answer general que
   const handleTutorialClick = (tutorial: string) => {
     if (tutorial === "template-tour") {
       dispatch(setScreen("TEMPLATES"));
+      startNextStep("template-tour");
+      setTimeout(() => setCurrentStep(0), 1000);
+      setIsChatOpen(false);
       return;
     }
     if (tutorial === "chat-tour") {
