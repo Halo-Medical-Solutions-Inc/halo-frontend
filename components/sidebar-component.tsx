@@ -311,8 +311,8 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
             <Info className="h-4 w-4 mr-2 flex-shrink-0" />
             <span>
               Find old visits at{" "}
-              <a href="https://scribe.halohealth.app" className="text-warning underline">
-                scribe.halohealth.app
+              <a href="https://old.halohealth.app" className="text-warning underline">
+                old.halohealth.app
               </a>
             </span>
           </div>
