@@ -142,10 +142,10 @@ export default function NoteComponent() {
     let textToCopy = transcriptView ? selectedVisit?.transcript + "\n\n" + selectedVisit?.additional_context : selectedVisit?.note;
     if (textToCopy) {
       textToCopy = textToCopy
-        .replace(/\*\*([^*]+?)\*\*/g, '$1')
-        .replace(/\/\/([^/]+?)\/\//g, '$1')
-        .replace(/--([^-]+?)--/g, '$1')
-        .replace(/\*\*\/\/([^*/]+?)\/\/\*\*/g, '$1');
+        .replace(/\*\*([^*]+?)\*\*/g, "$1")
+        .replace(/\/\/([^/]+?)\/\//g, "$1")
+        .replace(/--([^-]+?)--/g, "$1")
+        .replace(/\*\*\/\/([^*/]+?)\/\/\*\*/g, "$1");
       navigator.clipboard.writeText(textToCopy);
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);

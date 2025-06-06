@@ -49,7 +49,7 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
         setIsCreatingVisit(false);
         console.log("Received create_visit in sidebar", currentTour);
         if (currentTour === "visit-tour") {
-          setCurrentStep(1);
+          setCurrentStep(1, 500);
         }
       }
     });
@@ -308,13 +308,13 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
         </SidebarContent>
         <SidebarFooter>
           {!isMobile && (
-          <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">
-            <Info className="h-4 w-4 mr-2 flex-shrink-0" />
-            <span>
-              Find old visits at{" "}
-              <a href="https://old.halohealth.app" className="text-warning underline">
-                old.halohealth.app
-              </a>
+            <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">
+              <Info className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span>
+                Find old visits at{" "}
+                <a href="https://old.halohealth.app" className="text-warning underline">
+                  old.halohealth.app
+                </a>
               </span>
             </div>
           )}

@@ -28,23 +28,17 @@ const parseFormattedTextWithTooltips = (text: string): React.ReactNode => {
   });
 };
 
-const parseLineRecursively = (
-  text: string,
-  lineIndex: number,
-  fullText: string,
-  appliedStyles: string[],
-  startOffset: number = 0
-): React.ReactNode => {
+const parseLineRecursively = (text: string, lineIndex: number, fullText: string, appliedStyles: string[], startOffset: number = 0): React.ReactNode => {
   if (!text) return null;
 
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
 
   const regex = /(\*\*([^*]+?)\*\*)|(\/\/([^/]+?)\/\/)|(--([^-]+?)--)/;
-  
+
   while (text.length > 0) {
     const match = text.match(regex);
-    
+
     if (!match) {
       parts.push(text);
       break;
@@ -60,34 +54,21 @@ const parseLineRecursively = (
 
     if (match[1]) {
       innerText = match[2];
-      newStyle = 'bold';
+      newStyle = "bold";
     } else if (match[3]) {
       innerText = match[4];
-      newStyle = 'italic';
+      newStyle = "italic";
     } else if (match[5]) {
       innerText = match[6];
-      newStyle = 'underline';
+      newStyle = "underline";
     } else {
-      innerText = '';
-      newStyle = '';
+      innerText = "";
+      newStyle = "";
     }
 
-    const nestedContent = parseLineRecursively(
-      innerText,
-      lineIndex,
-      fullText,
-      [...appliedStyles, newStyle],
-      startOffset + (match.index || 0) + match[0].length - innerText.length
-    );
+    const nestedContent = parseLineRecursively(innerText, lineIndex, fullText, [...appliedStyles, newStyle], startOffset + (match.index || 0) + match[0].length - innerText.length);
 
-    formattedContent = applyFormattingStyles(
-      nestedContent,
-      [...appliedStyles, newStyle],
-      lineIndex,
-      startOffset + (match.index || 0),
-      fullText,
-      innerText
-    );
+    formattedContent = applyFormattingStyles(nestedContent, [...appliedStyles, newStyle], lineIndex, startOffset + (match.index || 0), fullText, innerText);
 
     parts.push(formattedContent);
 
@@ -98,62 +79,34 @@ const parseLineRecursively = (
   return parts.length === 1 ? parts[0] : parts;
 };
 
-const applyFormattingStyles = (
-  content: React.ReactNode,
-  styles: string[],
-  lineIndex: number,
-  matchIndex: number,
-  fullText: string,
-  originalText: string
-): React.ReactNode => {
+const applyFormattingStyles = (content: React.ReactNode, styles: string[], lineIndex: number, matchIndex: number, fullText: string, originalText: string): React.ReactNode => {
   let result = content;
-  
+
   for (let i = styles.length - 1; i >= 0; i--) {
     const style = styles[i];
     const key = `${style}-${lineIndex}-${matchIndex}-${i}`;
-    
+
     switch (style) {
-      case 'bold':
-        if (i === styles.indexOf('bold')) {
-          result = (
-            <BoldWithTooltip
-              key={key}
-              text={result}
-              originalText={originalText}
-              fullText={fullText}
-              currentLineIndex={lineIndex}
-              currentMatchEnd={matchIndex + originalText.length + 4}
-            />
-          );
+      case "bold":
+        if (i === styles.indexOf("bold")) {
+          result = <BoldWithTooltip key={key} text={result} originalText={originalText} fullText={fullText} currentLineIndex={lineIndex} currentMatchEnd={matchIndex + originalText.length + 4} />;
         } else {
           result = <strong key={key}>{result}</strong>;
         }
         break;
-      case 'italic':
+      case "italic":
         result = <em key={key}>{result}</em>;
         break;
-      case 'underline':
+      case "underline":
         result = <u key={key}>{result}</u>;
         break;
     }
   }
-  
+
   return result;
 };
 
-const BoldWithTooltip = ({ 
-  text, 
-  originalText, 
-  fullText, 
-  currentLineIndex, 
-  currentMatchEnd 
-}: { 
-  text: React.ReactNode; 
-  originalText: string; 
-  fullText: string; 
-  currentLineIndex: number; 
-  currentMatchEnd: number 
-}) => {
+const BoldWithTooltip = ({ text, originalText, fullText, currentLineIndex, currentMatchEnd }: { text: React.ReactNode; originalText: string; fullText: string; currentLineIndex: number; currentMatchEnd: number }) => {
   const [copied, setCopied] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
