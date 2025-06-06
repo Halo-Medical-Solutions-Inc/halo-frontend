@@ -172,6 +172,51 @@ export default function RecordComponent() {
     }
   }, [connected, selectedVisit?.status]);
 
+
+
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      stopTranscriber();
+    };
+  }, [stopTranscriber]);
+
+  useEffect(() => {
+    if (selectedVisit && nameInputRef.current) {
+      const visitName = selectedVisit.name?.trim();
+      if (!visitName || visitName === "New Visit") {
+        nameInputRef.current.focus();
+        nameInputRef.current.select();
+      }
+    }
+  }, [selectedVisit?.visit_id]);
+
+  useEffect(() => {
+    if (recordingDuration === 5400 && selectedVisit?.status === "RECORDING") {
+      pauseRecording();
+      send({
+        type: "update_visit",
+        session_id: session.session_id,
+        data: {
+          visit_id: selectedVisit?.visit_id,
+          recording_duration: 5401,
+        },
+      });
+    }
+  }, [recordingDuration]);
+
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedVisit({ ...selectedVisit, name: e.target.value }));
     debouncedSend({
@@ -319,35 +364,6 @@ export default function RecordComponent() {
       });
     }
   };
-
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      stopTranscriber();
-    };
-  }, [stopTranscriber]);
-
-  // Auto-focus name input if visit name is empty or 'New Visit' on initial load
-  useEffect(() => {
-    if (selectedVisit && nameInputRef.current) {
-      const visitName = selectedVisit.name?.trim();
-      if (!visitName || visitName === "New Visit") {
-        nameInputRef.current.focus();
-        nameInputRef.current.select();
-      }
-    }
-  }, [selectedVisit?.visit_id]); // Only run when visit changes (initial load)
 
   return (
     <>
