@@ -239,7 +239,7 @@ export const FormattedTextarea = React.forwardRef<HTMLTextAreaElement, Formatted
   }
 
   return (
-    <div ref={containerRef} onClick={() => setIsEditing(true)} className={cn("w-full text-foreground text-sm flex-1 border-none p-0 leading-relaxed rounded-none cursor-text whitespace-pre-wrap", className)} style={{ minHeight: `${minHeight}px` }}>
+    <div ref={containerRef} onClick={() => setIsEditing(true)} className={cn("w-full text-foreground text-sm flex-1 border-none p-0 leading-relaxed rounded-none cursor-text break-words", className)} style={{ minHeight: `${minHeight}px` }}>
       {parseFormattedTextWithTooltips(localValue)}
     </div>
   );
