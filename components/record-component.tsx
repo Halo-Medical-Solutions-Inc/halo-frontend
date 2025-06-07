@@ -366,7 +366,7 @@ export default function RecordComponent() {
     <>
       {selectedVisit?.status === "RECORDING" && <div className="fixed inset-0 bg-background/10 backdrop-blur-[4px] z-40" style={{ pointerEvents: "all" }} />}
       {showConfetti && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={200} gravity={0.3} />}
-      <SidebarInset>
+      <SidebarInset className="overflow-visible h-auto max-h-none">
         <header className={`flex h-14 shrink-0 items-center gap-2 relative ${selectedVisit?.status === "RECORDING" ? "z-30" : "z-50"}`}>
           <div className="flex flex-1 items-center gap-2 px-3">
             <SidebarTrigger />
