@@ -189,27 +189,38 @@ export const FormattedTextarea = React.forwardRef<HTMLTextAreaElement, Formatted
   const [isEditing, setIsEditing] = React.useState(false);
   const [localValue, setLocalValue] = React.useState(value);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const isEditingRef = React.useRef(false);
 
   React.useEffect(() => {
-    setLocalValue(value);
+    isEditingRef.current = isEditing;
+  }, [isEditing]);
+
+  React.useEffect(() => {
+    if (!isEditingRef.current) {
+      setLocalValue(value);
+    }
   }, [value]);
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isEditing && containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsEditing(false);
+        setLocalValue(value);
       }
     };
 
-    const timeoutId = setTimeout(() => {
-      document.addEventListener("mousedown", handleClickOutside);
-    }, 0);
+    if (isEditing) {
+      const timeoutId = setTimeout(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+      }, 0);
 
-    return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isEditing]);
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [isEditing, value]);
 
   const handleFocus = () => {
     setIsEditing(true);
@@ -219,6 +230,7 @@ export const FormattedTextarea = React.forwardRef<HTMLTextAreaElement, Formatted
     setTimeout(() => {
       if (!containerRef.current?.contains(document.activeElement)) {
         setIsEditing(false);
+        setLocalValue(value);
       }
     }, 0);
   };
@@ -233,14 +245,32 @@ export const FormattedTextarea = React.forwardRef<HTMLTextAreaElement, Formatted
   if (isEditing) {
     return (
       <div ref={containerRef}>
-        <ExpandingTextarea ref={ref} value={localValue} onChange={handleChange} onFocus={handleFocus} onBlur={handleBlur} minHeight={minHeight} maxHeight={maxHeight} className={className} autoFocus {...props} />
+        <ExpandingTextarea
+          ref={(node) => {
+            textareaRef.current = node;
+            if (typeof ref === "function") {
+              ref(node);
+            } else if (ref) {
+              ref.current = node;
+            }
+          }}
+          value={localValue}
+          onChange={handleChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          minHeight={minHeight}
+          maxHeight={maxHeight}
+          className={className}
+          autoFocus
+          {...props}
+        />
       </div>
     );
   }
 
   return (
     <div ref={containerRef} onClick={() => setIsEditing(true)} className={cn("w-full text-foreground text-sm flex-1 border-none p-0 leading-relaxed rounded-none cursor-text break-words", className)} style={{ minHeight: `${minHeight}px` }}>
-      {parseFormattedTextWithTooltips(localValue)}
+      {parseFormattedTextWithTooltips(value)}
     </div>
   );
 });
