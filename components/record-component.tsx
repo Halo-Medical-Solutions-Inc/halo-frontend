@@ -172,9 +172,6 @@ export default function RecordComponent() {
     }
   }, [connected, selectedVisit?.status]);
 
-
-
-
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({
