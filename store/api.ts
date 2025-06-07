@@ -7,6 +7,7 @@ export async function apiSigninUser(email: string, password: string): Promise<Se
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
+    credentials: "include",
   });
   if (!response.ok) throw new Error("Failed to sign in user");
   return response.json();
@@ -17,6 +18,7 @@ export async function apiSignupUser(name: string, email: string, password: strin
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, email, password }),
+    credentials: "include",
   });
   if (!response.ok) throw new Error("Failed to sign up user");
   return response.json();
@@ -27,6 +29,7 @@ export async function apiGetUser(sessionId: string): Promise<User> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ session_id: sessionId }),
+    credentials: "include",
   });
   if (!response.ok) throw new Error("Failed to get user");
   return response.json();
@@ -37,6 +40,7 @@ export async function apiGetUserTemplates(sessionId: string): Promise<Template[]
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ session_id: sessionId }),
+    credentials: "include",
   });
   if (!response.ok) throw new Error("Failed to get user templates");
   return response.json();
@@ -47,6 +51,7 @@ export async function apiGetUserVisits(sessionId: string, subset: boolean = true
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ session_id: sessionId, subset: subset }),
+    credentials: "include",
   });
   if (!response.ok) throw new Error("Failed to get user visits");
   return response.json();
@@ -57,6 +62,7 @@ export async function processAudioBuffer(sessionId: string, visitId: string, aud
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ session_id: sessionId, visit_id: visitId, audio_buffer: audioBuffer }),
+    credentials: "include",
   });
   if (!response.ok) throw new Error("Failed to process audio buffer");
   return response.json();
