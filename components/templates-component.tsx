@@ -123,7 +123,7 @@ export default function TemplatesComponent() {
   };
 
   return (
-    <SidebarInset>
+    <SidebarInset className="overflow-auto">
       <header className="flex h-14 shrink-0 items-center gap-2">
         <div className="flex flex-1 items-center gap-2 px-4">
           <SidebarTrigger />

@@ -156,7 +156,7 @@ export default function TemplateComponent() {
   return (
     <>
       {showConfetti && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={200} gravity={0.3} />}
-      <SidebarInset>
+      <SidebarInset className="overflow-auto">
         <header className="flex h-14 shrink-0 items-center gap-2">
           <div className="flex flex-1 items-center gap-2 px-3">
             <SidebarTrigger />
