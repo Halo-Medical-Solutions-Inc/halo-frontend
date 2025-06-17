@@ -145,66 +145,22 @@ export default function AccountComponent() {
                 </SelectGroup>
               </SelectContent>
             </Select>
-
-            <div className="flex items-center gap-2">
-              <Button type="submit" onClick={saveAccount} disabled={isSavingAccount}>
-                {isSavingAccount ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
-              </Button>
-            </div>
-          </div>
-          <Separator />
-          <div className="space-y-4">
-            <div className="flex flex-col gap-2">
-              <h2 className="text-xl md:text-xl font-bold">Advanced Settings</h2>
-              <p className="text-sm text-muted-foreground">Configure detailed account preferences and security options.</p>
-            </div>
-            <div className="space-y-2">
-              <Label>
-                Default template
-                <span className="text-destructive" />
-              </Label>
-              <Select value={user?.default_template_id} onValueChange={(value) => selectDefaultTemplate(value)}>
-                <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
-                  <SelectValue placeholder="Select a template" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Templates</SelectLabel>
-                    {templates.map((template) => (
-                      <SelectItem key={template.template_id} value={template.template_id || ""}>
-                        {template.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* <div className="space-y-2">
-              <Label>
-                Default language
-                <span className="text-destructive" />
-              </Label>
-              <Select value={user?.default_language} onValueChange={(value) => selectDefaultLanguage(value)}>
-                <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
-                  <SelectValue placeholder="Select a language" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Languages</SelectLabel>
-                    {languages.map((lang) => (
-                      <SelectItem key={lang.language_id} value={lang.language_id}>
-                        {lang.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div> */}
-
-            <Button type="submit" onClick={saveDefault} disabled={isSavingDefault}>
-              {isSavingDefault ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
-            </Button>
+            <Label>Select default template</Label>
+            <Select value={user?.default_template_id} onValueChange={(value) => selectDefaultTemplate(value)}>
+              <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
+                <SelectValue placeholder="Select a template" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Templates</SelectLabel>
+                  {templates.map((template) => (
+                    <SelectItem key={template.template_id} value={template.template_id || ""}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
