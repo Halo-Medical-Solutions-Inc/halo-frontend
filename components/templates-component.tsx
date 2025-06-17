@@ -194,6 +194,11 @@ export default function TemplatesComponent() {
                                 Default
                               </Badge>
                             )}
+                            {template.status === "EMR" && (
+                              <Badge variant="outline" className="border-info-border bg-info-secondary text-info px-1.5 py-0.5 rounded">
+                                EMR Integration
+                              </Badge>
+                            )}
                           </div>
                           <span className="text-xs text-muted-foreground">{template.status === "DEFAULT" ? "Created by HALO" : "Created by you"}</span>
                         </div>

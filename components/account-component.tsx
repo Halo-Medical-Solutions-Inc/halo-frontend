@@ -36,6 +36,9 @@ export default function AccountComponent() {
       if (user.emr_integration.credentials) {
         setEmrCredentials(user.emr_integration.credentials);
       }
+      if (user.emr_integration.verified) {
+        setIsVerifiedEMR(user.emr_integration.verified);
+      }
     }
   }, [user?.emr_integration]);
 

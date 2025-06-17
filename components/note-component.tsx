@@ -3,7 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Printer, Download, RefreshCw, Trash2, Copy, Check, Loader2, DownloadCloud, FileText, FileImage } from "lucide-react";
+import { MoreHorizontal, Printer, Download, RefreshCw, Trash2, Copy, Check, Loader2, DownloadCloud, FileText, FileImage, Send } from "lucide-react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ExpandingTextarea } from "@/components/ui/textarea";
@@ -17,6 +17,7 @@ import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as down
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FormattedTextarea } from "@/components/ui/formatted-textarea";
+import { JsonView } from "@/components/ui/json-view";
 
 export default function NoteComponent() {
   const isMobile = useIsMobile();
@@ -31,6 +32,8 @@ export default function NoteComponent() {
   const [transcriptView, setTranscriptView] = useState(false);
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+
+  const isEmrTemplate = templates.find((t) => t.template_id === selectedVisit?.template_id)?.status === "EMR";
 
   useEffect(() => {
     const deleteVisitHandler = handle("delete_visit", "note", (data) => {
@@ -150,6 +153,10 @@ export default function NoteComponent() {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     }
+  };
+
+  const sendToEMR = () => {
+    console.log("Sending to EMR");
   };
 
   return (
@@ -311,10 +318,17 @@ export default function NoteComponent() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-                <Button onClick={copyAllNote}>
-                  {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  Copy all
-                </Button>
+                {isEmrTemplate ? (
+                  <Button onClick={sendToEMR}>
+                    <Send className="h-4 w-4" />
+                    Send to EMR
+                  </Button>
+                ) : (
+                  <Button onClick={copyAllNote}>
+                    {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    Copy all
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -381,6 +395,8 @@ export default function NoteComponent() {
                       <Skeleton className="h-4 w-[40%]" />
                     </div>
                   </div>
+                ) : isEmrTemplate ? (
+                    <JsonView data={selectedVisit?.note ? JSON.parse(selectedVisit.note) : null} />
                 ) : (
                   <FormattedTextarea key={`note-${selectedVisit?.visit_id}`} id={`note`} minHeight={0} maxHeight={10000} value={selectedVisit?.note} onChange={noteChange} className="w-full text-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" />
                 )}
