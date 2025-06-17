@@ -11,6 +11,13 @@ interface User {
   default_language?: string;
   template_ids?: string[];
   visit_ids?: string[];
+  emr_integration?: {
+    emr?: "OFFICE_ALLY";
+    verified?: boolean;
+    credentials?: {
+      [key: string]: string | undefined;
+    };
+  };
 }
 
 interface Visit {

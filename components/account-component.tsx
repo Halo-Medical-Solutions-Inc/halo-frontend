@@ -14,6 +14,7 @@ import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
 import { setUser } from "@/store/slices/userSlice";
 import { Loader2 } from "lucide-react";
+import { apiVerifyEMRIntegration } from "@/store/api";
 
 export default function AccountComponent() {
   const dispatch = useDispatch();
@@ -24,8 +25,32 @@ export default function AccountComponent() {
   const templates = useSelector((state: RootState) => state.template.templates);
   const session = useSelector((state: RootState) => state.session.session);
 
-  const [isSavingAccount, setIsSavingAccount] = useState(false);
-  const [isSavingDefault, setIsSavingDefault] = useState(false);
+  const [isSavingEMR, setIsSavingEMR] = useState(false);
+  const [selectedEMR, setSelectedEMR] = useState<string | null>(null);
+  const [emrCredentials, setEmrCredentials] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (user?.emr_integration?.emr) {
+      setSelectedEMR(user.emr_integration.emr);
+      if (user.emr_integration.credentials) {
+        setEmrCredentials(user.emr_integration.credentials);
+      }
+    }
+  }, [user?.emr_integration]);
+
+  const handleEMRSelection = (emrName: string | null) => {
+    if (emrName === selectedEMR) {
+      setSelectedEMR(null);
+      setEmrCredentials({});
+    } else {
+      setSelectedEMR(emrName);
+      if (emrName === user?.emr_integration?.emr && user?.emr_integration?.credentials) {
+        setEmrCredentials(user.emr_integration.credentials);
+      } else {
+        setEmrCredentials({});
+      }
+    }
+  };
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setUser({ ...user, name: e.target.value }));
@@ -75,26 +100,36 @@ export default function AccountComponent() {
     });
   };
 
-  const saveAccount = () => {
-    setIsSavingAccount(true);
-    setTimeout(() => {
-      setIsSavingAccount(false);
-    }, 2000);
+  const updateCredential = (field: string, value: string) => {
+    setEmrCredentials((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
-  const saveDefault = () => {
-    setIsSavingDefault(true);
-    setTimeout(() => {
-      setIsSavingDefault(false);
-    }, 2000);
-  };
+  const handleVerifyEMR = async () => {
+    if (!selectedEMR) return;
 
-  const savePassword = () => {
-    //TODO: Implement save password
-  };
-
-  const deleteAccount = () => {
-    //TODO: Implement delete account
+    setIsSavingEMR(true);
+    try {
+      const result = await apiVerifyEMRIntegration(session.session_id, selectedEMR, emrCredentials);
+      if (result) {
+        dispatch(
+          setUser({
+            ...user,
+            emr_integration: {
+              emr: selectedEMR as "OFFICE_ALLY",
+              verified: true,
+              credentials: emrCredentials,
+            },
+          })
+        );
+      }
+    } catch (error) {
+      console.error("EMR verification failed:", error);
+    } finally {
+      setIsSavingEMR(false);
+    }
   };
 
   return (
@@ -126,38 +161,28 @@ export default function AccountComponent() {
               <Input id="name" type="text" placeholder="John Doe" value={user?.name} onChange={(e) => nameChange(e)} />
             </div>
 
-            <Label>
-              Select specialty
-              <span className="text-destructive" />
-            </Label>
-            <Select value={user?.user_specialty} onValueChange={(value) => selectSpecialty(value)}>
-              <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
-                <SelectValue placeholder="Select a specialty" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Specialties</SelectLabel>
-                  {specialties.map((specialty) => (
-                    <SelectItem key={specialty.specialty_id} value={specialty.specialty_id}>
-                      {specialty.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <Label>
+                Select specialty
+                <span className="text-destructive" />
+              </Label>
+              <Select value={user?.user_specialty} onValueChange={(value) => selectSpecialty(value)}>
+                <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
+                  <SelectValue placeholder="Select a specialty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Specialties</SelectLabel>
+                    {specialties.map((specialty) => (
+                      <SelectItem key={specialty.specialty_id} value={specialty.specialty_id}>
+                        {specialty.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <div className="flex items-center gap-2">
-              <Button type="submit" onClick={saveAccount} disabled={isSavingAccount}>
-                {isSavingAccount ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
-              </Button>
-            </div>
-          </div>
-          <Separator />
-          <div className="space-y-4">
-            <div className="flex flex-col gap-2">
-              <h2 className="text-xl md:text-xl font-bold">Advanced Settings</h2>
-              <p className="text-sm text-muted-foreground">Configure detailed account preferences and security options.</p>
-            </div>
             <div className="space-y-2">
               <Label>
                 Default template
@@ -179,32 +204,51 @@ export default function AccountComponent() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
-            {/* <div className="space-y-2">
-              <Label>
-                Default language
-                <span className="text-destructive" />
-              </Label>
-              <Select value={user?.default_language} onValueChange={(value) => selectDefaultLanguage(value)}>
-                <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
-                  <SelectValue placeholder="Select a language" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Languages</SelectLabel>
-                    {languages.map((lang) => (
-                      <SelectItem key={lang.language_id} value={lang.language_id}>
-                        {lang.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div> */}
+          <Separator />
 
-            <Button type="submit" onClick={saveDefault} disabled={isSavingDefault}>
-              {isSavingDefault ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
-            </Button>
+          <div className="space-y-4">
+            <div className="flex flex-col gap-2">
+              <h2 className="text-xl md:text-xl font-bold">EMR Integration</h2>
+              <p className="text-sm text-muted-foreground">Configure your EMR integration.</p>
+            </div>
+
+            <div className="flex gap-2 flex-wrap">
+              <Button variant={selectedEMR === "OFFICE_ALLY" ? "default" : "outline"} onClick={() => handleEMRSelection("OFFICE_ALLY")}>
+                Office Ally
+              </Button>
+            </div>
+
+            {selectedEMR && (
+              <div className="space-y-4">
+                {selectedEMR === "OFFICE_ALLY" && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Username</Label>
+                      <Input type="text" placeholder="Enter your Office Ally username" value={emrCredentials.username || ""} onChange={(e) => updateCredential("username", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Password</Label>
+                      <Input type="password" placeholder="Enter your Office Ally password" value={emrCredentials.password || ""} onChange={(e) => updateCredential("password", e.target.value)} />
+                    </div>
+                  </>
+                )}
+
+                {selectedEMR === user?.emr_integration?.emr && user?.emr_integration?.verified ? (
+                  <div className="flex items-center gap-2">
+                    <Button onClick={handleVerifyEMR} disabled={isSavingEMR || !emrCredentials.username || !emrCredentials.password}>
+                      {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
+                    </Button>
+                    <div className="text-sm text-green-600">✓ This EMR integration is verified</div>
+                  </div>
+                ) : (
+                  <Button onClick={handleVerifyEMR} disabled={isSavingEMR || !emrCredentials.username || !emrCredentials.password}>
+                    {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
