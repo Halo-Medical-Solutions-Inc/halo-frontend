@@ -194,21 +194,8 @@ export default function Page() {
       dispatch(setUser(data.data));
     });
 
-    const errorHandler = handle("error", "dashboard", (data) => {
-      console.log("Processing error in dashboard, data:", data);
-
-      if (data.was_requested && data.data.message === "Session expired") {
-        dispatch(clearSelectedTemplate());
-        dispatch(clearSelectedVisit());
-        dispatch(clearUser());
-        dispatch(clearSession());
-        window.location.href = "/signin";
-      }
-    });
-
     return () => {
       updateUserHandler();
-      errorHandler();
     };
   }, [user]);
 

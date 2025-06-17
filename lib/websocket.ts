@@ -102,11 +102,18 @@ export const connect = (sessionId: string) => {
     }
   };
 
-  websocket.onclose = () => {
+  websocket.onclose = (event: CloseEvent) => {
     isConnecting = false;
     connected = false;
-    console.log("disconnected", connected);
     notifyStatusChange();
+    
+    if (event.code === 1008 && event.reason === "Invalid session") {
+      if (typeof window !== "undefined") {
+        window.location.href = "/signin";
+      }
+      return;
+    }
+    
     setTimeout(() => connect(sessionId), 1000);
   };
 
