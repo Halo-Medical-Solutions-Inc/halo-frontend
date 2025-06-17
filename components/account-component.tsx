@@ -26,6 +26,7 @@ export default function AccountComponent() {
   const session = useSelector((state: RootState) => state.session.session);
 
   const [isSavingEMR, setIsSavingEMR] = useState(false);
+  const [isVerifiedEMR, setIsVerifiedEMR] = useState(false);
   const [selectedEMR, setSelectedEMR] = useState<string | null>(null);
   const [emrCredentials, setEmrCredentials] = useState<Record<string, string>>({});
 
@@ -112,21 +113,12 @@ export default function AccountComponent() {
 
     setIsSavingEMR(true);
     try {
-      const result = await apiVerifyEMRIntegration(session.session_id, selectedEMR, emrCredentials);
-      if (result) {
-        dispatch(
-          setUser({
-            ...user,
-            emr_integration: {
-              emr: selectedEMR as "OFFICE_ALLY",
-              verified: true,
-              credentials: emrCredentials,
-            },
-          })
-        );
-      }
+      const updatedUser = await apiVerifyEMRIntegration(session.session_id, selectedEMR, emrCredentials);
+      dispatch(setUser({ ...user, emr_integration: updatedUser.emr_integration }));
+      setIsVerifiedEMR(true);
     } catch (error) {
       console.error("EMR verification failed:", error);
+      setIsVerifiedEMR(false);
     } finally {
       setIsSavingEMR(false);
     }
@@ -235,17 +227,20 @@ export default function AccountComponent() {
                   </>
                 )}
 
-                {selectedEMR === user?.emr_integration?.emr && user?.emr_integration?.verified ? (
+                {selectedEMR === user?.emr_integration?.emr && isVerifiedEMR ? (
                   <div className="flex items-center gap-2">
                     <Button onClick={handleVerifyEMR} disabled={isSavingEMR || !emrCredentials.username || !emrCredentials.password}>
                       {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
                     </Button>
-                    <div className="text-sm text-green-600">✓ This EMR integration is verified</div>
+                    <div className="text-sm text-success">✓ This EMR integration is verified</div>
                   </div>
                 ) : (
-                  <Button onClick={handleVerifyEMR} disabled={isSavingEMR || !emrCredentials.username || !emrCredentials.password}>
-                    {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button onClick={handleVerifyEMR} disabled={isSavingEMR || !emrCredentials.username || !emrCredentials.password}>
+                      {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
+                    </Button>
+                    <div className="text-sm text-destructive">✗ This EMR integration is not verified</div>
+                  </div>
                 )}
               </div>
             )}

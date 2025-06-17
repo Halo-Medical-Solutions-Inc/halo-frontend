@@ -68,7 +68,7 @@ export async function processAudioBuffer(sessionId: string, visitId: string, aud
   return response.json();
 }
 
-export async function apiVerifyEMRIntegration(sessionId: string, emrName: string, credentials: Record<string, string>): Promise<boolean> {
+export async function apiVerifyEMRIntegration(sessionId: string, emrName: string, credentials: Record<string, string>): Promise<User> {
   const response = await fetch(`${API_URL}/user/verify_emr_integration`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
