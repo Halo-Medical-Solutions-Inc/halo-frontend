@@ -18,6 +18,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FormattedTextarea } from "@/components/ui/formatted-textarea";
 import { JsonView } from "@/components/ui/json-view";
+import { apiCreateNoteEMR, apiGetPatientsEMRIntegration } from "@/store/api";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function NoteComponent() {
   const isMobile = useIsMobile();
@@ -32,6 +34,11 @@ export default function NoteComponent() {
   const [transcriptView, setTranscriptView] = useState(false);
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [showPatientDialog, setShowPatientDialog] = useState(false);
+  const [patients, setPatients] = useState<Array<{ patient_id: string; patient_name: string; patient_details: string }>>([]);
+  const [isLoadingPatients, setIsLoadingPatients] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<{ patient_id: string; patient_name: string; patient_details: string } | null>(null);
+  const [isSendingToEMR, setIsSendingToEMR] = useState(false);
 
   const isEmrTemplate = templates.find((t) => t.template_id === selectedVisit?.template_id)?.status === "EMR";
 
@@ -156,8 +163,41 @@ export default function NoteComponent() {
   };
 
   const sendToEMR = () => {
-    console.log("Sending to EMR");
+    setIsLoadingPatients(true);
+    apiGetPatientsEMRIntegration(session.session_id)
+      .then((data: any) => {
+        console.log(data);
+        setPatients(data);
+        setIsLoadingPatients(false);
+        setShowPatientDialog(true);
+      })
+      .catch((error) => {
+        console.error("Error fetching patients:", error);
+        setIsLoadingPatients(false);
+      });
   };
+
+  const handlePatientSelect = (patient: { patient_id: string; patient_name: string; patient_details: string }) => {
+    setSelectedPatient(patient);
+    createNoteEMR(patient.patient_id);
+  };
+
+  const createNoteEMR = (patientId: string) => {
+    setIsSendingToEMR(true);
+    apiCreateNoteEMR(session.session_id, patientId, selectedVisit?.note || "")
+      .then((data: any) => {
+        console.log(data);
+        setShowPatientDialog(false);
+        setSelectedPatient(null);
+        setIsSendingToEMR(false);
+      })
+      .catch((error) => {
+        console.error("Error creating note EMR:", error);
+        setIsSendingToEMR(false);
+      });
+  };
+
+  console.log(selectedVisit?.note);
 
   return (
     <SidebarInset>
@@ -319,8 +359,8 @@ export default function NoteComponent() {
                   </SelectContent>
                 </Select>
                 {isEmrTemplate ? (
-                  <Button onClick={sendToEMR}>
-                    <Send className="h-4 w-4" />
+                  <Button onClick={sendToEMR} disabled={isLoadingPatients}>
+                    {isLoadingPatients ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     Send to EMR
                   </Button>
                 ) : (
@@ -374,7 +414,7 @@ export default function NoteComponent() {
               </>
             ) : (
               <div className="relative group">
-                {selectedVisit?.status === "FRONTEND_TRANSITION" ? (
+                {selectedVisit?.status === "FRONTEND_TRANSITION" || (isEmrTemplate && selectedVisit?.status === "GENERATING_NOTE") ? (
                   <div className="space-y-4">
                     <div className="flex gap-2">
                       <Skeleton className="h-4 w-[20%]" />
@@ -396,7 +436,7 @@ export default function NoteComponent() {
                     </div>
                   </div>
                 ) : isEmrTemplate ? (
-                    <JsonView data={selectedVisit?.note ? JSON.parse(selectedVisit.note) : null} />
+                  <JsonView data={selectedVisit?.note ? JSON.parse(selectedVisit.note) : null} />
                 ) : (
                   <FormattedTextarea key={`note-${selectedVisit?.visit_id}`} id={`note`} minHeight={0} maxHeight={10000} value={selectedVisit?.note} onChange={noteChange} className="w-full text-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" />
                 )}
@@ -405,6 +445,61 @@ export default function NoteComponent() {
           </div>
         </div>
       </div>
+
+      {/* Patient Selection Alert Dialog */}
+      <AlertDialog open={showPatientDialog} onOpenChange={(open) => {
+        if (!open && !isSendingToEMR) {
+          setShowPatientDialog(false);
+          setSelectedPatient(null);
+        }
+      }}>
+        <AlertDialogContent className="">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Select Patient</AlertDialogTitle>
+            <AlertDialogDescription>Choose a patient to send the note to their EMR record</AlertDialogDescription>
+          </AlertDialogHeader>
+          <ScrollArea className="h-[300px] pr-4 my-4">
+            <div className="space-y-2">
+              {patients.map((patient) => (
+                <div 
+                  key={patient.patient_id} 
+                  className={`flex items-center justify-between p-3 rounded-lg border hover:bg-accent cursor-pointer transition-colors ${
+                    selectedPatient?.patient_id === patient.patient_id ? "bg-accent border-primary" : ""
+                  } ${isSendingToEMR ? "opacity-50 pointer-events-none" : ""}`} 
+                  onClick={() => !isSendingToEMR && setSelectedPatient(patient)}
+                >
+                  <div className="flex flex-col">
+                    <span className="text-xs">{patient.patient_name}</span>
+                    <span className="text-xs text-muted-foreground">{patient.patient_details}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">ID: {patient.patient_id}</span>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => setSelectedPatient(null)}
+              disabled={isSendingToEMR}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => selectedPatient && handlePatientSelect(selectedPatient)} 
+              disabled={!selectedPatient || isSendingToEMR}
+            >
+              {isSendingToEMR ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Sending...
+                </>
+              ) : (
+                "Send to EMR"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SidebarInset>
   );
 }

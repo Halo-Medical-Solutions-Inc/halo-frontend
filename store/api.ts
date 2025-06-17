@@ -78,3 +78,25 @@ export async function apiVerifyEMRIntegration(sessionId: string, emrName: string
   if (!response.ok) throw new Error("Failed to verify EMR integration");
   return response.json();
 }
+
+export async function apiGetPatientsEMRIntegration(sessionId: string): Promise<User> {
+  const response = await fetch(`${API_URL}/user/get_patients_emr_integration`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId }),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to get patients EMR integration");
+  return response.json();
+}
+
+export async function apiCreateNoteEMR(sessionId: string, patientId: string, note: string): Promise<User> {
+  const response = await fetch(`${API_URL}/user/create_note_emr`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId, patient_id: patientId, note: note }),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to create note EMR");
+  return response.json();
+}
