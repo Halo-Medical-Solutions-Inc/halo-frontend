@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "./ui/textarea";
-import { CheckCircle, Loader2, Mic, MicOff, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2, WifiOff } from "lucide-react";
+import { CheckCircle, Loader2, Mic, MicOff, MoreHorizontal, PauseCircle, PlayCircle, Plus, Trash2, Upload, WifiOff } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "./ui/input";
 import { AudioVisualizer } from "./ui/audio-visualizer";
@@ -22,6 +22,7 @@ import { useDebouncedSend } from "@/lib/utils";
 import { useTranscriber } from "@/lib/transcriber";
 import { useNextStep } from "nextstepjs";
 import Confetti from "react-confetti";
+import { apiProcessFile } from "@/store/api";
 
 export default function RecordComponent() {
   const dispatch = useDispatch();
@@ -37,10 +38,12 @@ export default function RecordComponent() {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isAdditionalContextFocused, setIsAdditionalContextFocused] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
 
   const [startRecordingLoading, setStartRecordingLoading] = useState(false);
   const [pauseRecordingLoading, setPauseRecordingLoading] = useState(false);
@@ -362,8 +365,49 @@ export default function RecordComponent() {
     }
   };
 
+  const handleFileUpload = async (file: File) => {
+    setIsProcessingFile(true);
+
+    try {
+      const processedText = await apiProcessFile(file);
+
+      const currentContext = selectedVisit?.additional_context || "";
+      const newAdditionalContext = currentContext ? `${currentContext}\n\n${processedText}` : processedText;
+
+      dispatch(setSelectedVisit({ ...selectedVisit, additional_context: newAdditionalContext }));
+
+      debouncedSend({
+        type: "update_visit",
+        session_id: session.session_id,
+        data: {
+          visit_id: selectedVisit?.visit_id,
+          additional_context: newAdditionalContext,
+        },
+      });
+
+      setIsAdditionalContextFocused(true);
+    } catch (error) {
+      console.error("Error processing file:", error);
+    } finally {
+      setIsProcessingFile(false);
+    }
+  };
+
   return (
     <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".txt,.pdf,.docx,.wav,.mp3,.mp4,.m4a"
+        style={{ display: "none" }}
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            await handleFileUpload(file);
+            e.target.value = "";
+          }
+        }}
+      />
       {selectedVisit?.status === "RECORDING" && <div className="fixed inset-0 bg-background/10 backdrop-blur-[4px] z-40" style={{ pointerEvents: "all" }} />}
       {showConfetti && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={200} gravity={0.3} />}
       <SidebarInset className="overflow-visible h-auto max-h-none">
@@ -463,29 +507,7 @@ export default function RecordComponent() {
 
             {validationErrors.template && <p className="text-xs text-destructive">{validationErrors.template}</p>}
 
-            {/* <div className="flex items-center justify-between w-full">
-              <Label className="text-sm font-normal text-muted-foreground">
-                Select language
-                <span className="text-destructive">*</span>
-              </Label>
-              <Select value={selectedVisit?.language} onValueChange={selectLanguage} disabled={selectedVisit?.status === "RECORDING" || selectedVisit?.status === "PAUSED"}>
-                <SelectTrigger className="min-w-[50px] max-w-[160px] w-auto">
-                  <SelectValue placeholder="Select a language" />
-                </SelectTrigger>
-                <SelectContent align="end">
-                  <SelectGroup>
-                    <SelectLabel>Languages</SelectLabel>
-                    {languages.map((lang) => (
-                      <SelectItem key={lang.language_id} value={lang.language_id}>
-                        {lang.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div> */}
-
-            {!isAdditionalContextFocused ? (
+            {!isAdditionalContextFocused && !isProcessingFile ? (
               <div className="flex items-center justify-between w-full">
                 <Label className="text-sm font-normal text-muted-foreground">Additional context</Label>
                 <Button className="min-w-[50px] max-w-[150px] w-auto" variant="outline" onClick={() => setIsAdditionalContextFocused(true)}>
@@ -496,7 +518,44 @@ export default function RecordComponent() {
             ) : (
               <div className="flex flex-col w-full gap-2">
                 <Label className="text-sm font-normal text-muted-foreground">Additional context</Label>
-                <Textarea key={selectedVisit?.visit_id} placeholder="ex. 32 year old male with a history of hypertension and diabetes" className="w-full h-28 resize-none" value={selectedVisit?.additional_context} onChange={additionalContextChange} onFocus={() => setIsAdditionalContextFocused(true)} onBlur={() => (selectedVisit?.additional_context?.trim() ? setIsAdditionalContextFocused(true) : setIsAdditionalContextFocused(false))} ref={textareaRef} />
+                <div className="relative">
+                  <Textarea
+                    key={selectedVisit?.visit_id}
+                    placeholder="ex. 32 year old male with a history of hypertension and diabetes"
+                    className="w-full h-28 resize-none pr-12"
+                    value={selectedVisit?.additional_context}
+                    onChange={additionalContextChange}
+                    onFocus={() => setIsAdditionalContextFocused(true)}
+                    onBlur={(e) => {
+                      // Check if the blur is caused by clicking within the same container
+                      const relatedTarget = e.relatedTarget as HTMLElement;
+                      if (relatedTarget && e.currentTarget.parentElement?.contains(relatedTarget)) {
+                        return;
+                      }
+                      if (selectedVisit?.additional_context?.trim()) {
+                        setIsAdditionalContextFocused(true);
+                      } else {
+                        setIsAdditionalContextFocused(false);
+                      }
+                    }}
+                    ref={textareaRef}
+                    disabled={isProcessingFile}
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="absolute top-2 right-2"
+                    disabled={isProcessingFile}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                    }}
+                    onClick={() => {
+                      fileInputRef.current?.click();
+                    }}
+                  >
+                    {isProcessingFile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
             )}
 
