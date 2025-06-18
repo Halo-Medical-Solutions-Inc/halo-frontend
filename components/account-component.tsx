@@ -186,6 +186,8 @@ export default function AccountComponent() {
             </Select>
           </div>
 
+          <Separator />
+
           <div className="space-y-4">
             <div className="flex flex-col gap-2">
               <h2 className="text-xl md:text-xl font-bold">EMR Integration</h2>

@@ -103,7 +103,7 @@ export async function apiVerifyEMRIntegration(sessionId: string, emr: string, cr
   return response.json();
 }
 
-export async function apiGetPatientsEMRIntegration(sessionId: string): Promise<User> {
+export async function apiGetPatientsEMRIntegration(sessionId: string): Promise<any> {
   const response = await fetch(`${API_URL}/integration/get_patients`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -114,11 +114,11 @@ export async function apiGetPatientsEMRIntegration(sessionId: string): Promise<U
   return response.json();
 }
 
-export async function apiCreateNoteEMR(sessionId: string, patientId: string, note: string): Promise<User> {
+export async function apiCreateNoteEMRIntegration(sessionId: string, patientId: string, visitId: string): Promise<boolean> {
   const response = await fetch(`${API_URL}/integration/create_note`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ session_id: sessionId, patient_id: patientId, note: note }),
+    body: JSON.stringify({ session_id: sessionId, patient_id: patientId, visit_id: visitId }),
     credentials: "include",
   });
   if (!response.ok) throw new Error("Failed to create note EMR");
