@@ -106,14 +106,14 @@ export const connect = (sessionId: string) => {
     isConnecting = false;
     connected = false;
     notifyStatusChange();
-    
+
     if (event.code === 1008 && event.reason === "Invalid session") {
       if (typeof window !== "undefined") {
         window.location.href = "/signin";
       }
       return;
     }
-    
+
     setTimeout(() => connect(sessionId), 1000);
   };
 
