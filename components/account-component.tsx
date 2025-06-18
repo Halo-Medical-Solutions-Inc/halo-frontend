@@ -26,7 +26,7 @@ export default function AccountComponent() {
   const session = useSelector((state: RootState) => state.session.session);
 
   const [isSavingEMR, setIsSavingEMR] = useState(false);
-  const [isVerifiedEMR, setIsVerifiedEMR] = useState(false);
+  const [isVerifiedEMR, setIsVerifiedEMR] = useState(user?.emr_integration?.verified || false);
   const [selectedEMR, setSelectedEMR] = useState<string | null>(null);
   const [emrCredentials, setEmrCredentials] = useState<Record<string, string>>({});
 
@@ -118,6 +118,10 @@ export default function AccountComponent() {
     } finally {
       setIsSavingEMR(false);
     }
+  };
+
+  const updateCredential = (key: string, value: string) => {
+    setEmrCredentials({ ...emrCredentials, [key]: value });
   };
 
   return (

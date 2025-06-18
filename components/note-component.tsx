@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FormattedTextarea } from "@/components/ui/formatted-textarea";
 import { apiCreateNoteEMRIntegration, apiGetPatientsEMRIntegration } from "@/store/api";
+import { JsonView } from "@/components/ui/json-view";
 
 export default function NoteComponent() {
   const isMobile = useIsMobile();
@@ -453,7 +454,7 @@ export default function NoteComponent() {
               </>
             ) : (
               <div className="relative group">
-                {selectedVisit?.status === "FRONTEND_TRANSITION" ? (
+                {selectedVisit?.status === "FRONTEND_TRANSITION" || (isEmrTemplate && selectedVisit?.status === "GENERATING_NOTE") ? (
                   <div className="space-y-4">
                     <div className="flex gap-2">
                       <Skeleton className="h-4 w-[20%]" />
@@ -474,6 +475,14 @@ export default function NoteComponent() {
                       <Skeleton className="h-4 w-[40%]" />
                     </div>
                   </div>
+                ) : isEmrTemplate ? (
+                  <JsonView data={selectedVisit?.note ? (() => {
+                    try {
+                      return JSON.parse(selectedVisit.note);
+                    } catch (error) {
+                      return { error: "Something went wrong" };
+                    }
+                  })() : null} />
                 ) : (
                   <FormattedTextarea key={`note-${selectedVisit?.visit_id}`} id={`note`} minHeight={0} maxHeight={10000} value={selectedVisit?.note} onChange={noteChange} className="w-full text-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" />
                 )}
