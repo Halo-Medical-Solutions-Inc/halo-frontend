@@ -11,6 +11,13 @@ interface User {
   default_language?: string;
   template_ids?: string[];
   visit_ids?: string[];
+  emr_integration?: {
+    emr?: "OFFICE_ALLY";
+    verified?: boolean;
+    credentials?: {
+      [key: string]: string | undefined;
+    };
+  };
 }
 
 interface Visit {
@@ -36,7 +43,7 @@ interface Template {
   user_id?: string;
   created_at?: string;
   modified_at?: string;
-  status?: "DEFAULT" | "READY" | "ERROR" | "GENERATING_TEMPLATE";
+  status?: "DEFAULT" | "READY" | "ERROR" | "GENERATING_TEMPLATE" | "EMR";
   name?: string;
   instructions?: string;
   print?: string;

@@ -14,6 +14,7 @@ import useWebSocket, { handle } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
 import { setUser } from "@/store/slices/userSlice";
 import { Loader2 } from "lucide-react";
+import { apiVerifyEMRIntegration } from "@/store/api";
 
 export default function AccountComponent() {
   const dispatch = useDispatch();
@@ -24,8 +25,36 @@ export default function AccountComponent() {
   const templates = useSelector((state: RootState) => state.template.templates);
   const session = useSelector((state: RootState) => state.session.session);
 
-  const [isSavingAccount, setIsSavingAccount] = useState(false);
-  const [isSavingDefault, setIsSavingDefault] = useState(false);
+  const [isSavingEMR, setIsSavingEMR] = useState(false);
+  const [isVerifiedEMR, setIsVerifiedEMR] = useState(user?.emr_integration?.verified || false);
+  const [selectedEMR, setSelectedEMR] = useState<string | null>(null);
+  const [emrCredentials, setEmrCredentials] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (user?.emr_integration?.emr) {
+      setSelectedEMR(user.emr_integration.emr);
+      if (user.emr_integration.credentials) {
+        setEmrCredentials(user.emr_integration.credentials);
+      }
+      if (user.emr_integration.verified) {
+        setIsVerifiedEMR(user.emr_integration.verified);
+      }
+    }
+  }, [user?.emr_integration]);
+
+  const handleEMRSelection = (emrName: string | null) => {
+    if (emrName === selectedEMR) {
+      setSelectedEMR(null);
+      setEmrCredentials({});
+    } else {
+      setSelectedEMR(emrName);
+      if (emrName === user?.emr_integration?.emr && user?.emr_integration?.credentials) {
+        setEmrCredentials(user.emr_integration.credentials);
+      } else {
+        setEmrCredentials({});
+      }
+    }
+  };
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setUser({ ...user, name: e.target.value }));
@@ -75,26 +104,24 @@ export default function AccountComponent() {
     });
   };
 
-  const saveAccount = () => {
-    setIsSavingAccount(true);
-    setTimeout(() => {
-      setIsSavingAccount(false);
-    }, 2000);
+  const handleVerifyEMR = async () => {
+    if (!selectedEMR) return;
+
+    setIsSavingEMR(true);
+    try {
+      const updatedUser = await apiVerifyEMRIntegration(session.session_id, selectedEMR, emrCredentials);
+      dispatch(setUser({ ...user, emr_integration: updatedUser.emr_integration }));
+      setIsVerifiedEMR(true);
+    } catch (error) {
+      console.error("EMR verification failed:", error);
+      setIsVerifiedEMR(false);
+    } finally {
+      setIsSavingEMR(false);
+    }
   };
 
-  const saveDefault = () => {
-    setIsSavingDefault(true);
-    setTimeout(() => {
-      setIsSavingDefault(false);
-    }, 2000);
-  };
-
-  const savePassword = () => {
-    //TODO: Implement save password
-  };
-
-  const deleteAccount = () => {
-    //TODO: Implement delete account
+  const updateCredential = (key: string, value: string) => {
+    setEmrCredentials({ ...emrCredentials, [key]: value });
   };
 
   return (
@@ -161,6 +188,54 @@ export default function AccountComponent() {
                 </SelectGroup>
               </SelectContent>
             </Select>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-4">
+            <div className="flex flex-col gap-2">
+              <h2 className="text-xl md:text-xl font-bold">EMR Integration</h2>
+              <p className="text-sm text-muted-foreground">Configure your EMR integration.</p>
+            </div>
+
+            <div className="flex gap-2 flex-wrap">
+              <Button variant={selectedEMR === "OFFICE_ALLY" ? "default" : "outline"} onClick={() => handleEMRSelection("OFFICE_ALLY")}>
+                Office Ally
+              </Button>
+            </div>
+
+            {selectedEMR && (
+              <div className="space-y-4">
+                {selectedEMR === "OFFICE_ALLY" && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Username</Label>
+                      <Input type="text" placeholder="Enter your Office Ally username" value={emrCredentials.username || ""} onChange={(e) => updateCredential("username", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Password</Label>
+                      <Input type="password" placeholder="Enter your Office Ally password" value={emrCredentials.password || ""} onChange={(e) => updateCredential("password", e.target.value)} />
+                    </div>
+                  </>
+                )}
+
+                {selectedEMR === user?.emr_integration?.emr && isVerifiedEMR ? (
+                  <div className="flex items-center gap-2">
+                    <Button onClick={handleVerifyEMR} disabled={isSavingEMR || !emrCredentials.username || !emrCredentials.password}>
+                      {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
+                    </Button>
+                    <div className="text-sm text-success">✓ This EMR integration is verified</div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Button onClick={handleVerifyEMR} disabled={isSavingEMR || !emrCredentials.username || !emrCredentials.password}>
+                      {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
+                    </Button>
+                    <div className="text-sm text-destructive">✗ This EMR integration is not verified</div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
