@@ -321,9 +321,15 @@ export default function NoteComponent() {
                       </Select>
                     </div>
                   </Button>
-                  <Button variant="default" size="icon" onClick={copyAllNote}>
-                    {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
+                  {isEmrTemplate ? (
+                    <Button variant="default" size="icon" onClick={sendToEmr} disabled={isLoadingPatients}>
+                      {isLoadingPatients ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    </Button>
+                  ) : (
+                    <Button variant="default" size="icon" onClick={copyAllNote}>
+                      {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  )}
                 </div>
               </div>
             ) : (
@@ -350,59 +356,15 @@ export default function NoteComponent() {
                   </SelectContent>
                 </Select>
                 {isEmrTemplate ? (
-                  <>
-                    <Button onClick={sendToEmr} disabled={isLoadingPatients}>
-                      {isLoadingPatients ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                      <span>Send to EMR</span>
-                    </Button>
-                    <AlertDialog open={isPatientDialogOpen} onOpenChange={(open) => {
-                      setIsPatientDialogOpen(open);
-                      if (!open) {
-                        setSelectedPatientId("");
-                        setIsSendingToEmr(false);
-                      }
-                    }}>
-                      <AlertDialogContent className="max-w-2xl">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Select Patient</AlertDialogTitle>
-                          <AlertDialogDescription>Choose a patient from the list below to send the note to their EMR record.</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <div className="h-[400px] w-full overflow-y-auto scrollbar-hide">
-                          <div className="space-y-2">
-                            {patients.map((patient) => (
-                              <div key={patient.patient_id} onClick={() => setSelectedPatientId(patient.patient_id)} className={`p-3 rounded-md cursor-pointer transition-all ${selectedPatientId === patient.patient_id ? "border-2 border-primary bg-primary/5" : "border-2 border-transparent hover:bg-muted"}`}>
-                                <div className="flex justify-between items-center gap-3">
-                                  <div className="flex flex-col gap-1 flex-1">
-                                    <span className="text-sm font-medium">{patient.patient_name}</span>
-                                    <span className="text-xs text-muted-foreground">{patient.patient_details}</span>
-                                  </div>
-                                  <span className="text-xs text-muted-foreground font-mono">{patient.patient_id}</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel onClick={() => setSelectedPatientId("")} disabled={isSendingToEmr}>
-                            Cancel
-                          </AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={() => handlePatientConfirm(selectedPatientId)} 
-                            disabled={!selectedPatientId || isSendingToEmr}
-                          >
-                            {isSendingToEmr ? (
-                              <>
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                Sending...
-                              </>
-                            ) : (
-                              "Confirm"
-                            )}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </>
+                  <Button onClick={sendToEmr} disabled={isLoadingPatients}>
+                    {isLoadingPatients ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4" /> Send to EMR
+                      </>
+                    )}
+                  </Button>
                 ) : (
                   <Button onClick={copyAllNote}>
                     {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -476,13 +438,19 @@ export default function NoteComponent() {
                     </div>
                   </div>
                 ) : isEmrTemplate ? (
-                  <JsonView data={selectedVisit?.note ? (() => {
-                    try {
-                      return JSON.parse(selectedVisit.note);
-                    } catch (error) {
-                      return { error: "Something went wrong" };
+                  <JsonView
+                    data={
+                      selectedVisit?.note
+                        ? (() => {
+                            try {
+                              return JSON.parse(selectedVisit.note);
+                            } catch (error) {
+                              return { error: "Something went wrong" };
+                            }
+                          })()
+                        : null
                     }
-                  })() : null} />
+                  />
                 ) : (
                   <FormattedTextarea key={`note-${selectedVisit?.visit_id}`} id={`note`} minHeight={0} maxHeight={10000} value={selectedVisit?.note} onChange={noteChange} className="w-full text-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" />
                 )}
@@ -491,6 +459,55 @@ export default function NoteComponent() {
           </div>
         </div>
       </div>
+
+      {isEmrTemplate && (
+        <AlertDialog
+          open={isPatientDialogOpen}
+          onOpenChange={(open) => {
+            setIsPatientDialogOpen(open);
+            if (!open) {
+              setSelectedPatientId("");
+              setIsSendingToEmr(false);
+            }
+          }}
+        >
+          <AlertDialogContent className="">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Select Patient</AlertDialogTitle>
+              <AlertDialogDescription>Choose a patient from the list below to send the note to their EMR record.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="h-[300px] w-full overflow-y-auto scrollbar-hide">
+              <div className="space-y-2">
+                {patients.map((patient) => (
+                  <div key={patient.patient_id} onClick={() => setSelectedPatientId(patient.patient_id)} className={`p-3 rounded-md cursor-pointer transition-all ${selectedPatientId === patient.patient_id ? "border-2 border-primary bg-primary/5" : "border-2 border-transparent hover:bg-muted"}`}>
+                    <div className="flex justify-between items-center gap-3">
+                      <div className="flex flex-col gap-1 flex-1">
+                        <span className="text-sm font-medium">{patient.patient_name}</span>
+                        <span className="text-xs text-muted-foreground">{patient.patient_details}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground font-mono">{patient.patient_id}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setSelectedPatientId("")} disabled={isSendingToEmr}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={() => handlePatientConfirm(selectedPatientId)} disabled={!selectedPatientId || isSendingToEmr}>
+                {isSendingToEmr ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </>
+                ) : (
+                  "Confirm"
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </SidebarInset>
   );
 }

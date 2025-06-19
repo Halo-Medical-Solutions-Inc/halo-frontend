@@ -1,112 +1,149 @@
-import React, { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { ExpandingTextarea } from "./textarea";
 
 interface JsonViewProps {
   data: any;
   className?: string;
+  onDataChange?: (newData: any) => void;
 }
 
-interface SectionProps {
-  title: string;
-  data: any;
-  defaultOpen?: boolean;
-}
+export const JsonView: React.FC<JsonViewProps> = ({ data, className, onDataChange }) => {
+  const [localValues, setLocalValues] = useState<Record<string, string>>({});
 
-const Section: React.FC<SectionProps> = ({ title, data, defaultOpen = true }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  if (!data || typeof data !== "object") {
+    return <div className={cn("text-xs text-muted-foreground", className)}>No data available</div>;
+  }
 
-  const formatTitle = (key: string) => {
+  const formatKey = (key: string) => {
     return key
       .replace(/_/g, " ")
-      .replace(/([A-Z])/g, " $1")
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
       .replace(/^./, (str) => str.toUpperCase())
       .trim();
   };
 
-  const renderValue = (value: any, key: string) => {
-    if (value === null || value === undefined || value === "") {
-      return <span className="text-muted-foreground">-</span>;
-    }
+  const getPathString = (path: (string | number)[]) => path.join(".");
 
-    if (typeof value === "object" && !Array.isArray(value)) {
-      return (
-        <div className="ml-4 space-y-1">
-          {Object.entries(value).map(([k, v]) => (
-            <div key={k} className="flex items-start gap-2">
-              <span className="text-sm font-medium text-muted-foreground min-w-[140px]">{formatTitle(k)}:</span>
-              <span className="text-sm">{renderValue(v, k)}</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    if (Array.isArray(value)) {
-      return (
-        <div className="ml-4 space-y-2">
-          {value.map((item, index) => (
-            <div key={index} className="border-l-2 border-muted pl-3 space-y-1">
-              {typeof item === "object" ? (
-                Object.entries(item).map(([k, v]) => (
-                  <div key={k} className="flex items-start gap-2">
-                    <span className="text-sm font-medium text-muted-foreground capitalize">{formatTitle(k)}:</span>
-                    <span className="text-sm">{v || "-"}</span>
-                  </div>
-                ))
-              ) : (
-                <span className="text-sm">{item}</span>
-              )}
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    return <span className="text-sm">{String(value)}</span>;
+  const handleValueChange = (path: (string | number)[], newValue: string) => {
+    const pathStr = getPathString(path);
+    setLocalValues((prev) => ({
+      ...prev,
+      [pathStr]: newValue,
+    }));
   };
 
-  return (
-    <div className="border rounded-lg overflow-hidden">
-      <button onClick={() => setIsOpen(!isOpen)} className="w-full px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors flex items-center justify-between text-left">
-        <span className="font-medium">{formatTitle(title)}</span>
-        {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-      </button>
-      {isOpen && <div className="p-4 space-y-2">{renderValue(data, title)}</div>}
-    </div>
+  const handleBlur = (path: (string | number)[], value: string) => {
+    if (onDataChange) {
+      const newData = JSON.parse(JSON.stringify(data));
+      let current = newData;
+
+      for (let i = 0; i < path.length - 1; i++) {
+        current = current[path[i]];
+      }
+
+      current[path[path.length - 1]] = value;
+      onDataChange(newData);
+    }
+  };
+
+  const flattenObject = (obj: any, prefix: string = ""): Array<{ key: string; value: any; path: (string | number)[]; topLevelKey: string }> => {
+    const result: Array<{ key: string; value: any; path: (string | number)[]; topLevelKey: string }> = [];
+
+    const traverse = (current: any, currentPath: (string | number)[] = [], topLevel?: string) => {
+      if (current === null || typeof current !== "object") {
+        if (currentPath.length > 0) {
+          result.push({
+            key: currentPath[currentPath.length - 1].toString(),
+            value: current,
+            path: currentPath,
+            topLevelKey: topLevel || currentPath[0]?.toString() || "",
+          });
+        }
+        return;
+      }
+
+      if (Array.isArray(current)) {
+        current.forEach((item, index) => {
+          traverse(item, [...currentPath, index], topLevel);
+        });
+      } else {
+        Object.entries(current).forEach(([key, value]) => {
+          const newTopLevel = currentPath.length === 0 ? key : topLevel;
+          traverse(value, [...currentPath, key], newTopLevel);
+        });
+      }
+    };
+
+    traverse(obj);
+    return result;
+  };
+
+  const flattenedData = flattenObject(data);
+
+  // Group data by top-level key
+  const groupedData = flattenedData.reduce(
+    (acc, item) => {
+      const topKey = item.topLevelKey;
+      if (!acc[topKey]) {
+        acc[topKey] = [];
+      }
+      acc[topKey].push(item);
+      return acc;
+    },
+    {} as Record<string, typeof flattenedData>
   );
-};
 
-export const JsonView: React.FC<JsonViewProps> = ({ data, className }) => {
-  if (!data || typeof data !== "object") {
-    return <div className={cn("text-sm text-muted-foreground", className)}>No data available</div>;
-  }
-
-  // Define the order and display names for sections
-  const sectionOrder = [
-    { key: "encounter_details", title: "Encounter Details", defaultOpen: true },
-    { key: "vital_signs", title: "Vital Signs", defaultOpen: true },
-    { key: "diagnosis_codes", title: "Diagnosis Codes", defaultOpen: true },
-    { key: "procedure_codes", title: "Procedure Codes", defaultOpen: true },
-    { key: "soap_notes", title: "SOAP Notes", defaultOpen: true },
-  ];
+  useEffect(() => {
+    const initialValues: Record<string, string> = {};
+    flattenedData.forEach((item) => {
+      const pathStr = getPathString(item.path);
+      if (!(pathStr in localValues)) {
+        initialValues[pathStr] = String(item.value) || "";
+      }
+    });
+    setLocalValues((prev) => ({ ...prev, ...initialValues }));
+  }, [data]);
 
   return (
-    <div className={cn("space-y-3 text-sm", className)}>
-      {sectionOrder.map(({ key, title, defaultOpen }) => {
-        if (key in data && data[key]) {
-          return <Section key={key} title={title} data={data[key]} defaultOpen={defaultOpen} />;
-        }
-        return null;
-      })}
+    <div className={cn("space-y-6", className)}>
+      {Object.entries(groupedData).map(([topLevelKey, items], sectionIndex) => (
+        <div
+          key={sectionIndex}
+          className={cn("", {
+            "border-b border-border pb-6": sectionIndex < Object.keys(groupedData).length - 1,
+          })}
+        >
+          <div className="mb-4">
+            <h3 className="text-sm font-bold text-primary">{formatKey(topLevelKey).toUpperCase()}</h3>
+          </div>
 
-      {/* Render any additional sections not in the predefined order */}
-      {Object.entries(data).map(([key, value]) => {
-        if (!sectionOrder.some((section) => section.key === key)) {
-          return <Section key={key} title={key} data={value} defaultOpen={false} />;
-        }
-        return null;
-      })}
+          <div className="space-y-4">
+            {items.map((item, index) => {
+              const pathStr = getPathString(item.path);
+              const currentValue = (localValues[pathStr] ?? String(item.value)) || "";
+              const isNested = item.path.length > 2;
+
+              return (
+                <div
+                  key={index}
+                  className={cn("", {
+                    "ml-6 pl-4 border-l-1 border-muted-foreground/30": isNested,
+                  })}
+                >
+                  <div>
+                    <span className="text-sm font-semibold text-primary">{formatKey(item.key)}</span>
+                  </div>
+
+                  <div>
+                    <ExpandingTextarea minHeight={0} maxHeight={10000} className="w-full text-primary text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none rounded-none placeholder:text-muted-foreground" value={currentValue} onChange={(e) => handleValueChange(item.path, e.target.value)} onBlur={(e) => handleBlur(item.path, e.target.value)} placeholder={`Enter ${formatKey(item.key).toLowerCase()}...`} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
