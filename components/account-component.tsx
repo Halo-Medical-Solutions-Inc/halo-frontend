@@ -35,9 +35,7 @@ export default function AccountComponent() {
       setSelectedEMR(user.emr_integration.emr);
       if (user.emr_integration.credentials) {
         // Filter out undefined values to match the expected type
-        const filteredCredentials = Object.fromEntries(
-          Object.entries(user.emr_integration.credentials).filter(([_, value]) => value !== undefined)
-        ) as Record<string, string>;
+        const filteredCredentials = Object.fromEntries(Object.entries(user.emr_integration.credentials).filter(([_, value]) => value !== undefined)) as Record<string, string>;
         setEmrCredentials(filteredCredentials);
       }
       if (user.emr_integration.verified) {
@@ -54,9 +52,7 @@ export default function AccountComponent() {
       setSelectedEMR(emrName);
       if (emrName === user?.emr_integration?.emr && user?.emr_integration?.credentials) {
         // Filter out undefined values to match the expected type
-        const filteredCredentials = Object.fromEntries(
-          Object.entries(user.emr_integration.credentials).filter(([_, value]) => value !== undefined)
-        ) as Record<string, string>;
+        const filteredCredentials = Object.fromEntries(Object.entries(user.emr_integration.credentials).filter(([_, value]) => value !== undefined)) as Record<string, string>;
         setEmrCredentials(filteredCredentials);
       } else {
         setEmrCredentials({});
