@@ -34,7 +34,7 @@ export default function RecordComponent() {
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
 
-  const { startTranscriber, stopTranscriber, connected: transcriberConnected, microphone } = useTranscriber(selectedVisit?.visit_id);
+  const { startTranscriber, stopTranscriber, connected: transcriberConnected, microphone, audioLevel, audioNotDetected } = useTranscriber(selectedVisit?.visit_id);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -666,6 +666,13 @@ export default function RecordComponent() {
               <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">
                 <MicOff className="h-4 w-4 mr-2 flex-shrink-0" />
                 <span>Microphone not available</span>
+              </div>
+            )}
+
+            {audioNotDetected && selectedVisit?.status === "RECORDING" && (
+              <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
+                <MicOff className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span>Microphone audio is not being picked up. Please check if your microphone is working or being used by another application.</span>
               </div>
             )}
           </div>
