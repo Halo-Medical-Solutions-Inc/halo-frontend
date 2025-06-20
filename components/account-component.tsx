@@ -8,9 +8,9 @@ import { Select, SelectTrigger, SelectContent, SelectGroup, SelectLabel, SelectI
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { languages, specialties } from "@/store/types";
+import { specialties } from "@/store/types";
 import { useDispatch } from "react-redux";
-import useWebSocket, { handle } from "@/lib/websocket";
+import useWebSocket from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
 import { setUser } from "@/store/slices/userSlice";
 import { Loader2 } from "lucide-react";
@@ -34,7 +34,6 @@ export default function AccountComponent() {
     if (user?.emr_integration?.emr) {
       setSelectedEMR(user.emr_integration.emr);
       if (user.emr_integration.credentials) {
-        // Filter out undefined values to match the expected type
         const filteredCredentials = Object.fromEntries(Object.entries(user.emr_integration.credentials).filter(([_, value]) => value !== undefined)) as Record<string, string>;
         setEmrCredentials(filteredCredentials);
       }
@@ -51,7 +50,6 @@ export default function AccountComponent() {
     } else {
       setSelectedEMR(emrName);
       if (emrName === user?.emr_integration?.emr && user?.emr_integration?.credentials) {
-        // Filter out undefined values to match the expected type
         const filteredCredentials = Object.fromEntries(Object.entries(user.emr_integration.credentials).filter(([_, value]) => value !== undefined)) as Record<string, string>;
         setEmrCredentials(filteredCredentials);
       } else {
