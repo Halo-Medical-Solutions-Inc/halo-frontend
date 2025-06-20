@@ -15,8 +15,6 @@ class AudioTranscriber {
   private stream: MediaStream | null = null;
   private isRecording = false;
   private config: TranscriberConfig;
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 3;
   private audioLevelCheckInterval: NodeJS.Timeout | null = null;
   private lastAudioLevel = 0;
   private silenceStartTime: number | null = null;
@@ -37,7 +35,6 @@ class AudioTranscriber {
         this.ws.onopen = () => {
           console.log("Audio WebSocket connected");
           this.config.onStatusUpdate?.("connected");
-          this.reconnectAttempts = 0;
           resolve();
         };
 
@@ -66,20 +63,6 @@ class AudioTranscriber {
           console.log("Audio WebSocket disconnected");
           this.config.onStatusUpdate?.("disconnected");
           this.cleanup();
-
-          if (this.isRecording && this.reconnectAttempts < this.maxReconnectAttempts) {
-            this.reconnectAttempts++;
-            console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-            setTimeout(() => {
-              this.connect()
-                .then(() => {
-                  if (this.isRecording) {
-                    this.startAudioProcessing();
-                  }
-                })
-                .catch(console.error);
-            }, 1000 * this.reconnectAttempts);
-          }
         };
 
         setTimeout(() => {
