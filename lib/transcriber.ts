@@ -250,7 +250,6 @@ export function useTranscriber(visitId?: string) {
           setConnected(false);
         },
         onAudioLevelUpdate: (level) => {
-          console.log("Audio level:", level);
           setAudioLevel(level);
           if (level > 0 && audioNotDetected) {
             setAudioNotDetected(false);
