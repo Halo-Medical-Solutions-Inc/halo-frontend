@@ -5,7 +5,7 @@ import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, Si
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { CirclePlus, MoreHorizontal, StopCircle, Trash2, LogOut, Sparkles, BadgeCheck, ChevronsUpDown, Loader2, MicOff, FileText, Info, MoreHorizontalIcon } from "lucide-react";
+import { CirclePlus, MoreHorizontal, StopCircle, Trash2, LogOut, Sparkles, BadgeCheck, ChevronsUpDown, Loader2, MicOff, FileText, Info, MoreHorizontalIcon, Search } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { RootState } from "@/store/store";
 import { useSelector, useDispatch } from "react-redux";
@@ -20,6 +20,7 @@ import { clearUser } from "@/store/slices/userSlice";
 import { clearSession } from "@/store/slices/sessionSlice";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNextStep } from "nextstepjs";
+import { Input } from "@/components/ui/input";
 
 interface SidebarComponentProps {
   loadAllVisits: () => Promise<void>;
@@ -42,6 +43,7 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
   const [isPausingVisit, setIsPausingVisit] = useState(false);
   const [isLoadingAll, setIsLoadingAll] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const createVisitHandler = handle("create_visit", "sidebar", (data) => {
@@ -145,6 +147,18 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
     }
   };
 
+  // Filter visits based on search term
+  const filteredGroupedVisits = React.useMemo(() => {
+    if (!searchTerm.trim()) return groupedVisits;
+
+    return groupedVisits
+      .map((group) => ({
+        ...group,
+        visits: group.visits.filter((visit) => visit.name?.toLowerCase().includes(searchTerm.toLowerCase())),
+      }))
+      .filter((group) => group.visits.length > 0);
+  }, [groupedVisits, searchTerm]);
+
   return (
     <>
       <Sidebar variant="sidebar">
@@ -162,7 +176,7 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
-          <div className="relative flex w-full min-w-0 flex-col p-2 rounded-md">
+          <div className="relative flex w-full min-w-0 flex-col p-2 rounded-md gap-2">
             <Button className="font-normal" onClick={createVisit} disabled={isCreatingVisit} id="visit-tour-new-visit">
               {isCreatingVisit ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -173,12 +187,16 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
                 </>
               )}
             </Button>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input placeholder="Search visits" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9" />
+            </div>
           </div>
         </SidebarHeader>
         <SidebarContent>
           <div className="flex flex-col p-2">
             <div className="">
-              {groupedVisits.map(({ date, visits }) => (
+              {filteredGroupedVisits.map(({ date, visits }) => (
                 <SidebarGroup key={date} className="group-data-[collapsible=icon]:hidden">
                   <SidebarGroupLabel className="text-muted-foreground font-normal">{date}</SidebarGroupLabel>
                   <SidebarMenu>
@@ -302,7 +320,7 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
                   )}
                 </SidebarMenu>
               </SidebarGroup>
-              {groupedVisits.length === 0 && <div className="p-4 text-sm text-muted-foreground">No visits available</div>}
+              {filteredGroupedVisits.length === 0 && <div className="p-4 text-sm text-muted-foreground">{searchTerm ? "No visits found matching your search" : "No visits available"}</div>}
             </div>
           </div>
         </SidebarContent>

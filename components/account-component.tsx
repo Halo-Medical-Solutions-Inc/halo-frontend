@@ -227,20 +227,8 @@ export default function AccountComponent() {
                 {selectedEMR === "ADVANCEMD" && (
                   <>
                     <div className="space-y-2">
-                      <Label>Username</Label>
-                      <Input type="text" placeholder="Enter your AdvanceMD username" value={emrCredentials.username || ""} onChange={(e) => updateCredential("username", e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Password</Label>
-                      <Input type="password" placeholder="Enter your AdvanceMD password" value={emrCredentials.password || ""} onChange={(e) => updateCredential("password", e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Office Key</Label>
-                      <Input type="text" placeholder="Enter your AdvanceMD office key" value={emrCredentials.office_key || ""} onChange={(e) => updateCredential("office_key", e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>App Name</Label>
-                      <Input type="text" placeholder="Enter your AdvanceMD app name" value={emrCredentials.app_name || ""} onChange={(e) => updateCredential("app_name", e.target.value)} />
+                      <Label>API Key</Label>
+                      <Input type="text" placeholder="Enter your AdvanceMD API key" value={emrCredentials.api_key || ""} onChange={(e) => updateCredential("api_key", e.target.value)} />
                     </div>
                   </>
                 )}

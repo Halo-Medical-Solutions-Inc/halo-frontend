@@ -124,3 +124,14 @@ export async function apiCreateNoteEMRIntegration(sessionId: string, patientId: 
   if (!response.ok) throw new Error("Failed to create note EMR");
   return response.json();
 }
+
+export async function apiAskChat(sessionId: string, message: string): Promise<string> {
+  const response = await fetch(`${API_URL}/chat/ask`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId, message: message }),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to ask chat");
+  return response.json();
+}

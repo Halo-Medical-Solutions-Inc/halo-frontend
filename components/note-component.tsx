@@ -36,6 +36,7 @@ export default function NoteComponent() {
 
   const [patients, setPatients] = useState<Array<{ patient_id: string; patient_name: string; patient_details: string }>>([]);
   const [selectedPatientId, setSelectedPatientId] = useState("");
+  const [manualPatientId, setManualPatientId] = useState("");
   const [isPatientDialogOpen, setIsPatientDialogOpen] = useState(false);
   const [isLoadingPatients, setIsLoadingPatients] = useState(false);
   const [isSendingToEmr, setIsSendingToEmr] = useState(false);
@@ -177,12 +178,14 @@ export default function NoteComponent() {
   };
 
   const handlePatientConfirm = (patientId: string) => {
+    const finalPatientId = manualPatientId.trim() || selectedPatientId;
     setIsSendingToEmr(true);
-    apiCreateNoteEMRIntegration(session.session_id, patientId, selectedVisit?.visit_id || "")
+    apiCreateNoteEMRIntegration(session.session_id, finalPatientId, selectedVisit?.visit_id || "")
       .then((data) => {
         setIsSendingToEmr(false);
         setIsPatientDialogOpen(false);
         setSelectedPatientId("");
+        setManualPatientId("");
       })
       .catch((error) => {
         console.error("Error sending note to EMR:", error);
@@ -467,6 +470,7 @@ export default function NoteComponent() {
             setIsPatientDialogOpen(open);
             if (!open) {
               setSelectedPatientId("");
+              setManualPatientId("");
               setIsSendingToEmr(false);
             }
           }}
@@ -474,12 +478,19 @@ export default function NoteComponent() {
           <AlertDialogContent className="">
             <AlertDialogHeader>
               <AlertDialogTitle>Select Patient</AlertDialogTitle>
-              <AlertDialogDescription>Choose a patient from the list below to send the note to their EMR record.</AlertDialogDescription>
+              <AlertDialogDescription>Choose a patient from the list below or manually enter a patient ID.</AlertDialogDescription>
             </AlertDialogHeader>
             <div className="h-[300px] w-full overflow-y-auto scrollbar-hide">
               <div className="space-y-2">
                 {patients.map((patient) => (
-                  <div key={patient.patient_id} onClick={() => setSelectedPatientId(patient.patient_id)} className={`p-3 rounded-md cursor-pointer transition-all ${selectedPatientId === patient.patient_id ? "border-2 border-primary bg-primary/5" : "border-2 border-transparent hover:bg-muted"}`}>
+                  <div
+                    key={patient.patient_id}
+                    onClick={() => {
+                      setSelectedPatientId(patient.patient_id);
+                      setManualPatientId("");
+                    }}
+                    className={`p-3 rounded-md cursor-pointer transition-all ${selectedPatientId === patient.patient_id && !manualPatientId.trim() ? "border-2 border-primary bg-primary/5" : "border-2 border-transparent hover:bg-muted"}`}
+                  >
                     <div className="flex justify-between items-center gap-3">
                       <div className="flex flex-col gap-1 flex-1">
                         <span className="text-sm font-medium">{patient.patient_name}</span>
@@ -492,10 +503,16 @@ export default function NoteComponent() {
               </div>
             </div>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setSelectedPatientId("")} disabled={isSendingToEmr}>
+              <AlertDialogCancel
+                onClick={() => {
+                  setSelectedPatientId("");
+                  setManualPatientId("");
+                }}
+                disabled={isSendingToEmr}
+              >
                 Cancel
               </AlertDialogCancel>
-              <AlertDialogAction onClick={() => handlePatientConfirm(selectedPatientId)} disabled={!selectedPatientId || isSendingToEmr}>
+              <AlertDialogAction onClick={() => handlePatientConfirm(manualPatientId.trim() || selectedPatientId)} disabled={(!selectedPatientId && !manualPatientId.trim()) || isSendingToEmr}>
                 {isSendingToEmr ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
