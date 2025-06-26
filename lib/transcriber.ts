@@ -136,7 +136,7 @@ class AudioTranscriber {
       if (this.isRecording) {
         this.config.onAudioLevelUpdate?.(this.lastAudioLevel);
 
-        console.log("Audio level:", this.lastAudioLevel);
+        console.log("Audio level:", this.lastAudioLevel); 
 
         if (this.lastAudioLevel <= this.SILENCE_THRESHOLD) {
           this.config.onError?.(new Error("AUDIO_NOT_DETECTED"));
