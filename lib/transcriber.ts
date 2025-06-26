@@ -17,9 +17,7 @@ class AudioTranscriber {
   private config: TranscriberConfig;
   private audioLevelCheckInterval: NodeJS.Timeout | null = null;
   private lastAudioLevel = 0;
-  private silenceStartTime: number | null = null;
   private readonly SILENCE_THRESHOLD = 0;
-  private readonly SILENCE_DURATION_MS = 3000;
 
   constructor(config: TranscriberConfig) {
     this.config = config;
@@ -139,13 +137,7 @@ class AudioTranscriber {
         this.config.onAudioLevelUpdate?.(this.lastAudioLevel);
 
         if (this.lastAudioLevel <= this.SILENCE_THRESHOLD) {
-          if (!this.silenceStartTime) {
-            this.silenceStartTime = Date.now();
-          } else if (Date.now() - this.silenceStartTime > this.SILENCE_DURATION_MS) {
-            this.config.onError?.(new Error("AUDIO_NOT_DETECTED"));
-          }
-        } else {
-          this.silenceStartTime = null;
+          this.config.onError?.(new Error("AUDIO_NOT_DETECTED"));
         }
       }
     }, 500);
@@ -246,14 +238,13 @@ export function useTranscriber(visitId?: string) {
           console.error("Transcriber error:", error);
           if (error.message === "AUDIO_NOT_DETECTED") {
             setAudioNotDetected(true);
+          } else {
+            setConnected(false);
           }
-          setConnected(false);
         },
         onAudioLevelUpdate: (level) => {
           setAudioLevel(level);
-          if (level > 0 && audioNotDetected) {
-            setAudioNotDetected(false);
-          }
+          setAudioNotDetected(level <= 0);
         },
       });
 
