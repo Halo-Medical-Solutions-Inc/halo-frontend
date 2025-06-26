@@ -145,6 +145,7 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
     }
   };
 
+
   return (
     <>
       <Sidebar variant="sidebar">
@@ -292,7 +293,7 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
               ))}
               <SidebarGroup>
                 <SidebarMenu>
-                  {!hasLoadedAll && (
+                  {!hasLoadedAll && groupedVisits.length > 0 && (
                     <SidebarMenuItem>
                       <SidebarMenuButton className="bg-transparent hover:bg-transparent text-muted-foreground text-sm" onClick={handleLoadAll} disabled={isLoadingAll}>
                         {isLoadingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontalIcon className="h-4 w-4" />}
