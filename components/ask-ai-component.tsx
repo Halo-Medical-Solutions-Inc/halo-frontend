@@ -322,11 +322,7 @@ Follow the format exactly. Do not add any introductory text or closing statement
                     <h3 className="text-xs font-semibold text-primary">View Patient Summary</h3>
                     <p className="text-xs text-muted-foreground">Quick overview of patient information.</p>
                   </div>
-                  {fetchingPatientSummary ? (
-                    <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
-                  ) : (
-                    <User className="h-4 w-4 text-muted-foreground" />
-                  )}
+                  {fetchingPatientSummary ? <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" /> : <User className="h-4 w-4 text-muted-foreground" />}
                 </button>
                 <button key="chat-tour" className="w-full flex items-center justify-between p-4 border rounded-md cursor-pointer hover:bg-accent transition-colors text-left" onClick={() => handleTutorialClick("chat-tour")}>
                   <div>
