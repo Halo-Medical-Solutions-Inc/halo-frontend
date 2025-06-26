@@ -18,13 +18,6 @@ class AudioTranscriber {
   private config: TranscriberConfig;
   private audioLevelCheckInterval: NodeJS.Timeout | null = null;
   private lastAudioLevel = 0;
-  private readonly SILENCE_THRESHOLD = 0;
-  private permissionRequestInProgress = false;
-  private lastPermissionRequestTime = 0;
-  private readonly PERMISSION_REQUEST_COOLDOWN = 10000; // 10 seconds
-  private audioRestartInProgress = false;
-  private consecutiveLowAudioCount = 0;
-  private readonly MAX_LOW_AUDIO_COUNT = 6; // 3 seconds at 500ms intervals
 
   constructor(config: TranscriberConfig) {
     this.config = config;
@@ -138,98 +131,21 @@ class AudioTranscriber {
     }
   }
 
-  private async restartAudioProcessing(): Promise<void> {
-    if (this.audioRestartInProgress) {
-      return;
-    }
-
-    console.log("Restarting audio processing due to sustained low audio levels");
-    this.audioRestartInProgress = true;
-
-    try {
-      // Stop current audio processing
-      this.stopAudioProcessing();
-
-      // Check if audio context is suspended and resume it
-      if (this.audioContext?.state === 'suspended') {
-        console.log("Audio context suspended, resuming...");
-        await this.audioContext.resume();
-      }
-
-      // Check if stream tracks are still active
-      if (this.stream) {
-        const tracks = this.stream.getAudioTracks();
-        const activeTracks = tracks.filter(track => track.readyState === 'live');
-        
-        if (activeTracks.length === 0) {
-          console.log("No active audio tracks, requesting new stream");
-          // Get new stream
-          this.stream.getTracks().forEach(track => track.stop());
-          this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        }
-      }
-
-      // Restart audio processing with current or new stream
-      await this.startAudioProcessing();
-      console.log("Audio processing restarted successfully");
-    } catch (error) {
-      console.error("Failed to restart audio processing:", error);
-      this.config.onError?.(new Error("AUDIO_RESTART_FAILED"));
-    } finally {
-      this.audioRestartInProgress = false;
-    }
-  }
-
   private startAudioLevelMonitoring(): void {
     this.audioLevelCheckInterval = setInterval(async () => {
       if (this.isRecording) {
         this.config.onAudioLevelUpdate?.(this.lastAudioLevel);
 
-        console.log("Audio level:", this.lastAudioLevel); 
+        console.log("Audio level:", this.lastAudioLevel);
 
-        if (this.lastAudioLevel <= this.SILENCE_THRESHOLD) {
-          this.consecutiveLowAudioCount++;
+        if (this.lastAudioLevel === 0) {
+          this.config.onError?.(new Error("AUDIO_NOT_DETECTED"));
           
-          // If we've had sustained low audio, try restarting audio processing first
-          if (this.consecutiveLowAudioCount >= this.MAX_LOW_AUDIO_COUNT && !this.audioRestartInProgress) {
-            console.log(`Sustained low audio for ${this.consecutiveLowAudioCount} checks, attempting audio restart`);
-            await this.restartAudioProcessing();
-            this.consecutiveLowAudioCount = 0; // Reset counter after restart attempt
-            return; // Skip permission request logic this cycle
+          try {
+            await this.config.onRequestMicPermissions?.();
+          } catch (error) {
+            console.error("Failed to request mic permissions:", error);
           }
-
-          const now = Date.now();
-          
-          // Only try to request permissions if enough time has passed and no request is in progress
-          if (!this.permissionRequestInProgress && 
-              now - this.lastPermissionRequestTime > this.PERMISSION_REQUEST_COOLDOWN) {
-            
-            console.log("Audio not detected, requesting mic permissions again");
-            this.permissionRequestInProgress = true;
-            this.lastPermissionRequestTime = now;
-            
-            try {
-              await this.config.onRequestMicPermissions?.();
-            } catch (error) {
-              console.error("Failed to re-request mic permissions:", error);
-              
-              // If it's a permission denied error, don't spam the user with more requests
-              if (error instanceof Error && error.name === 'NotAllowedError') {
-                console.log("Permission denied by user - stopping automatic permission requests");
-                this.config.onError?.(new Error("MIC_PERMISSION_DENIED"));
-              } else {
-                this.config.onError?.(new Error("AUDIO_NOT_DETECTED"));
-              }
-            } finally {
-              this.permissionRequestInProgress = false;
-            }
-          } else if (this.lastAudioLevel <= this.SILENCE_THRESHOLD) {
-            // Still no audio but we're in cooldown period - just notify without requesting permissions
-            this.config.onError?.(new Error("AUDIO_NOT_DETECTED"));
-          }
-        } else {
-          // Audio level is good, reset the consecutive low audio count
-          this.consecutiveLowAudioCount = 0;
         }
       }
     }, 500);
@@ -274,8 +190,6 @@ class AudioTranscriber {
   private cleanup(): void {
     this.stopAudioProcessing();
     this.ws = null;
-    this.consecutiveLowAudioCount = 0;
-    this.audioRestartInProgress = false;
   }
 
   isConnected(): boolean {
@@ -289,7 +203,6 @@ export function useTranscriber(visitId?: string) {
   const [microphone, setMicrophone] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
   const [audioNotDetected, setAudioNotDetected] = useState(false);
-  const [micPermissionDenied, setMicPermissionDenied] = useState(false);
 
   useEffect(() => {
     const checkMicrophone = async () => {
@@ -311,15 +224,11 @@ export function useTranscriber(visitId?: string) {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setMicrophone(true);
       setAudioNotDetected(false);
-      setMicPermissionDenied(false);
       stream.getTracks().forEach((track) => track.stop());
-      console.log("Microphone permissions re-granted");
+      console.log("Microphone permissions granted");
     } catch (error) {
       console.error("Failed to get microphone permissions:", error);
       setMicrophone(false);
-      if (error instanceof Error && error.name === 'NotAllowedError') {
-        setMicPermissionDenied(true);
-      }
       throw error;
     }
   }, []);
@@ -351,19 +260,15 @@ export function useTranscriber(visitId?: string) {
           console.error("Transcriber error:", error);
           if (error.message === "AUDIO_NOT_DETECTED") {
             setAudioNotDetected(true);
-          } else if (error.message === "MIC_PERMISSION_DENIED") {
-            setMicPermissionDenied(true);
-            setAudioNotDetected(true);
-          } else if (error.message === "AUDIO_RESTART_FAILED") {
-            console.error("Failed to restart audio processing - this may require manual intervention");
-            setAudioNotDetected(true);
           } else {
             setConnected(false);
           }
         },
         onAudioLevelUpdate: (level) => {
           setAudioLevel(level);
-          setAudioNotDetected(level <= 0);
+          if (level > 0) {
+            setAudioNotDetected(false);
+          }
         },
         onRequestMicPermissions: requestMicPermissions,
       });
@@ -400,7 +305,6 @@ export function useTranscriber(visitId?: string) {
     microphone,
     audioLevel,
     audioNotDetected,
-    micPermissionDenied,
     requestMicPermissions,
   };
 }
