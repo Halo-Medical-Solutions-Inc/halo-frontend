@@ -188,7 +188,6 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
 
   printWindow.document.close();
 
-  // Add a longer delay and wait for images to load
   printWindow.onload = () => {
     const images = printWindow.document.images;
     let loadedImages = 0;
@@ -311,7 +310,6 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
 
   printWindow.document.close();
 
-  // Wait for images to load before printing
   printWindow.onload = () => {
     const images = printWindow.document.images;
     let loadedImages = 0;
@@ -360,12 +358,10 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
   const convertToWordParagraphs = (text: string) => {
     if (!text) return "";
     
-    // If the text already contains HTML tags, return it as is
     if (/<[^>]+>/.test(text)) {
       return text;
     }
     
-    // Otherwise, convert plain text to paragraphs
     return text
       .split(/\n\s*\n/)
       .map((paragraph) => {
@@ -422,7 +418,6 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
             vertical-align: middle;
             page-break-inside: avoid;
           }
-          /* Ensure combined formatting works */
           strong u, u strong { font-weight: bold !important; text-decoration: underline !important; }
           strong em, em strong { font-weight: bold !important; font-style: italic !important; }
           em u, u em { font-style: italic !important; text-decoration: underline !important; }
@@ -431,16 +426,13 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
             font-style: italic !important;
             text-decoration: underline !important;
           }
-          /* Text alignment styles */
           .text-left { text-align: left !important; }
           .text-center { text-align: center !important; }
           .text-right { text-align: right !important; }
           .text-justify { text-align: justify !important; }
-          /* Font families */
           .font-arial { font-family: Arial, sans-serif !important; }
           .font-times { font-family: 'Times New Roman', serif !important; }
-          .font-courier { font-family: 'Courier New', monospace !important; }
-          /* Preserve HTML attributes */
+          .font-courier { font-family: 'Courier New', monospace !important; } 
           [style*="text-align: left"] { text-align: left !important; }
           [style*="text-align: center"] { text-align: center !important; }
           [style*="text-align: right"] { text-align: right !important; }
@@ -455,7 +447,6 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
     </html>
   `;
 
-  // Create a blob with proper MIME type for Word
   const blob = new Blob(["\ufeff" + htmlContent], { 
     type: "application/vnd.ms-word;charset=utf-8" 
   });
@@ -469,7 +460,6 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
   link.click();
   document.body.removeChild(link);
   
-  // Clean up the URL object
   setTimeout(() => URL.revokeObjectURL(url), 100);
 };
 
@@ -483,7 +473,6 @@ export const formatTranscriptTime = (transcript: string | undefined): string => 
   });
 };
 
-// Debug utility for base64 images
 export const debugBase64Images = (htmlContent: string): { 
   imageCount: number; 
   images: Array<{ 
@@ -508,14 +497,12 @@ export const debugBase64Images = (htmlContent: string): {
     const src = match[1];
     if (src.startsWith('data:')) {
       try {
-        // Extract the base64 part
         const base64Match = src.match(/^data:([^;]+);base64,(.+)$/);
         if (base64Match) {
           const mimeType = base64Match[1];
           const base64Data = base64Match[2];
           const sizeKB = (base64Data.length * 0.75) / 1024;
           
-          // Validate base64
           const isValidBase64 = /^[A-Za-z0-9+/]*={0,2}$/.test(base64Data);
           
           images.push({
