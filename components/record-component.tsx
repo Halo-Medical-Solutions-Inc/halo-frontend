@@ -393,6 +393,8 @@ export default function RecordComponent() {
     }
   };
 
+  console.log(selectedVisit);
+
   return (
     <>
       <input
@@ -652,6 +654,20 @@ export default function RecordComponent() {
                   </>
                 )}
               </Button>
+            )}
+
+            {selectedVisit?.status !== "NOT_STARTED" && selectedVisit?.status !== "FRONTEND_TRANSITION" && (
+              <div className="flex items-center justify-between w-full gap-2">
+                <Button variant="outline" className="flex-1" onClick={finishRecording} disabled={!online || !websocketConnected}>
+                  {finishRecordingLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4" /> Finish
+                    </>
+                  )}
+                </Button>
+              </div>
             )}
 
             {!online ||
