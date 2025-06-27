@@ -98,6 +98,11 @@ No specific patient visit is currently selected. You can only answer general que
     }
   }, [loading, connected, mode]);
 
+  useEffect(() => {
+    setIsOpen(false);
+    setMode("tutorials");
+  }, [selectedVisit]);
+
   const fetchPatientSummary = async (): Promise<boolean> => {
     if (!selectedVisit || !session?.session_id) return false;
 
