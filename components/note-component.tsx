@@ -13,7 +13,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { setSelectedVisit } from "@/store/slices/visitSlice";
 import useWebSocket, { handle } from "@/lib/websocket";
-import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as downloadNoteAsPDFUtil, formatTranscriptTime, downloadNoteAsWord as downloadNoteAsWordUtil } from "@/lib/utils";
+import { useDebouncedSend, printNote as printNoteUtil, downloadNoteAsPDF as downloadNoteAsPDFUtil, formatTranscriptTime, downloadNoteAsWord as downloadNoteAsWordUtil, debugBase64Images } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FormattedTextarea } from "@/components/ui/formatted-textarea";
@@ -130,6 +130,27 @@ export default function NoteComponent() {
     const template = templates.find((t) => t.template_id === templateId);
     const header = template?.header || "";
     const footer = template?.footer || "";
+    
+    // Debug images before printing
+    if (header || footer) {
+      const headerDebug = debugBase64Images(header);
+      const footerDebug = debugBase64Images(footer);
+      
+      if (headerDebug.images.some(img => !img.isValid) || footerDebug.images.some(img => !img.isValid)) {
+        console.error('Invalid images detected:', {
+          header: headerDebug.images.filter(img => !img.isValid),
+          footer: footerDebug.images.filter(img => !img.isValid)
+        });
+      }
+      
+      if (headerDebug.images.some(img => img.sizeKB > 500) || footerDebug.images.some(img => img.sizeKB > 500)) {
+        console.warn('Large images detected that may not print properly:', {
+          header: headerDebug.images.filter(img => img.sizeKB > 500),
+          footer: footerDebug.images.filter(img => img.sizeKB > 500)
+        });
+      }
+    }
+    
     printNoteUtil(name, content, header, footer);
   };
 

@@ -33,6 +33,8 @@ export default function TemplateComponent() {
 
   const [activeTab, setActiveTab] = useState<"instructions" | "printer">("instructions");
   const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
+  const [headerSizeWarning, setHeaderSizeWarning] = useState(false);
+  const [footerSizeWarning, setFooterSizeWarning] = useState(false);
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: typeof window !== "undefined" ? window.innerWidth : 0, height: typeof window !== "undefined" ? window.innerHeight : 0 });
@@ -78,6 +80,16 @@ export default function TemplateComponent() {
   };
 
   const headerChange = (html: string) => {
+    // Validate that the HTML content is not too large
+    const sizeInBytes = new Blob([html]).size;
+    const sizeInKB = sizeInBytes / 1024;
+    
+    setHeaderSizeWarning(sizeInKB > 500); // Warning at 500KB
+    
+    if (sizeInKB > 1024) { // If larger than 1MB
+      console.warn(`Header content is large: ${sizeInKB.toFixed(2)}KB. This may cause issues.`);
+    }
+    
     dispatch(setSelectedTemplate({ ...selectedTemplate, header: html }));
     debouncedSend({
       type: "update_template",
@@ -90,6 +102,16 @@ export default function TemplateComponent() {
   };
 
   const footerChange = (html: string) => {
+    // Validate that the HTML content is not too large
+    const sizeInBytes = new Blob([html]).size;
+    const sizeInKB = sizeInBytes / 1024;
+    
+    setFooterSizeWarning(sizeInKB > 500); // Warning at 500KB
+    
+    if (sizeInKB > 1024) { // If larger than 1MB
+      console.warn(`Footer content is large: ${sizeInKB.toFixed(2)}KB. This may cause issues.`);
+    }
+    
     dispatch(setSelectedTemplate({ ...selectedTemplate, footer: html }));
     debouncedSend({
       type: "update_template",
@@ -280,11 +302,17 @@ export default function TemplateComponent() {
                       <Info className="h-3 w-3" />
                       <span>HTML support enabled</span>
                     </div>
+                    {headerSizeWarning && (
+                      <div className="text-xs text-orange-500 flex items-center gap-1">
+                        <Info className="h-3 w-3" />
+                        <span>Large content - images may not display properly</span>
+                      </div>
+                    )}
                   </div>
                   <div className="rounded-md bg-muted/20">
                     <RichTextEditor content={selectedTemplate?.header || ""} onChange={headerChange} minHeight={100} placeholder="Add your header content here" />
                   </div>
-                  <p className="text-xs text-muted-foreground">Add HTML content for the document header. This will appear at the top of printed documents.</p>
+                  <p className="text-xs text-muted-foreground">Add HTML content for the document header. This will appear at the top of printed documents. For best results, keep images under 800x800 pixels.</p>
                 </div>
 
                 <div className="space-y-2">
@@ -294,11 +322,17 @@ export default function TemplateComponent() {
                       <Info className="h-3 w-3" />
                       <span>HTML support enabled</span>
                     </div>
+                    {footerSizeWarning && (
+                      <div className="text-xs text-orange-500 flex items-center gap-1">
+                        <Info className="h-3 w-3" />
+                        <span>Large content - images may not display properly</span>
+                      </div>
+                    )}
                   </div>
                   <div className="rounded-md bg-muted/20">
                     <RichTextEditor content={selectedTemplate?.footer || ""} onChange={footerChange} minHeight={100} placeholder="Add your footer content here" />
                   </div>
-                  <p className="text-xs text-muted-foreground">Add HTML content for the document footer. This will appear at the bottom of printed documents.</p>
+                  <p className="text-xs text-muted-foreground">Add HTML content for the document footer. This will appear at the bottom of printed documents. For best results, keep images under 800x800 pixels.</p>
                 </div>
               </div>
             )}

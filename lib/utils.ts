@@ -92,10 +92,18 @@ export const getTimeDifference = (olderDate: string, newerDate?: string): string
 export function parseFormattedText(text: string): string {
   if (!text) return "";
   let formatted = text;
-  formatted = formatted.replace(/--([^-]+)--/g, "<u>$1</u>");
-  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  formatted = formatted.replace(/\/\/([^/]+)\/\//g, "<em>$1</em>");
-  formatted = formatted.replace(/\n/g, "<br />");
+  
+  // Check if the text already contains HTML tags (like from rich text editor)
+  const hasHtmlTags = /<[^>]+>/.test(text);
+  
+  if (!hasHtmlTags) {
+    // Only apply formatting if it's plain text
+    formatted = formatted.replace(/--([^-]+)--/g, "<u>$1</u>");
+    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    formatted = formatted.replace(/\/\/([^/]+)\/\//g, "<em>$1</em>");
+    formatted = formatted.replace(/\n/g, "<br />");
+  }
+  
   return formatted;
 }
 
@@ -111,10 +119,19 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
     <!DOCTYPE html>
     <html>
       <head>
+        <meta charset="utf-8">
+        <title>${visitName}</title>
         <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #000;
+          }
           .header {
             width: 100%;
             white-space: pre-wrap;
+            margin-bottom: 20px;
           }
           .header p {
             margin: 0;
@@ -127,6 +144,7 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
           .footer {
             width: 100%;
             white-space: pre-wrap;
+            margin-top: 20px;
           }
           .footer p {
             margin: 0;
@@ -135,9 +153,27 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
           .content {
             white-space: pre-wrap;
           }
+          img {
+            max-width: 100%;
+            height: auto;
+            display: inline-block;
+            vertical-align: middle;
+            page-break-inside: avoid;
+          }
           @media print {
             body {
               margin: 0.5in;
+            }
+            img {
+              max-width: 100%;
+              height: auto;
+              print-color-adjust: exact;
+              -webkit-print-color-adjust: exact;
+            }
+          }
+          @media screen {
+            body {
+              padding: 20px;
             }
           }
         </style>
@@ -146,19 +182,47 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
         ${formattedHeaderContent ? `<div class="header">${formattedHeaderContent}</div>` : ""}
         <div class="content">${formattedNoteContent}</div>
         ${formattedFooterContent ? `<div class="footer">${formattedFooterContent}</div>` : ""}
-        <script>
-          document.title = "";
-        </script>
       </body>
     </html>
   `);
 
   printWindow.document.close();
 
-  setTimeout(() => {
-    printWindow.print();
-    printWindow.onafterprint = () => printWindow.close();
-  }, 300);
+  // Add a longer delay and wait for images to load
+  printWindow.onload = () => {
+    const images = printWindow.document.images;
+    let loadedImages = 0;
+    
+    const checkImagesAndPrint = () => {
+      if (loadedImages === images.length) {
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.onafterprint = () => printWindow.close();
+        }, 500);
+      }
+    };
+
+    if (images.length === 0) {
+      checkImagesAndPrint();
+    } else {
+      Array.from(images).forEach((img) => {
+        if (img.complete) {
+          loadedImages++;
+          checkImagesAndPrint();
+        } else {
+          img.onload = () => {
+            loadedImages++;
+            checkImagesAndPrint();
+          };
+          img.onerror = () => {
+            console.error('Failed to load image:', img.src?.substring(0, 50) + '...');
+            loadedImages++;
+            checkImagesAndPrint();
+          };
+        }
+      });
+    }
+  };
 };
 
 export const downloadNoteAsPDF = async (visitName: string, noteContent: string, headerContent?: string, footerContent?: string) => {
@@ -178,10 +242,19 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
     <!DOCTYPE html>
     <html>
       <head>
+        <meta charset="utf-8">
+        <title>${filename}</title>
         <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #000;
+          }
           .header {
             width: 100%;
             white-space: pre-wrap;
+            margin-bottom: 20px;
           }
           .header p {
             margin: 0;
@@ -194,6 +267,7 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
           .footer {
             width: 100%;
             white-space: pre-wrap;
+            margin-top: 20px;
           }
           .footer p {
             margin: 0;
@@ -202,9 +276,27 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
           .content {
             white-space: pre-wrap;
           }
+          img {
+            max-width: 100%;
+            height: auto;
+            display: inline-block;
+            vertical-align: middle;
+            page-break-inside: avoid;
+          }
           @media print {
             body {
               margin: 0.5in;
+            }
+            img {
+              max-width: 100%;
+              height: auto;
+              print-color-adjust: exact;
+              -webkit-print-color-adjust: exact;
+            }
+          }
+          @media screen {
+            body {
+              padding: 20px;
             }
           }
         </style>
@@ -213,18 +305,46 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
         ${formattedHeaderContent ? `<div class="header">${formattedHeaderContent}</div>` : ""}
         <div class="content">${formattedNoteContent}</div>
         ${formattedFooterContent ? `<div class="footer">${formattedFooterContent}</div>` : ""}
-        <script>
-          document.title = "${filename}";
-        </script>
       </body>
     </html>
   `);
 
   printWindow.document.close();
 
-  setTimeout(() => {
-    printWindow.print();
-  }, 300);
+  // Wait for images to load before printing
+  printWindow.onload = () => {
+    const images = printWindow.document.images;
+    let loadedImages = 0;
+    
+    const checkImagesAndPrint = () => {
+      if (loadedImages === images.length) {
+        setTimeout(() => {
+          printWindow.print();
+        }, 500);
+      }
+    };
+
+    if (images.length === 0) {
+      checkImagesAndPrint();
+    } else {
+      Array.from(images).forEach((img) => {
+        if (img.complete) {
+          loadedImages++;
+          checkImagesAndPrint();
+        } else {
+          img.onload = () => {
+            loadedImages++;
+            checkImagesAndPrint();
+          };
+          img.onerror = () => {
+            console.error('Failed to load image in PDF:', img.src?.substring(0, 50) + '...');
+            loadedImages++;
+            checkImagesAndPrint();
+          };
+        }
+      });
+    }
+  };
 };
 
 export const downloadNoteAsWord = async (visitName: string, noteContent: string, headerContent?: string, footerContent?: string) => {
@@ -239,6 +359,13 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
 
   const convertToWordParagraphs = (text: string) => {
     if (!text) return "";
+    
+    // If the text already contains HTML tags, return it as is
+    if (/<[^>]+>/.test(text)) {
+      return text;
+    }
+    
+    // Otherwise, convert plain text to paragraphs
     return text
       .split(/\n\s*\n/)
       .map((paragraph) => {
@@ -288,6 +415,14 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
           em, i { font-style: italic !important; }
           u { text-decoration: underline !important; }
           br { mso-data-placement: same-cell; }
+          img { 
+            max-width: 100%; 
+            height: auto; 
+            display: inline-block;
+            vertical-align: middle;
+            page-break-inside: avoid;
+          }
+          /* Ensure combined formatting works */
           strong u, u strong { font-weight: bold !important; text-decoration: underline !important; }
           strong em, em strong { font-weight: bold !important; font-style: italic !important; }
           em u, u em { font-style: italic !important; text-decoration: underline !important; }
@@ -296,6 +431,20 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
             font-style: italic !important;
             text-decoration: underline !important;
           }
+          /* Text alignment styles */
+          .text-left { text-align: left !important; }
+          .text-center { text-align: center !important; }
+          .text-right { text-align: right !important; }
+          .text-justify { text-align: justify !important; }
+          /* Font families */
+          .font-arial { font-family: Arial, sans-serif !important; }
+          .font-times { font-family: 'Times New Roman', serif !important; }
+          .font-courier { font-family: 'Courier New', monospace !important; }
+          /* Preserve HTML attributes */
+          [style*="text-align: left"] { text-align: left !important; }
+          [style*="text-align: center"] { text-align: center !important; }
+          [style*="text-align: right"] { text-align: right !important; }
+          [style*="text-align: justify"] { text-align: justify !important; }
         </style>
       </head>
       <body>
@@ -306,7 +455,11 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
     </html>
   `;
 
-  const blob = new Blob(["\ufeff" + htmlContent], { type: "application/vnd.ms-word;charset=utf-8" });
+  // Create a blob with proper MIME type for Word
+  const blob = new Blob(["\ufeff" + htmlContent], { 
+    type: "application/vnd.ms-word;charset=utf-8" 
+  });
+  
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
@@ -315,7 +468,9 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  
+  // Clean up the URL object
+  setTimeout(() => URL.revokeObjectURL(url), 100);
 };
 
 export const formatTranscriptTime = (transcript: string | undefined): string => {
@@ -326,4 +481,73 @@ export const formatTranscriptTime = (transcript: string | undefined): string => 
     date.setUTCHours(parseInt(hours), parseInt(minutes), parseInt(seconds));
     return `[${date.toLocaleTimeString("en-US", { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" })}]`;
   });
+};
+
+// Debug utility for base64 images
+export const debugBase64Images = (htmlContent: string): { 
+  imageCount: number; 
+  images: Array<{ 
+    index: number; 
+    sizeKB: number; 
+    format: string; 
+    isValid: boolean; 
+    error?: string;
+  }> 
+} => {
+  const imgRegex = /<img[^>]+src=["']?([^"'\s>]+)["']?[^>]*>/gi;
+  const matches = [...htmlContent.matchAll(imgRegex)];
+  const images: Array<{ 
+    index: number; 
+    sizeKB: number; 
+    format: string; 
+    isValid: boolean; 
+    error?: string;
+  }> = [];
+  
+  matches.forEach((match, index) => {
+    const src = match[1];
+    if (src.startsWith('data:')) {
+      try {
+        // Extract the base64 part
+        const base64Match = src.match(/^data:([^;]+);base64,(.+)$/);
+        if (base64Match) {
+          const mimeType = base64Match[1];
+          const base64Data = base64Match[2];
+          const sizeKB = (base64Data.length * 0.75) / 1024;
+          
+          // Validate base64
+          const isValidBase64 = /^[A-Za-z0-9+/]*={0,2}$/.test(base64Data);
+          
+          images.push({
+            index,
+            sizeKB: Math.round(sizeKB * 100) / 100,
+            format: mimeType,
+            isValid: isValidBase64,
+            error: !isValidBase64 ? 'Invalid base64 encoding' : undefined
+          });
+        } else {
+          images.push({
+            index,
+            sizeKB: 0,
+            format: 'unknown',
+            isValid: false,
+            error: 'Invalid data URL format'
+          });
+        }
+      } catch (error) {
+        images.push({
+          index,
+          sizeKB: 0,
+          format: 'error',
+          isValid: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+  });
+  
+  return {
+    imageCount: images.length,
+    images
+  };
 };
