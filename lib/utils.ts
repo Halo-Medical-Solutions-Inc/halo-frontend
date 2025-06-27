@@ -92,10 +92,10 @@ export const getTimeDifference = (olderDate: string, newerDate?: string): string
 export function parseFormattedText(text: string): string {
   if (!text) return "";
   let formatted = text;
-  
+
   // Check if the text already contains HTML tags (like from rich text editor)
   const hasHtmlTags = /<[^>]+>/.test(text);
-  
+
   if (!hasHtmlTags) {
     // Only apply formatting if it's plain text
     formatted = formatted.replace(/--([^-]+)--/g, "<u>$1</u>");
@@ -103,7 +103,7 @@ export function parseFormattedText(text: string): string {
     formatted = formatted.replace(/\/\/([^/]+)\/\//g, "<em>$1</em>");
     formatted = formatted.replace(/\n/g, "<br />");
   }
-  
+
   return formatted;
 }
 
@@ -191,7 +191,7 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
   printWindow.onload = () => {
     const images = printWindow.document.images;
     let loadedImages = 0;
-    
+
     const checkImagesAndPrint = () => {
       if (loadedImages === images.length) {
         setTimeout(() => {
@@ -214,7 +214,7 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
             checkImagesAndPrint();
           };
           img.onerror = () => {
-            console.error('Failed to load image:', img.src?.substring(0, 50) + '...');
+            console.error("Failed to load image:", img.src?.substring(0, 50) + "...");
             loadedImages++;
             checkImagesAndPrint();
           };
@@ -313,7 +313,7 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
   printWindow.onload = () => {
     const images = printWindow.document.images;
     let loadedImages = 0;
-    
+
     const checkImagesAndPrint = () => {
       if (loadedImages === images.length) {
         setTimeout(() => {
@@ -335,7 +335,7 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
             checkImagesAndPrint();
           };
           img.onerror = () => {
-            console.error('Failed to load image in PDF:', img.src?.substring(0, 50) + '...');
+            console.error("Failed to load image in PDF:", img.src?.substring(0, 50) + "...");
             loadedImages++;
             checkImagesAndPrint();
           };
@@ -357,11 +357,11 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
 
   const convertToWordParagraphs = (text: string) => {
     if (!text) return "";
-    
+
     if (/<[^>]+>/.test(text)) {
       return text;
     }
-    
+
     return text
       .split(/\n\s*\n/)
       .map((paragraph) => {
@@ -447,10 +447,10 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
     </html>
   `;
 
-  const blob = new Blob(["\ufeff" + htmlContent], { 
-    type: "application/vnd.ms-word;charset=utf-8" 
+  const blob = new Blob(["\ufeff" + htmlContent], {
+    type: "application/vnd.ms-word;charset=utf-8",
   });
-  
+
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
@@ -459,7 +459,7 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  
+
   setTimeout(() => URL.revokeObjectURL(url), 100);
 };
 
@@ -473,68 +473,70 @@ export const formatTranscriptTime = (transcript: string | undefined): string => 
   });
 };
 
-export const debugBase64Images = (htmlContent: string): { 
-  imageCount: number; 
-  images: Array<{ 
-    index: number; 
-    sizeKB: number; 
-    format: string; 
-    isValid: boolean; 
+export const debugBase64Images = (
+  htmlContent: string
+): {
+  imageCount: number;
+  images: Array<{
+    index: number;
+    sizeKB: number;
+    format: string;
+    isValid: boolean;
     error?: string;
-  }> 
+  }>;
 } => {
   const imgRegex = /<img[^>]+src=["']?([^"'\s>]+)["']?[^>]*>/gi;
   const matches = [...htmlContent.matchAll(imgRegex)];
-  const images: Array<{ 
-    index: number; 
-    sizeKB: number; 
-    format: string; 
-    isValid: boolean; 
+  const images: Array<{
+    index: number;
+    sizeKB: number;
+    format: string;
+    isValid: boolean;
     error?: string;
   }> = [];
-  
+
   matches.forEach((match, index) => {
     const src = match[1];
-    if (src.startsWith('data:')) {
+    if (src.startsWith("data:")) {
       try {
         const base64Match = src.match(/^data:([^;]+);base64,(.+)$/);
         if (base64Match) {
           const mimeType = base64Match[1];
           const base64Data = base64Match[2];
           const sizeKB = (base64Data.length * 0.75) / 1024;
-          
+
           const isValidBase64 = /^[A-Za-z0-9+/]*={0,2}$/.test(base64Data);
-          
+
           images.push({
             index,
             sizeKB: Math.round(sizeKB * 100) / 100,
             format: mimeType,
             isValid: isValidBase64,
-            error: !isValidBase64 ? 'Invalid base64 encoding' : undefined
+            error: !isValidBase64 ? "Invalid base64 encoding" : undefined,
           });
         } else {
           images.push({
             index,
             sizeKB: 0,
-            format: 'unknown',
+            format: "unknown",
             isValid: false,
-            error: 'Invalid data URL format'
+            error: "Invalid data URL format",
           });
         }
       } catch (error) {
         images.push({
           index,
           sizeKB: 0,
-          format: 'error',
+          format: "error",
           isValid: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : "Unknown error",
         });
       }
     }
   });
-  
+
   return {
     imageCount: images.length,
-    images
+    images,
   };
 };

@@ -145,7 +145,6 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
     }
   };
 
-
   return (
     <>
       <Sidebar variant="sidebar">

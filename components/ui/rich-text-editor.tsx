@@ -18,8 +18,8 @@ import { cn } from "@/lib/utils";
 const ResizableImageComponent = ({ node, updateAttributes }: any) => {
   const [isResizing, setIsResizing] = useState(false);
   const [imageSize, setImageSize] = useState({
-    width: node.attrs.width || 'auto',
-    height: node.attrs.height || 'auto'
+    width: node.attrs.width || "auto",
+    height: node.attrs.height || "auto",
   });
   const imageRef = useRef<HTMLImageElement>(null);
   const startSize = useRef({ width: 0, height: 0 });
@@ -31,7 +31,7 @@ const ResizableImageComponent = ({ node, updateAttributes }: any) => {
     if (node.attrs.width) {
       setImageSize({
         width: node.attrs.width,
-        height: node.attrs.height || 'auto'
+        height: node.attrs.height || "auto",
       });
     }
   }, [node.attrs.width, node.attrs.height]);
@@ -46,34 +46,34 @@ const ResizableImageComponent = ({ node, updateAttributes }: any) => {
 
       setImageSize({
         width: `${newWidth}px`,
-        height: `${newHeight}px`
+        height: `${newHeight}px`,
       });
     };
 
     const handleMouseUp = () => {
       if (!isResizingRef.current) return;
-      
+
       isResizingRef.current = false;
       setIsResizing(false);
-      
+
       // Update the node attributes with final size
       updateAttributes({
         width: imageSize.width,
-        height: imageSize.height
+        height: imageSize.height,
       });
-      
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
 
     if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isResizing, imageSize.width, imageSize.height, updateAttributes]);
 
@@ -82,7 +82,7 @@ const ResizableImageComponent = ({ node, updateAttributes }: any) => {
     e.stopPropagation();
     setIsResizing(true);
     isResizingRef.current = true;
-    
+
     if (imageRef.current) {
       const rect = imageRef.current.getBoundingClientRect();
       startSize.current = { width: rect.width, height: rect.height };
@@ -96,38 +96,30 @@ const ResizableImageComponent = ({ node, updateAttributes }: any) => {
       <img
         ref={imageRef}
         src={node.attrs.src}
-        alt={node.attrs.alt || ''}
+        alt={node.attrs.alt || ""}
         style={{
           width: imageSize.width,
           height: imageSize.height,
-          maxWidth: '100%',
-          display: 'block'
+          maxWidth: "100%",
+          display: "block",
         }}
-        className={cn(
-          "select-none",
-          isResizing && "opacity-90"
-        )}
+        className={cn("select-none", isResizing && "opacity-90")}
         draggable={false}
       />
       <div
-        className={cn(
-          "absolute bottom-0 right-0 w-4 h-4 bg-primary rounded-tl-sm cursor-se-resize",
-          "opacity-0 hover:opacity-100 transition-opacity",
-          "group-hover:opacity-100",
-          isResizing && "opacity-100"
-        )}
+        className={cn("absolute bottom-0 right-0 w-4 h-4 bg-primary rounded-tl-sm cursor-se-resize", "opacity-0 hover:opacity-100 transition-opacity", "group-hover:opacity-100", isResizing && "opacity-100")}
         onMouseDown={handleMouseDown}
         style={{
-          backgroundColor: 'rgb(59 130 246)', // blue-500
+          backgroundColor: "rgb(59 130 246)", // blue-500
         }}
       >
         <div className="absolute inset-0 flex items-center justify-center">
           <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="1.5" cy="6.5" r="1" fill="white"/>
-            <circle cx="4" cy="6.5" r="1" fill="white"/>
-            <circle cx="6.5" cy="6.5" r="1" fill="white"/>
-            <circle cx="6.5" cy="4" r="1" fill="white"/>
-            <circle cx="6.5" cy="1.5" r="1" fill="white"/>
+            <circle cx="1.5" cy="6.5" r="1" fill="white" />
+            <circle cx="4" cy="6.5" r="1" fill="white" />
+            <circle cx="6.5" cy="6.5" r="1" fill="white" />
+            <circle cx="6.5" cy="4" r="1" fill="white" />
+            <circle cx="6.5" cy="1.5" r="1" fill="white" />
           </svg>
         </div>
       </div>
@@ -220,7 +212,7 @@ const compressImage = (file: File, maxWidth: number = 800, maxHeight: number = 8
       const img = new window.Image();
       img.src = e.target?.result as string;
       img.onload = () => {
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         let width = img.width;
         let height = img.height;
 
@@ -240,33 +232,33 @@ const compressImage = (file: File, maxWidth: number = 800, maxHeight: number = 8
         canvas.width = width;
         canvas.height = height;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
         if (!ctx) {
-          reject(new Error('Failed to get canvas context'));
+          reject(new Error("Failed to get canvas context"));
           return;
         }
 
         // Use better image smoothing
         ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
+        ctx.imageSmoothingQuality = "high";
         ctx.drawImage(img, 0, 0, width, height);
 
         // Convert to base64 with compression
-        const compressedBase64 = canvas.toDataURL(file.type || 'image/jpeg', quality);
-        
+        const compressedBase64 = canvas.toDataURL(file.type || "image/jpeg", quality);
+
         // Check if the compressed image is still too large (> 500KB)
         const base64Size = compressedBase64.length * 0.75; // Approximate size in bytes
         if (base64Size > 500 * 1024) {
           // Try with lower quality
-          const lowerQuality = canvas.toDataURL('image/jpeg', 0.6);
+          const lowerQuality = canvas.toDataURL("image/jpeg", 0.6);
           resolve(lowerQuality);
         } else {
           resolve(compressedBase64);
         }
       };
-      img.onerror = () => reject(new Error('Failed to load image'));
+      img.onerror = () => reject(new Error("Failed to load image"));
     };
-    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.onerror = () => reject(new Error("Failed to read file"));
   });
 };
 
@@ -293,7 +285,7 @@ export function RichTextEditor({ content, onChange, minHeight = 100, placeholder
         allowBase64: true,
         inline: true,
         HTMLAttributes: {
-          class: 'rich-text-image',
+          class: "rich-text-image",
         },
       }),
     ],
@@ -307,7 +299,7 @@ export function RichTextEditor({ content, onChange, minHeight = 100, placeholder
         if (!items) return false;
 
         for (const item of items) {
-          if (item.type.startsWith('image/')) {
+          if (item.type.startsWith("image/")) {
             event.preventDefault();
             const file = item.getAsFile();
             if (file) {
@@ -321,7 +313,7 @@ export function RichTextEditor({ content, onChange, minHeight = 100, placeholder
       handleDrop: (view, event, slice, moved) => {
         if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
           const file = event.dataTransfer.files[0];
-          if (file.type.startsWith('image/')) {
+          if (file.type.startsWith("image/")) {
             event.preventDefault();
             handleImageFile(file);
             return true;
@@ -350,7 +342,7 @@ export function RichTextEditor({ content, onChange, minHeight = 100, placeholder
     }
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       setUploadError("Please select a valid image file");
       setTimeout(() => setUploadError(null), 3000);
       return;
@@ -362,7 +354,7 @@ export function RichTextEditor({ content, onChange, minHeight = 100, placeholder
     try {
       // Compress the image
       const compressedBase64 = await compressImage(file);
-      
+
       // Insert the compressed image
       editor
         .chain()
@@ -461,11 +453,7 @@ export function RichTextEditor({ content, onChange, minHeight = 100, placeholder
         }
       `}</style>
 
-      {uploadError && (
-        <div className="bg-destructive/10 text-destructive text-xs p-2 border-b border-destructive/20">
-          {uploadError}
-        </div>
-      )}
+      {uploadError && <div className="bg-destructive/10 text-destructive text-xs p-2 border-b border-destructive/20">{uploadError}</div>}
 
       <div className="bg-muted/30 p-1 border-b flex flex-wrap gap-1 items-center">
         {/* Font Family */}
@@ -559,24 +547,14 @@ export function RichTextEditor({ content, onChange, minHeight = 100, placeholder
 
         {/* Image */}
         <div className="relative">
-          <IconButton 
-            icon={ImageIcon} 
-            onClick={handleImageButtonClick} 
-            disabled={isUploading}
-          />
+          <IconButton icon={ImageIcon} onClick={handleImageButtonClick} disabled={isUploading} />
           {isUploading && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/50">
               <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           )}
         </div>
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          className="hidden" 
-          accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" 
-          onChange={handleFileUpload} 
-        />
+        <input type="file" ref={fileInputRef} className="hidden" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" onChange={handleFileUpload} />
       </div>
 
       <EditorContent editor={editor} className="p-2 min-h-[100px] focus-within:outline-none focus-within:ring-0" style={{ minHeight: `${minHeight}px` }} />

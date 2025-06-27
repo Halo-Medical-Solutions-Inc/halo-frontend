@@ -140,7 +140,7 @@ class AudioTranscriber {
 
         if (this.lastAudioLevel === 0) {
           this.config.onError?.(new Error("AUDIO_NOT_DETECTED"));
-          
+
           try {
             await this.config.onRequestMicPermissions?.();
           } catch (error) {

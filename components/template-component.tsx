@@ -82,13 +82,13 @@ export default function TemplateComponent() {
   const headerChange = (html: string) => {
     const sizeInBytes = new Blob([html]).size;
     const sizeInKB = sizeInBytes / 1024;
-    
+
     setHeaderSizeWarning(sizeInKB > 500);
-    
+
     if (sizeInKB > 1024) {
       console.warn(`Header content is large: ${sizeInKB.toFixed(2)}KB. This may cause issues.`);
     }
-    
+
     dispatch(setSelectedTemplate({ ...selectedTemplate, header: html }));
     debouncedSend({
       type: "update_template",
@@ -103,13 +103,13 @@ export default function TemplateComponent() {
   const footerChange = (html: string) => {
     const sizeInBytes = new Blob([html]).size;
     const sizeInKB = sizeInBytes / 1024;
-    
+
     setFooterSizeWarning(sizeInKB > 500);
-    
+
     if (sizeInKB > 1024) {
       console.warn(`Footer content is large: ${sizeInKB.toFixed(2)}KB. This may cause issues.`);
     }
-    
+
     dispatch(setSelectedTemplate({ ...selectedTemplate, footer: html }));
     debouncedSend({
       type: "update_template",
