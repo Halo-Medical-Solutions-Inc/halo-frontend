@@ -219,6 +219,8 @@ export default function NoteComponent() {
       });
   };
 
+  console.log(selectedVisit);
+
   return (
     <SidebarInset>
       <header className="flex h-14 shrink-0 items-center gap-2">

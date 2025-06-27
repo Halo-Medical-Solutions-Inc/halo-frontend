@@ -656,7 +656,7 @@ export default function RecordComponent() {
               </Button>
             )}
 
-            {selectedVisit?.status !== "NOT_STARTED" && selectedVisit?.status !== "FRONTEND_TRANSITION" && (
+            {selectedVisit?.status !== "NOT_STARTED" && selectedVisit?.status !== "FRONTEND_TRANSITION" && selectedVisit?.status !== "RECORDING" && selectedVisit?.status !== "PAUSED" && (
               <div className="flex items-center justify-between w-full gap-2">
                 <Button variant="outline" className="flex-1" onClick={finishRecording} disabled={!online || !websocketConnected}>
                   {finishRecordingLoading ? (
