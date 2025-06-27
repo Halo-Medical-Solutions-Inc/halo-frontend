@@ -654,6 +654,20 @@ export default function RecordComponent() {
               </Button>
             )}
 
+            {selectedVisit?.status !== "NOT_STARTED" && selectedVisit?.status !== "FRONTEND_TRANSITION" && selectedVisit?.status !== "RECORDING" && selectedVisit?.status !== "PAUSED" && (
+              <div className="flex items-center justify-between w-full gap-2">
+                <Button variant="outline" className="flex-1" onClick={finishRecording} disabled={!online || !websocketConnected}>
+                  {finishRecordingLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4" /> Finish
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+
             {!online ||
               (!websocketConnected && (
                 <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">

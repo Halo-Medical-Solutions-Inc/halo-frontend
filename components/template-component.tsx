@@ -20,6 +20,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { useNextStep } from "nextstepjs";
 import Confetti from "react-confetti";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export default function TemplateComponent() {
   const isMobile = useIsMobile();
@@ -33,9 +35,14 @@ export default function TemplateComponent() {
 
   const [activeTab, setActiveTab] = useState<"instructions" | "printer">("instructions");
   const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
+  const [headerSizeWarning, setHeaderSizeWarning] = useState(false);
+  const [footerSizeWarning, setFooterSizeWarning] = useState(false);
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: typeof window !== "undefined" ? window.innerWidth : 0, height: typeof window !== "undefined" ? window.innerHeight : 0 });
+
+  const [fontSize, setFontSize] = useState("12px");
+  const [fontFamily, setFontFamily] = useState("Times New Roman");
 
   useEffect(() => {
     const deleteTemplateHandler = handle("delete_template", "template", (data) => {
@@ -49,6 +56,12 @@ export default function TemplateComponent() {
       deleteTemplateHandler();
     };
   }, []);
+
+  useEffect(() => {
+    const styles = parsePrintStyles(selectedTemplate?.print);
+    setFontSize(styles.fontSize);
+    setFontFamily(styles.fontFamily);
+  }, [selectedTemplate?.template_id]);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedTemplate({ ...selectedTemplate, name: e.target.value }));
@@ -78,6 +91,15 @@ export default function TemplateComponent() {
   };
 
   const headerChange = (html: string) => {
+    const sizeInBytes = new Blob([html]).size;
+    const sizeInKB = sizeInBytes / 1024;
+
+    setHeaderSizeWarning(sizeInKB > 500);
+
+    if (sizeInKB > 1024) {
+      console.warn(`Header content is large: ${sizeInKB.toFixed(2)}KB. This may cause issues.`);
+    }
+
     dispatch(setSelectedTemplate({ ...selectedTemplate, header: html }));
     debouncedSend({
       type: "update_template",
@@ -90,6 +112,15 @@ export default function TemplateComponent() {
   };
 
   const footerChange = (html: string) => {
+    const sizeInBytes = new Blob([html]).size;
+    const sizeInKB = sizeInBytes / 1024;
+
+    setFooterSizeWarning(sizeInKB > 500);
+
+    if (sizeInKB > 1024) {
+      console.warn(`Footer content is large: ${sizeInKB.toFixed(2)}KB. This may cause issues.`);
+    }
+
     dispatch(setSelectedTemplate({ ...selectedTemplate, footer: html }));
     debouncedSend({
       type: "update_template",
@@ -152,6 +183,57 @@ export default function TemplateComponent() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const parsePrintStyles = (print?: string): { fontSize: string; fontFamily: string } => {
+    const defaultStyles = { fontSize: "12px", fontFamily: "Times New Roman" };
+    if (!print) return defaultStyles;
+
+    const styles = { ...defaultStyles };
+    const parts = print.split(";").filter(Boolean);
+
+    parts.forEach((part) => {
+      const [key, value] = part.split(":").map((s) => s.trim());
+      if (key === "font-size") {
+        styles.fontSize = value;
+      } else if (key === "font-family") {
+        styles.fontFamily = value;
+      }
+    });
+
+    return styles;
+  };
+
+  const buildPrintString = (fontSize: string, fontFamily: string): string => {
+    return `font-size:${fontSize};font-family:${fontFamily}`;
+  };
+
+  const handleFontSizeChange = (value: string) => {
+    setFontSize(value);
+    const printString = buildPrintString(value, fontFamily);
+    dispatch(setSelectedTemplate({ ...selectedTemplate, print: printString }));
+    debouncedSend({
+      type: "update_template",
+      session_id: session.session_id,
+      data: {
+        template_id: selectedTemplate?.template_id,
+        print: printString,
+      },
+    });
+  };
+
+  const handleFontFamilyChange = (value: string) => {
+    setFontFamily(value);
+    const printString = buildPrintString(fontSize, value);
+    dispatch(setSelectedTemplate({ ...selectedTemplate, print: printString }));
+    debouncedSend({
+      type: "update_template",
+      session_id: session.session_id,
+      data: {
+        template_id: selectedTemplate?.template_id,
+        print: printString,
+      },
+    });
+  };
 
   return (
     <>
@@ -271,8 +353,58 @@ export default function TemplateComponent() {
                 className="w-full text-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none"
                 id="template-tour-content-textarea"
               />
-            ) : (
+            ) : activeTab === "printer" ? (
               <div className="space-y-8">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-medium">Font Size</h3>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Info className="h-3 w-3" />
+                      <span>Set the font size for the printed document.</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Select value={fontSize} onValueChange={handleFontSizeChange}>
+                      <SelectTrigger className="w-24">
+                        <SelectValue placeholder="Select Size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10px">10px</SelectItem>
+                        <SelectItem value="12px">12px</SelectItem>
+                        <SelectItem value="14px">14px</SelectItem>
+                        <SelectItem value="16px">16px</SelectItem>
+                        <SelectItem value="18px">18px</SelectItem>
+                        <SelectItem value="20px">20px</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-medium">Font Family</h3>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Info className="h-3 w-3" />
+                      <span>Set the font family for the printed document.</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Select value={fontFamily} onValueChange={handleFontFamilyChange}>
+                      <SelectTrigger className="w-24">
+                        <SelectValue placeholder="Select Font" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Times New Roman">Times New Roman</SelectItem>
+                        <SelectItem value="Arial">Arial</SelectItem>
+                        <SelectItem value="Helvetica">Helvetica</SelectItem>
+                        <SelectItem value="Georgia">Georgia</SelectItem>
+                        <SelectItem value="Courier New">Courier New</SelectItem>
+                        <SelectItem value="Verdana">Verdana</SelectItem>
+                        <SelectItem value="Calibri">Calibri</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-medium">Header</h3>
@@ -280,11 +412,17 @@ export default function TemplateComponent() {
                       <Info className="h-3 w-3" />
                       <span>HTML support enabled</span>
                     </div>
+                    {headerSizeWarning && (
+                      <div className="text-xs text-orange-500 flex items-center gap-1">
+                        <Info className="h-3 w-3" />
+                        <span>Large content - images may not display properly</span>
+                      </div>
+                    )}
                   </div>
                   <div className="rounded-md bg-muted/20">
                     <RichTextEditor content={selectedTemplate?.header || ""} onChange={headerChange} minHeight={100} placeholder="Add your header content here" />
                   </div>
-                  <p className="text-xs text-muted-foreground">Add HTML content for the document header. This will appear at the top of printed documents.</p>
+                  <p className="text-xs text-muted-foreground">Add HTML content for the document header. This will appear at the top of printed documents. For best results, keep images under 800x800 pixels.</p>
                 </div>
 
                 <div className="space-y-2">
@@ -294,14 +432,20 @@ export default function TemplateComponent() {
                       <Info className="h-3 w-3" />
                       <span>HTML support enabled</span>
                     </div>
+                    {footerSizeWarning && (
+                      <div className="text-xs text-orange-500 flex items-center gap-1">
+                        <Info className="h-3 w-3" />
+                        <span>Large content - images may not display properly</span>
+                      </div>
+                    )}
                   </div>
                   <div className="rounded-md bg-muted/20">
                     <RichTextEditor content={selectedTemplate?.footer || ""} onChange={footerChange} minHeight={100} placeholder="Add your footer content here" />
                   </div>
-                  <p className="text-xs text-muted-foreground">Add HTML content for the document footer. This will appear at the bottom of printed documents.</p>
+                  <p className="text-xs text-muted-foreground">Add HTML content for the document footer. This will appear at the bottom of printed documents. For best results, keep images under 800x800 pixels.</p>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </SidebarInset>

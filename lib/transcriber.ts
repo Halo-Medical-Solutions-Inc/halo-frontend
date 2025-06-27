@@ -6,6 +6,7 @@ interface TranscriberConfig {
   onTranscript?: (transcript: { text: string; isFinal: boolean }) => void;
   onError?: (error: Error) => void;
   onAudioLevelUpdate?: (level: number) => void;
+  onRequestMicPermissions?: () => Promise<void>;
 }
 
 class AudioTranscriber {
@@ -17,9 +18,6 @@ class AudioTranscriber {
   private config: TranscriberConfig;
   private audioLevelCheckInterval: NodeJS.Timeout | null = null;
   private lastAudioLevel = 0;
-  private silenceStartTime: number | null = null;
-  private readonly SILENCE_THRESHOLD = 0;
-  private readonly SILENCE_DURATION_MS = 3000;
 
   constructor(config: TranscriberConfig) {
     this.config = config;
@@ -134,18 +132,20 @@ class AudioTranscriber {
   }
 
   private startAudioLevelMonitoring(): void {
-    this.audioLevelCheckInterval = setInterval(() => {
+    this.audioLevelCheckInterval = setInterval(async () => {
       if (this.isRecording) {
         this.config.onAudioLevelUpdate?.(this.lastAudioLevel);
 
-        if (this.lastAudioLevel <= this.SILENCE_THRESHOLD) {
-          if (!this.silenceStartTime) {
-            this.silenceStartTime = Date.now();
-          } else if (Date.now() - this.silenceStartTime > this.SILENCE_DURATION_MS) {
-            this.config.onError?.(new Error("AUDIO_NOT_DETECTED"));
+        console.log("Audio level:", this.lastAudioLevel);
+
+        if (this.lastAudioLevel === 0) {
+          this.config.onError?.(new Error("AUDIO_NOT_DETECTED"));
+
+          try {
+            await this.config.onRequestMicPermissions?.();
+          } catch (error) {
+            console.error("Failed to request mic permissions:", error);
           }
-        } else {
-          this.silenceStartTime = null;
         }
       }
     }, 500);
@@ -219,6 +219,20 @@ export function useTranscriber(visitId?: string) {
     checkMicrophone();
   }, []);
 
+  const requestMicPermissions = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setMicrophone(true);
+      setAudioNotDetected(false);
+      stream.getTracks().forEach((track) => track.stop());
+      console.log("Microphone permissions granted");
+    } catch (error) {
+      console.error("Failed to get microphone permissions:", error);
+      setMicrophone(false);
+      throw error;
+    }
+  }, []);
+
   const startTranscriber = useCallback(async () => {
     if (!visitId) {
       throw new Error("Visit ID is required");
@@ -246,15 +260,17 @@ export function useTranscriber(visitId?: string) {
           console.error("Transcriber error:", error);
           if (error.message === "AUDIO_NOT_DETECTED") {
             setAudioNotDetected(true);
+          } else {
+            setConnected(false);
           }
-          setConnected(false);
         },
         onAudioLevelUpdate: (level) => {
           setAudioLevel(level);
-          if (level > 0 && audioNotDetected) {
+          if (level > 0) {
             setAudioNotDetected(false);
           }
         },
+        onRequestMicPermissions: requestMicPermissions,
       });
 
       await transcriberRef.current.connect();
@@ -264,7 +280,7 @@ export function useTranscriber(visitId?: string) {
       setConnected(false);
       throw error;
     }
-  }, [visitId, microphone, audioNotDetected]);
+  }, [visitId, microphone, requestMicPermissions]);
 
   const stopTranscriber = useCallback(async () => {
     if (transcriberRef.current) {
@@ -289,5 +305,6 @@ export function useTranscriber(visitId?: string) {
     microphone,
     audioLevel,
     audioNotDetected,
+    requestMicPermissions,
   };
 }
