@@ -393,8 +393,6 @@ export default function RecordComponent() {
     }
   };
 
-  console.log(selectedVisit);
-
   return (
     <>
       <input

@@ -107,13 +107,34 @@ export function parseFormattedText(text: string): string {
   return formatted;
 }
 
-export const printNote = (visitName: string, noteContent: string, headerContent?: string, footerContent?: string) => {
+const parsePrintStyles = (print?: string): { fontSize: string; fontFamily: string } => {
+  const defaultStyles = { fontSize: "12px", fontFamily: "Times New Roman" };
+  if (!print) return defaultStyles;
+
+  const styles = { ...defaultStyles };
+  const parts = print.split(";").filter(Boolean);
+
+  parts.forEach((part) => {
+    const [key, value] = part.split(":").map((s) => s.trim());
+    if (key === "font-size") {
+      styles.fontSize = value;
+    } else if (key === "font-family") {
+      styles.fontFamily = value;
+    }
+  });
+
+  return styles;
+};
+
+export const printNote = (visitName: string, noteContent: string, headerContent?: string, footerContent?: string, printStyles?: string) => {
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
 
   const formattedNoteContent = parseFormattedText(noteContent);
   const formattedHeaderContent = headerContent ? parseFormattedText(headerContent) : "";
   const formattedFooterContent = footerContent ? parseFormattedText(footerContent) : "";
+
+  const { fontSize, fontFamily } = parsePrintStyles(printStyles);
 
   printWindow.document.write(`
     <!DOCTYPE html>
@@ -123,7 +144,8 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
         <title>${visitName}</title>
         <style>
           body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: ${fontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: ${fontSize};
             margin: 0;
             padding: 0;
             color: #000;
@@ -224,10 +246,12 @@ export const printNote = (visitName: string, noteContent: string, headerContent?
   };
 };
 
-export const downloadNoteAsPDF = async (visitName: string, noteContent: string, headerContent?: string, footerContent?: string) => {
+export const downloadNoteAsPDF = async (visitName: string, noteContent: string, headerContent?: string, footerContent?: string, printStyles?: string) => {
   const formattedNoteContent = parseFormattedText(noteContent);
   const formattedHeaderContent = headerContent ? parseFormattedText(headerContent) : "";
   const formattedFooterContent = footerContent ? parseFormattedText(footerContent) : "";
+
+  const { fontSize, fontFamily } = parsePrintStyles(printStyles);
 
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
@@ -245,7 +269,8 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
         <title>${filename}</title>
         <style>
           body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: ${fontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: ${fontSize};
             margin: 0;
             padding: 0;
             color: #000;
@@ -345,10 +370,12 @@ export const downloadNoteAsPDF = async (visitName: string, noteContent: string, 
   };
 };
 
-export const downloadNoteAsWord = async (visitName: string, noteContent: string, headerContent?: string, footerContent?: string) => {
+export const downloadNoteAsWord = async (visitName: string, noteContent: string, headerContent?: string, footerContent?: string, printStyles?: string) => {
   const formattedNoteContent = parseFormattedText(noteContent);
   const formattedHeaderContent = headerContent ? parseFormattedText(headerContent) : "";
   const formattedFooterContent = footerContent ? parseFormattedText(footerContent) : "";
+
+  const { fontSize, fontFamily } = parsePrintStyles(printStyles);
 
   const now = new Date();
   const dateTimeString = format(now, "yyyy-MM-dd_HHmm");
@@ -387,8 +414,8 @@ export const downloadNoteAsWord = async (visitName: string, noteContent: string,
         <![endif]-->
         <style>
           body { 
-            font-family: 'Calibri', 'Arial', sans-serif; 
-            font-size: 11pt; 
+            font-family: '${fontFamily}', 'Calibri', 'Arial', sans-serif; 
+            font-size: ${fontSize}; 
             line-height: 1.5; 
             margin: 0;
             padding: 20px;

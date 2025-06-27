@@ -140,6 +140,7 @@ export default function NoteComponent() {
     const template = templates.find((t) => t.template_id === templateId);
     const header = template?.header || "";
     const footer = template?.footer || "";
+    const printStyles = template?.print || "";
     if (header || footer) {
       const headerDebug = debugBase64Images(header);
       const footerDebug = debugBase64Images(footer);
@@ -159,7 +160,7 @@ export default function NoteComponent() {
       }
     }
 
-    printNoteUtil(name, content, header, footer);
+    printNoteUtil(name, content, header, footer, printStyles);
   };
 
   const downloadNote = (format: "pdf" | "docx") => {
@@ -169,11 +170,12 @@ export default function NoteComponent() {
     const template = templates.find((t) => t.template_id === templateId);
     const header = template?.header || "";
     const footer = template?.footer || "";
+    const printStyles = template?.print || "";
 
     if (format === "pdf") {
-      downloadNoteAsPDFUtil(name, content, header, footer);
+      downloadNoteAsPDFUtil(name, content, header, footer, printStyles);
     } else {
-      downloadNoteAsWordUtil(name, content, header, footer);
+      downloadNoteAsWordUtil(name, content, header, footer, printStyles);
     }
   };
 
@@ -218,8 +220,6 @@ export default function NoteComponent() {
         setIsSendingToEmr(false);
       });
   };
-
-  console.log(selectedVisit);
 
   return (
     <SidebarInset>
