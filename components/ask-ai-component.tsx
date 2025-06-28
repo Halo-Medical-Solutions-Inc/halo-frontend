@@ -117,7 +117,7 @@ Here is the available patient data:
 ${selectedVisit.additional_context || "No additional context available"}
 ${selectedVisit.note ? `Note: ${selectedVisit.note}` : ""}
 
-Follow this exact format and structure. Use //italics// for important medical terms and conditions, and --underlines-- for critical alerts or urgent items:
+YOU MUST follow this EXACT format and structure with clear headings and sections. Use //italics// for important medical terms and conditions, and --underlines-- for critical alerts or urgent items:
 
 =========================
 **Patient:** ${selectedVisit.name} | **DOB:** [MM/DD/YYYY or Unknown] | [Age or Unknown] [Sex or Unknown]  
@@ -127,43 +127,47 @@ Follow this exact format and structure. Use //italics// for important medical te
 [Short summary of reason for visit or concern as recorded or inferred]
 
 **HPI Summary:**  
-[1-3 sentence narrative describing the history of present illness, relevant symptoms, duration, progression, and recent care activity (e.g., imaging, ED visits, med changes)]
+[1-3 sentence narrative describing the history of present illness, relevant symptoms, duration, progression, and recent care activity]
 
-**Problem List (with relevance):**  
+**Problem List:**  
 - [Problem 1] – [Status: stable/worsening/recently diagnosed/etc.]  
 - [Problem 2] – [relevant note]  
 *(Only include relevant or active problems)*
 
 **Medications:**  
-[List of relevant meds and dosages — especially new/changed/related to today's visit, or "Not documented" if unavailable]
+[List relevant medications and dosages, or "Not documented"]
 
 **Allergies:**  
-[List with reactions, e.g., Penicillin – hives, or "Not documented" if unavailable]
+[List with reactions, e.g., Penicillin – hives, or "Not documented"]
 
 **Vitals (Most Recent):**  
 BP: [ ], HR: [ ], Temp: [ ], Wt: [ ] lb, Ht: [ ] in  
-*[Include weight/BP trend if relevant, or "Not documented" if unavailable]*
+*[Include trends if relevant, or "Not documented"]*
 
 **Recent Labs & Imaging:**  
 - [Test name]: [Date] – [Result summary]  
-*(Only include clinically relevant results from the past ~6 months, or "None documented" if unavailable)*
+*(Past ~6 months, or "None documented")*
 
 **Pending / Follow-Ups:**  
-- [Mention anything the provider should be aware of or that needs follow-up — e.g., referrals, labs, care gaps, or "None identified" if unavailable]
+- [Items needing follow-up: referrals, labs, care gaps, or "None identified"]
 
 **Social & Other Notes:**  
-[Language needs, adherence issues, missed visits, psychosocial context, SDoH, or "None documented" if unavailable]
+[Language needs, adherence issues, psychosocial context, SDoH, or "None documented"]
 
 =========================
 
-CRITICAL INSTRUCTIONS:
-- DO NOT include boilerplate or repeat the entire chart
-- DO NOT hallucinate — only summarize what is present in the chart data
-- If information is not available, use "Unknown", "Not documented", or "None documented" as appropriate
-- Be anticipatory: highlight risks, missed follow-ups, or flags relevant to the visit using //italics// for medical terms and --underlines-- for critical alerts
-- Keep total length under ~300 words
-- Use the formatting: //italics// for medical conditions/terms, --underlines-- for urgent/critical items
-- Follow the format exactly. Do not add any introductory text or closing statements.`;
+CRITICAL FORMATTING REQUIREMENTS:
+- MAINTAIN ALL SECTION HEADERS EXACTLY AS SHOWN ABOVE
+- DO NOT combine sections or create paragraph summaries
+- Each section must have its own clear heading (**Section Name:**)
+- Use bullet points (-) for lists within sections
+- Keep each section concise but clearly separated
+- DO NOT write a single paragraph summary - use the structured format with headings
+- DO NOT include boilerplate text or introductory statements
+- DO NOT hallucinate data - only use information provided
+- If information is missing, use "Unknown", "Not documented", or "None documented"
+- Use //italics// for medical conditions/terms, --underlines-- for critical alerts
+- Total length under ~300 words but MUST maintain all section headers`;
       const response = await apiAskChat(session.session_id, message);
       setPatientSummary(response);
       return true;
