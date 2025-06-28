@@ -109,7 +109,7 @@ No specific patient visit is currently selected. You can only answer general que
     setFetchingPatientSummary(true);
     try {
       const message = `
-You are an AI medical scribe preparing a pre-chart summary for a physician before they enter the exam room. Your job is to provide a structured, concise, and clinically meaningful snapshot of the patient's history and recent activity, based on the patient's record.
+You are an AI medical scribe preparing a pre-chart summary for a physician before they enter the exam room. Your job is to provide a structured, concise, and clinically meaningful snapshot of the patient's history and recent activity, based on the patient's record. This record is a copy of the patient's most recent encounter note with the physician.
 
 **Your objective is to reduce the physician's cognitive load and surface relevant context for the upcoming encounter.**
 
