@@ -128,6 +128,15 @@ YOU MUST follow this EXACT format and structure with clear headings and sections
 
 **Summary**
 
+EXAMPLE START FORMAT:
+**Name:** DEBRA KINCADE
+**DOB:** 04/05/1955
+**Age:** 70
+**Reason for Visit:** Referred by Dr. Gill for lung nodules
+
+**Summary**
+END EXAMPLE - FOLLOW THIS EXACT FORMAT
+
 **HPI Summary:**  
 - [Key symptom or complaint with duration]
 - [Relevant medical history or progression]
@@ -161,8 +170,11 @@ BP: [ ], HR: [ ], Temp: [ ], Wt: [ ] lb, Ht: [ ] in
 
 CRITICAL FORMATTING REQUIREMENTS:
 - MAINTAIN ALL SECTION HEADERS EXACTLY AS SHOWN ABOVE
-- Use the simplified header format with Name, DOB, Age, Reason for Visit, then "Summary"
+- Use the simplified header format: Name, DOB, Age, Reason for Visit, then "Summary"
 - Convert patient name from "Last, First" format to "First Last" format
+- DO NOT use "Patient:" - use "**Name:**" instead
+- DO NOT include Visit Date or Provider information
+- DO NOT include any separator lines like "========================="
 - HPI Summary MUST use bullet points (-) not paragraph format
 - DO NOT combine sections or create paragraph summaries
 - Each section must have its own clear heading (**Section Name:**)
