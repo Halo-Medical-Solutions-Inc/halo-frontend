@@ -126,8 +126,6 @@ YOU MUST follow this EXACT format and structure with clear headings and sections
 **Age:** [Age or Unknown]
 **Reason for Visit:** [Short summary of reason for visit or concern as recorded or inferred]
 
-**Summary**
-
 EXAMPLE START FORMAT:
 **Name:** DEBRA KINCADE
 **DOB:** 04/05/1955
