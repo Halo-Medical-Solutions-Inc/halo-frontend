@@ -201,7 +201,16 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
                   <SidebarMenu>
                     {visits.map((visit) => (
                       <SidebarMenuItem key={visit.visit_id} className={`group/item ${visit.visit_id === selectedVisit?.visit_id ? "bg-accent" : ""}`} onClick={visit.status !== "RECORDING" ? () => selectVisit(visit) : undefined}>
-                        <SidebarMenuButton asChild className={`${visit.status === "RECORDING" ? "cursor-not-allowed bg-transparent hover:bg-transparent active:bg-transparent focus:bg-transparent" : visit.visit_id === selectedVisit?.visit_id ? "bg-primary/10 hover:bg-primary/10" : "hover:bg-primary/5"}`}>
+                        <SidebarMenuButton
+                          asChild
+                          className={`${
+                            visit.status === "RECORDING"
+                              ? "cursor-not-allowed bg-transparent hover:bg-transparent active:bg-transparent focus:bg-transparent"
+                              : visit.visit_id === selectedVisit?.visit_id
+                              ? "bg-primary/10 hover:bg-primary/10 group-hover/item:bg-primary/10"
+                              : "hover:bg-primary/5 group-hover/item:bg-primary/5"
+                          }`}
+                        >
                           <span className="flex w-full justify-between items-center">
                             <span className="truncate flex-1 min-w-0">{visit.name || "New Visit"}</span>
                             {visit.status !== "RECORDING" && (
