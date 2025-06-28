@@ -66,7 +66,6 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
     const pauseRecordingHandler = handle("pause_recording", "sidebar", (data) => {
       if (data.was_requested) {
         setIsPausingVisit(false);
-        ``;
       }
     });
 
@@ -201,11 +200,15 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
                   <SidebarGroupLabel className="text-muted-foreground font-normal">{date}</SidebarGroupLabel>
                   <SidebarMenu>
                     {visits.map((visit) => (
-                      <SidebarMenuItem key={visit.visit_id} className={visit.visit_id === selectedVisit?.visit_id ? "bg-accent" : ""} onClick={visit.status !== "RECORDING" ? () => selectVisit(visit) : undefined}>
+                      <SidebarMenuItem key={visit.visit_id} className={`group/item ${visit.visit_id === selectedVisit?.visit_id ? "bg-accent" : ""}`} onClick={visit.status !== "RECORDING" ? () => selectVisit(visit) : undefined}>
                         <SidebarMenuButton asChild className={`${visit.status === "RECORDING" ? "cursor-not-allowed bg-transparent hover:bg-transparent active:bg-transparent focus:bg-transparent" : visit.visit_id === selectedVisit?.visit_id ? "bg-primary/10 hover:bg-primary/10" : "hover:bg-primary/5"}`}>
                           <span className="flex w-full justify-between items-center">
-                            <span className="truncate">{visit.name || "New Visit"}</span>
-                            <span className="text-muted-foreground ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-normal outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0">{visit.created_at ? formatLocalTime(visit.created_at) : "00:00 AM"}</span>
+                            <span className="truncate flex-1 min-w-0">{visit.name || "New Visit"}</span>
+                            {visit.status !== "RECORDING" && (
+                              <span className="text-muted-foreground text-xs font-normal whitespace-nowrap pl-2 flex-shrink-0 transition-all duration-200 group-hover/item:hidden">
+                                {visit.created_at ? formatLocalTime(visit.created_at) : "00:00 AM"}
+                              </span>
+                            )}
                           </span>
                         </SidebarMenuButton>
 
@@ -216,10 +219,10 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
                                 <div className="w-2.5 h-2.5 rounded-full bg-destructive animate-pulse" />
                               </SidebarMenuAction>
                             ) : (
-                              <SidebarMenuAction showOnHover>
-                                <MoreHorizontal />
+                              <span className="absolute opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all duration-200 right-2 top-1/2 -translate-y-1/2 z-10 cursor-pointer">
+                                <MoreHorizontal className="h-4 w-4" />
                                 <span className="sr-only">More</span>
-                              </SidebarMenuAction>
+                              </span>
                             )}
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="w-auto" side={isMobile ? "bottom" : "right"} align={isMobile ? "end" : "center"}>
