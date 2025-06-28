@@ -46,11 +46,11 @@ export async function apiGetUserTemplates(sessionId: string): Promise<Template[]
   return response.json();
 }
 
-export async function apiGetUserVisits(sessionId: string, subset: boolean = true): Promise<Visit[]> {
+export async function apiGetUserVisits(sessionId: string, subset: boolean = true, offset: number = 0, limit: number = 20): Promise<Visit[]> {
   const response = await fetch(`${API_URL}/user/get_visits`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ session_id: sessionId, subset: subset }),
+    body: JSON.stringify({ session_id: sessionId, subset: subset, offset: offset, limit: limit }),
     credentials: "include",
   });
   if (!response.ok) throw new Error("Failed to get user visits");

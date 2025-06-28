@@ -36,16 +36,26 @@ export default function Page() {
 
   const [initialLoad, setInitialLoad] = useState(true);
   const [hasLoadedAll, setHasLoadedAll] = useState(false);
+  const [loadedVisitsCount, setLoadedVisitsCount] = useState(0);
 
-  const loadAllVisits = async () => {
+  const loadMoreVisits = async () => {
     if (!session || hasLoadedAll) return;
 
     try {
-      const allVisits = await apiGetUserVisits(session.session_id, false);
-      dispatch(setVisits(allVisits));
-      setHasLoadedAll(true);
+      const moreVisits = await apiGetUserVisits(session.session_id, false, loadedVisitsCount, 20);
+      
+      if (moreVisits.length < 20) {
+        setHasLoadedAll(true);
+      }
+      
+      if (moreVisits.length > 0) {
+        const existingVisitIds = new Set(visits.map(v => v.visit_id));
+        const newVisits = moreVisits.filter(v => !existingVisitIds.has(v.visit_id));
+        dispatch(setVisits([...visits, ...newVisits]));
+        setLoadedVisitsCount(loadedVisitsCount + newVisits.length);
+      }
     } catch (error) {
-      console.error("Failed to load all visits:", error);
+      console.error("Failed to load more visits:", error);
     }
   };
 
@@ -217,6 +227,7 @@ export default function Page() {
       }),
       apiGetUserVisits(session.session_id, true).then((visits) => {
         dispatch(setVisits(visits));
+        setLoadedVisitsCount(visits.length);
         const lastNonRecordingVisit = [...visits].find((visit) => visit.status !== "RECORDING");
         if (lastNonRecordingVisit) {
           dispatch(setSelectedVisit(lastNonRecordingVisit));
@@ -244,7 +255,7 @@ export default function Page() {
         </div>
       )}
       <Application>
-        <SidebarComponent loadAllVisits={loadAllVisits} hasLoadedAll={hasLoadedAll} />
+        <SidebarComponent loadMoreVisits={loadMoreVisits} hasLoadedAll={hasLoadedAll} />
         {screen === "ACCOUNT" && <AccountComponent />}
         {screen === "NOTE" && <NoteComponent />}
         {screen === "RECORD" && <RecordComponent />}
