@@ -113,7 +113,7 @@ You are an AI medical scribe preparing a pre-chart summary for a physician befor
 
 **Your objective is to reduce the physician's cognitive load and surface relevant context for the upcoming encounter.**
 
-**Today's Date:** ${new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+**Today's Date:** ${new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: '2-digit', day: '2-digit', year: 'numeric' })}
 
 Here is the available patient data:
 ${selectedVisit.additional_context || "No additional context available"}
