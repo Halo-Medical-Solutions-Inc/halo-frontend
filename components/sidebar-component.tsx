@@ -23,11 +23,11 @@ import { useNextStep } from "nextstepjs";
 import { Input } from "@/components/ui/input";
 
 interface SidebarComponentProps {
-  loadAllVisits: () => Promise<void>;
+  loadMoreVisits: () => Promise<void>;
   hasLoadedAll: boolean;
 }
 
-export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: SidebarComponentProps) {
+export default function SidebarComponent({ loadMoreVisits, hasLoadedAll }: SidebarComponentProps) {
   const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const { send } = useWebSocket();
@@ -44,6 +44,7 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
   const [isPausingVisit, setIsPausingVisit] = useState(false);
   const [isLoadingAll, setIsLoadingAll] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
   useEffect(() => {
     const createVisitHandler = handle("create_visit", "sidebar", (data) => {
@@ -137,16 +138,15 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
     window.location.href = "/signin";
   };
 
-  const handleLoadAll = async () => {
+  const handleLoadMore = async () => {
     setIsLoadingAll(true);
     try {
-      await loadAllVisits();
+      await loadMoreVisits();
     } finally {
       setIsLoadingAll(false);
     }
   };
 
-  // Filter visits based on search term
   const filteredGroupedVisits = React.useMemo(() => {
     if (!searchTerm.trim()) return groupedVisits;
 
@@ -157,6 +157,27 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
       }))
       .filter((group) => group.visits.length > 0);
   }, [groupedVisits, searchTerm]);
+
+  const handleSearchClick = () => {
+    setIsSearchExpanded(true);
+  };
+
+  const handleSearchBlur = () => {
+    if (!searchTerm.trim()) {
+      setIsSearchExpanded(false);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleNewVisitClick = () => {
+    if (isSearchExpanded) {
+      setIsSearchExpanded(false);
+    }
+    createVisit();
+  };
 
   return (
     <>
@@ -175,25 +196,69 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
-          <div className="relative flex w-full min-w-0 flex-col p-2 rounded-md gap-2">
-            <Button className="font-normal" onClick={createVisit} disabled={isCreatingVisit} id="visit-tour-new-visit">
-              {isCreatingVisit ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          <div className="relative flex w-full min-w-0 flex-row p-2 rounded-md gap-2">
+            <div className={`transition-all duration-300 ease-out overflow-hidden ${isSearchExpanded ? 'w-9 flex-shrink-0' : 'flex-1'}`}>
+              {isSearchExpanded ? (
+                <Button
+                  size="icon"
+                  className="w-9 h-9 flex-shrink-0 min-w-9"
+                  onClick={handleNewVisitClick}
+                  disabled={isCreatingVisit}
+                  id="visit-tour-new-visit"
+                >
+                  {isCreatingVisit ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CirclePlus className="h-4 w-4" />
+                  )}
+                </Button>
               ) : (
-                <>
-                  <CirclePlus className="h-4 w-4 mr-2" />
-                  New Visit
-                </>
+                <Button
+                  className="font-normal w-full h-9 min-h-9"
+                  onClick={handleNewVisitClick}
+                  disabled={isCreatingVisit}
+                  id="visit-tour-new-visit"
+                >
+                  {isCreatingVisit ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <>
+                      <CirclePlus className="h-4 w-4 mr-2" />
+                      New Visit
+                    </>
+                  )}
+                </Button>
               )}
-            </Button>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <Input placeholder="Search visits" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9" />
+            </div>
+            
+            <div className={`transition-all duration-300 ease-out overflow-hidden ${isSearchExpanded ? 'flex-1' : 'w-9 flex-shrink-0'}`}>
+              {isSearchExpanded ? (
+                <div className="relative w-full">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    placeholder="Search visits"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    onBlur={handleSearchBlur}
+                    className="pl-9 h-9 w-full min-h-9"
+                    autoFocus
+                  />
+                </div>
+              ) : (
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="w-9 h-9 flex-shrink-0 min-w-9"
+                  onClick={handleSearchClick}
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <div className="flex flex-col p-2">
+          <div className="flex flex-col p-2 pt-0">
             <div className="">
               {filteredGroupedVisits.map(({ date, visits }) => (
                 <SidebarGroup key={date} className="group-data-[collapsible=icon]:hidden">
@@ -324,9 +389,9 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
                 <SidebarMenu>
                   {!hasLoadedAll && groupedVisits.length > 0 && (
                     <SidebarMenuItem>
-                      <SidebarMenuButton className="bg-transparent hover:bg-transparent text-muted-foreground text-sm" onClick={handleLoadAll} disabled={isLoadingAll}>
+                      <SidebarMenuButton className="bg-transparent hover:bg-transparent text-muted-foreground text-sm" onClick={handleLoadMore} disabled={isLoadingAll}>
                         {isLoadingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontalIcon className="h-4 w-4" />}
-                        <span>Load all</span>
+                        <span>Load more</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )}
