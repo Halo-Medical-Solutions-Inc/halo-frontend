@@ -109,20 +109,61 @@ No specific patient visit is currently selected. You can only answer general que
     setFetchingPatientSummary(true);
     try {
       const message = `
-      This is the visit information:
-      ${selectedVisit.additional_context || "No additional context available"}
-      ${selectedVisit.note ? `- Note: ${selectedVisit.note}` : ""}
-      
-      Provide a patient summary in this exact format:
+You are an AI medical scribe preparing a pre-chart summary for a physician before they enter the exam room. Your job is to provide a structured, concise, and clinically meaningful snapshot of the patient's history and recent activity, based on the patient's record.
 
-**Name:** ${selectedVisit.name}
-...details : (**key**: value format for relevant information)
+**Your objective is to reduce the physician's cognitive load and surface relevant context for the upcoming encounter.**
 
---**Summary**--
-(Use //italics// and --underlines-- for important medical terms and conditions)
+Here is the available patient data:
+${selectedVisit.additional_context || "No additional context available"}
+${selectedVisit.note ? `Note: ${selectedVisit.note}` : ""}
 
+Follow this exact format and structure. Use //italics// for important medical terms and conditions, and --underlines-- for critical alerts or urgent items:
 
-Follow the format exactly. Do not add any introductory text or closing statements. Do not include XML tags. Make sure the output is just a formatted visit summary. Do not add excess information.`;
+=========================
+**Patient:** ${selectedVisit.name} | **DOB:** [MM/DD/YYYY or Unknown] | [Age or Unknown] [Sex or Unknown]  
+**Visit Date:** [MM/DD/YYYY or Today] | **Provider:** [Name or Unknown] | **Type:** [Visit type: New / F/U / Annual / etc. or Unknown]
+
+**Chief Complaint:**  
+[Short summary of reason for visit or concern as recorded or inferred]
+
+**HPI Summary:**  
+[1-3 sentence narrative describing the history of present illness, relevant symptoms, duration, progression, and recent care activity (e.g., imaging, ED visits, med changes)]
+
+**Problem List (with relevance):**  
+- [Problem 1] – [Status: stable/worsening/recently diagnosed/etc.]  
+- [Problem 2] – [relevant note]  
+*(Only include relevant or active problems)*
+
+**Medications:**  
+[List of relevant meds and dosages — especially new/changed/related to today's visit, or "Not documented" if unavailable]
+
+**Allergies:**  
+[List with reactions, e.g., Penicillin – hives, or "Not documented" if unavailable]
+
+**Vitals (Most Recent):**  
+BP: [ ], HR: [ ], Temp: [ ], Wt: [ ] lb, Ht: [ ] in  
+*[Include weight/BP trend if relevant, or "Not documented" if unavailable]*
+
+**Recent Labs & Imaging:**  
+- [Test name]: [Date] – [Result summary]  
+*(Only include clinically relevant results from the past ~6 months, or "None documented" if unavailable)*
+
+**Pending / Follow-Ups:**  
+- [Mention anything the provider should be aware of or that needs follow-up — e.g., referrals, labs, care gaps, or "None identified" if unavailable]
+
+**Social & Other Notes:**  
+[Language needs, adherence issues, missed visits, psychosocial context, SDoH, or "None documented" if unavailable]
+
+=========================
+
+CRITICAL INSTRUCTIONS:
+- DO NOT include boilerplate or repeat the entire chart
+- DO NOT hallucinate — only summarize what is present in the chart data
+- If information is not available, use "Unknown", "Not documented", or "None documented" as appropriate
+- Be anticipatory: highlight risks, missed follow-ups, or flags relevant to the visit using //italics// for medical terms and --underlines-- for critical alerts
+- Keep total length under ~300 words
+- Use the formatting: //italics// for medical conditions/terms, --underlines-- for urgent/critical items
+- Follow the format exactly. Do not add any introductory text or closing statements.`;
       const response = await apiAskChat(session.session_id, message);
       setPatientSummary(response);
       return true;
