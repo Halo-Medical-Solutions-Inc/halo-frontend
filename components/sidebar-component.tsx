@@ -337,7 +337,7 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
           </div>
         </SidebarContent>
         <SidebarFooter>
-          {!isMobile && (
+          {/* {!isMobile && (
             <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">
               <Info className="h-4 w-4 mr-2 flex-shrink-0" />
               <span>
@@ -347,7 +347,7 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
                 </a>
               </span>
             </div>
-          )}
+          )} */}
           <SidebarMenu>
             <SidebarMenuItem>
               <DropdownMenu>
