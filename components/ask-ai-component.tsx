@@ -119,15 +119,18 @@ ${selectedVisit.note ? `Note: ${selectedVisit.note}` : ""}
 
 YOU MUST follow this EXACT format and structure with clear headings and sections. Use //italics// for important medical terms and conditions, and --underlines-- for critical alerts or urgent items:
 
-=========================
-**Patient:** ${selectedVisit.name} | **DOB:** [MM/DD/YYYY or Unknown] | [Age or Unknown] [Sex or Unknown]  
-**Visit Date:** [MM/DD/YYYY or Today] | **Provider:** [Name or Unknown] | **Type:** [Visit type: New / F/U / Annual / etc. or Unknown]
+**Name:** [Convert ${selectedVisit.name} from "Last, First" to "First Last" format if needed]
+**DOB:** [MM/DD/YYYY or Unknown]
+**Age:** [Age or Unknown]
+**Reason for Visit:** [Short summary of reason for visit or concern as recorded or inferred]
 
-**Chief Complaint:**  
-[Short summary of reason for visit or concern as recorded or inferred]
+**Summary**
 
 **HPI Summary:**  
-[1-3 sentence narrative describing the history of present illness, relevant symptoms, duration, progression, and recent care activity]
+- [Key symptom or complaint with duration]
+- [Relevant medical history or progression]
+- [Recent diagnostic findings or interventions]
+- [Current status or relevant details]
 
 **Problem List:**  
 - [Problem 1] – [Status: stable/worsening/recently diagnosed/etc.]  
@@ -154,10 +157,11 @@ BP: [ ], HR: [ ], Temp: [ ], Wt: [ ] lb, Ht: [ ] in
 **Social & Other Notes:**  
 [Language needs, adherence issues, psychosocial context, SDoH, or "None documented"]
 
-=========================
-
 CRITICAL FORMATTING REQUIREMENTS:
 - MAINTAIN ALL SECTION HEADERS EXACTLY AS SHOWN ABOVE
+- Use the simplified header format with Name, DOB, Age, Reason for Visit, then "Summary"
+- Convert patient name from "Last, First" format to "First Last" format
+- HPI Summary MUST use bullet points (-) not paragraph format
 - DO NOT combine sections or create paragraph summaries
 - Each section must have its own clear heading (**Section Name:**)
 - Use bullet points (-) for lists within sections
