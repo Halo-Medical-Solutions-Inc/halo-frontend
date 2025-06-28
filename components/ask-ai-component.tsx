@@ -133,8 +133,6 @@ EXAMPLE START FORMAT:
 **DOB:** 04/05/1955
 **Age:** 70
 **Reason for Visit:** Referred by Dr. Gill for lung nodules
-
-**Summary**
 END EXAMPLE - FOLLOW THIS EXACT FORMAT
 
 **HPI Summary:**  
@@ -142,6 +140,7 @@ END EXAMPLE - FOLLOW THIS EXACT FORMAT
 - [Relevant medical history or progression]
 - [Recent diagnostic findings or interventions]
 - [Current status or relevant details]
+- [Format in bullet points]
 
 **Problem List:**  
 - [Problem 1] – [Status: stable/worsening/recently diagnosed/etc.]  
@@ -149,7 +148,7 @@ END EXAMPLE - FOLLOW THIS EXACT FORMAT
 *(Only include relevant or active problems)*
 
 **Medications:**  
-[List relevant medications and dosages, or "Not documented"]
+[List relevant medications and dosages in bullet points, or "Not documented"]
 
 **Allergies:**  
 [List with reactions, e.g., Penicillin – hives, or "Not documented"]
@@ -163,7 +162,7 @@ BP: [ ], HR: [ ], Temp: [ ], Wt: [ ] lb, Ht: [ ] in
 *(Past ~6 months, or "None documented")*
 
 **Pending / Follow-Ups:**  
-- [Items needing follow-up: referrals, labs, care gaps, or "None identified"]
+- [Items needing follow-up: referrals, labs, care gaps, or "None identified". Format in bullet points. Can offer suggestions for follow-ups.]
 
 **Social & Other Notes:**  
 [Language needs, adherence issues, psychosocial context, SDoH, or "None documented"]
