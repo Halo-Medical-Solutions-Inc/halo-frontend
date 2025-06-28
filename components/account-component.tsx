@@ -204,6 +204,9 @@ export default function AccountComponent() {
               <Button variant={selectedEMR === "OFFICE_ALLY" ? "default" : "outline"} onClick={() => handleEMRSelection("OFFICE_ALLY")}>
                 Office Ally
               </Button>
+              <Button variant={selectedEMR === "ADVANCEMD" ? "default" : "outline"} onClick={() => handleEMRSelection("ADVANCEMD")}>
+                AdvanceMD
+              </Button>
             </div>
 
             {selectedEMR && (
@@ -217,6 +220,15 @@ export default function AccountComponent() {
                     <div className="space-y-2">
                       <Label>Password</Label>
                       <Input type="password" placeholder="Enter your Office Ally password" value={emrCredentials.password || ""} onChange={(e) => updateCredential("password", e.target.value)} />
+                    </div>
+                  </>
+                )}
+
+                {selectedEMR === "ADVANCEMD" && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>API Key</Label>
+                      <Input type="text" placeholder="Enter your AdvanceMD API key" value={emrCredentials.api_key || ""} onChange={(e) => updateCredential("api_key", e.target.value)} />
                     </div>
                   </>
                 )}

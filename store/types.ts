@@ -12,7 +12,7 @@ interface User {
   template_ids?: string[];
   visit_ids?: string[];
   emr_integration?: {
-    emr?: "OFFICE_ALLY";
+    emr?: "OFFICE_ALLY" | "ADVANCEMD";
     verified?: boolean;
     credentials?: {
       [key: string]: string | undefined;
