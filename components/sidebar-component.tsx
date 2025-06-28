@@ -23,11 +23,11 @@ import { useNextStep } from "nextstepjs";
 import { Input } from "@/components/ui/input";
 
 interface SidebarComponentProps {
-  loadAllVisits: () => Promise<void>;
+  loadMoreVisits: () => Promise<void>;
   hasLoadedAll: boolean;
 }
 
-export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: SidebarComponentProps) {
+export default function SidebarComponent({ loadMoreVisits, hasLoadedAll }: SidebarComponentProps) {
   const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const { send } = useWebSocket();
@@ -138,10 +138,10 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
     window.location.href = "/signin";
   };
 
-  const handleLoadAll = async () => {
+  const handleLoadMore = async () => {
     setIsLoadingAll(true);
     try {
-      await loadAllVisits();
+      await loadMoreVisits();
     } finally {
       setIsLoadingAll(false);
     }
@@ -389,9 +389,9 @@ export default function SidebarComponent({ loadAllVisits, hasLoadedAll }: Sideba
                 <SidebarMenu>
                   {!hasLoadedAll && groupedVisits.length > 0 && (
                     <SidebarMenuItem>
-                      <SidebarMenuButton className="bg-transparent hover:bg-transparent text-muted-foreground text-sm" onClick={handleLoadAll} disabled={isLoadingAll}>
+                      <SidebarMenuButton className="bg-transparent hover:bg-transparent text-muted-foreground text-sm" onClick={handleLoadMore} disabled={isLoadingAll}>
                         {isLoadingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontalIcon className="h-4 w-4" />}
-                        <span>Load all</span>
+                        <span>Load more</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )}
