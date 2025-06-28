@@ -167,9 +167,10 @@ BP: [ ], HR: [ ], Temp: [ ], Wt: [ ] lb, Ht: [ ] in
 
 CRITICAL FORMATTING REQUIREMENTS:
 - MAINTAIN ALL SECTION HEADERS EXACTLY AS SHOWN ABOVE
-- Use the simplified header format: Name, DOB, Age, Reason for Visit, then "Summary"
+- Use the simplified header format: Name, DOB, Age, Reason for Visit, then go directly to HPI Summary
 - Convert patient name from "Last, First" format to "First Last" format
 - DO NOT use "Patient:" - use "**Name:**" instead
+- DO NOT include a "Summary" header - go directly from patient info to HPI Summary
 - DO NOT include Visit Date or Provider information
 - DO NOT include any separator lines like "========================="
 - HPI Summary MUST use bullet points (-) not paragraph format
