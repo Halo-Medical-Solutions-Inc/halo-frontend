@@ -305,8 +305,8 @@ CRITICAL FORMATTING REQUIREMENTS:
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <div className="flex-1 text-center">
-              <h1 className="text-md font-semibold">Chat with AI ✨</h1>
-              <p className="text-sm text-muted-foreground">{connected ? "Ask me anything about the app" : "Connecting..."}</p>
+              <h1 className="text-md font-semibold">{selectedVisit?.name ? selectedVisit.name.split(',').reverse().join(' ').trim() : "Encounter"}</h1>
+              {/* <p className="text-sm text-muted-foreground">{connected ? "Ask me anything about the app" : "Connecting..."}</p> */}
             </div>
             <div className="w-8"></div>
           </div>
@@ -327,8 +327,8 @@ CRITICAL FORMATTING REQUIREMENTS:
       default:
         return (
           <>
-            <h1 className="text-md font-semibold">How to use Halo ✨</h1>
-            <p className="text-sm text-muted-foreground">Quick start guide in under 2 minutes</p>
+            <h1 className="text-md font-semibold">{selectedVisit?.name ? selectedVisit.name.split(',').reverse().join(' ').trim() : "Encounter"}</h1>
+            {/* <p className="text-sm text-muted-foreground">Powered by Halo</p> */}
           </>
         );
     }
@@ -367,7 +367,7 @@ CRITICAL FORMATTING REQUIREMENTS:
       default:
         return (
           <div className="space-y-2 p-4">
-            <button key="visit-tour" className="w-full flex items-center justify-between p-4 border rounded-md cursor-pointer hover:bg-accent transition-colors text-left mb-2" onClick={() => handleTutorialClick("visit-tour")}>
+            {/* <button key="visit-tour" className="w-full flex items-center justify-between p-4 border rounded-md cursor-pointer hover:bg-accent transition-colors text-left mb-2" onClick={() => handleTutorialClick("visit-tour")}>
               <div>
                 <h3 className="text-xs font-semibold text-primary">Start a Visit</h3>
                 <p className="text-xs text-muted-foreground">Create, record, and complete a visit.</p>
@@ -380,20 +380,20 @@ CRITICAL FORMATTING REQUIREMENTS:
                 <p className="text-xs text-muted-foreground">Build custom formats for your notes.</p>
               </div>
               <Edit className="h-4 w-4 text-muted-foreground" />
-            </button>
+            </button> */}
             {(screen === "NOTE" || screen === "RECORD") && selectedVisit && (
               <>
                 <button key="patient-summary" className="w-full flex items-center justify-between p-4 border rounded-md cursor-pointer hover:bg-accent transition-colors text-left mb-2" onClick={() => handleTutorialClick("patient-summary")} disabled={fetchingPatientSummary}>
                   <div>
-                    <h3 className="text-xs font-semibold text-primary">View Patient Summary</h3>
-                    <p className="text-xs text-muted-foreground">Quick overview of patient information.</p>
+                    <h3 className="text-xs font-semibold text-primary">Pre-Visit Summary</h3>
+                    <p className="text-xs text-muted-foreground">Know what matters before you walk in</p>
                   </div>
                   {fetchingPatientSummary ? <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" /> : <User className="h-4 w-4 text-muted-foreground" />}
                 </button>
                 <button key="chat-tour" className="w-full flex items-center justify-between p-4 border rounded-md cursor-pointer hover:bg-accent transition-colors text-left" onClick={() => handleTutorialClick("chat-tour")}>
                   <div>
-                    <h3 className="text-xs font-semibold text-primary">Chat with AI</h3>
-                    <p className="text-xs text-muted-foreground">Ask questions and get answers.</p>
+                    <h3 className="text-xs font-semibold text-primary">Copilot</h3>
+                    <p className="text-xs text-muted-foreground">A clinical brain, on demand</p>
                   </div>
                   <MessageCircle className="h-4 w-4 text-muted-foreground" />
                 </button>
@@ -414,7 +414,7 @@ CRITICAL FORMATTING REQUIREMENTS:
         <ExpandableChatFooter className="border-t-0">
           <div className="relative rounded-md border bg-background focus-within:ring-1 focus-within:ring-ring">
             <div className="flex items-center gap-2">
-              <Input ref={inputRef} placeholder={connected ? "Type your message..." : "Connecting to chat..."} className="min-h-12 resize-none rounded-lg bg-background border-0 p-3 shadow-none focus-visible:ring-0 flex-1" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyPress={handleKeyPress} disabled={!connected || loading} />
+              <Input ref={inputRef} placeholder={connected ? "Ask a medical question..." : "Connecting to chat..."} className="min-h-12 resize-none rounded-lg bg-background border-0 p-3 shadow-none focus-visible:ring-0 flex-1" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyPress={handleKeyPress} disabled={!connected || loading} />
               <Button size="icon" className="mr-2 gap-1.5" onClick={handleSendMessage} disabled={!inputValue.trim() || !connected || loading}>
                 <ChevronRight className="size-4" />
               </Button>
