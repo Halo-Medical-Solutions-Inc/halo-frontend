@@ -289,7 +289,7 @@ export default function SidebarComponent({ loadMoreVisits, hasLoadedAll }: Sideb
                         <DropdownMenu key={visit.visit_id}>
                           <DropdownMenuTrigger asChild>
                             {visit.status === "RECORDING" ? (
-                              <SidebarMenuAction>
+                              <SidebarMenuAction className="cursor-pointer">
                                 <div className="w-2.5 h-2.5 rounded-full bg-destructive animate-pulse" />
                               </SidebarMenuAction>
                             ) : (
