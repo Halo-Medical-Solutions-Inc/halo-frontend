@@ -197,28 +197,13 @@ export default function SidebarComponent({ loadMoreVisits, hasLoadedAll }: Sideb
             </SidebarMenuItem>
           </SidebarMenu>
           <div className="relative flex w-full min-w-0 flex-row p-2 rounded-md gap-2">
-            <div className={`transition-all duration-300 ease-out overflow-hidden ${isSearchExpanded ? 'w-9 flex-shrink-0' : 'flex-1'}`}>
+            <div className={`transition-all duration-300 ease-out overflow-hidden ${isSearchExpanded ? "w-9 flex-shrink-0" : "flex-1"}`}>
               {isSearchExpanded ? (
-                <Button
-                  size="icon"
-                  className="w-9 h-9 flex-shrink-0 min-w-9"
-                  onClick={handleNewVisitClick}
-                  disabled={isCreatingVisit}
-                  id="visit-tour-new-visit"
-                >
-                  {isCreatingVisit ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <CirclePlus className="h-4 w-4" />
-                  )}
+                <Button size="icon" className="w-9 h-9 flex-shrink-0 min-w-9" onClick={handleNewVisitClick} disabled={isCreatingVisit} id="visit-tour-new-visit">
+                  {isCreatingVisit ? <Loader2 className="h-4 w-4 animate-spin" /> : <CirclePlus className="h-4 w-4" />}
                 </Button>
               ) : (
-                <Button
-                  className="font-normal w-full h-9 min-h-9"
-                  onClick={handleNewVisitClick}
-                  disabled={isCreatingVisit}
-                  id="visit-tour-new-visit"
-                >
+                <Button className="font-normal w-full h-9 min-h-9" onClick={handleNewVisitClick} disabled={isCreatingVisit} id="visit-tour-new-visit">
                   {isCreatingVisit ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : (
@@ -230,27 +215,15 @@ export default function SidebarComponent({ loadMoreVisits, hasLoadedAll }: Sideb
                 </Button>
               )}
             </div>
-            
-            <div className={`transition-all duration-300 ease-out overflow-hidden ${isSearchExpanded ? 'flex-1' : 'w-9 flex-shrink-0'}`}>
+
+            <div className={`transition-all duration-300 ease-out overflow-hidden ${isSearchExpanded ? "flex-1" : "w-9 flex-shrink-0"}`}>
               {isSearchExpanded ? (
                 <div className="relative w-full">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                  <Input
-                    placeholder="Search visits"
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    onBlur={handleSearchBlur}
-                    className="pl-9 h-9 w-full min-h-9"
-                    autoFocus
-                  />
+                  <Input placeholder="Search visits" value={searchTerm} onChange={handleSearchChange} onBlur={handleSearchBlur} className="pl-9 h-9 w-full min-h-9" autoFocus />
                 </div>
               ) : (
-                <Button
-                  size="icon"
-                  variant="outline"
-                  className="w-9 h-9 flex-shrink-0 min-w-9"
-                  onClick={handleSearchClick}
-                >
+                <Button size="icon" variant="outline" className="w-9 h-9 flex-shrink-0 min-w-9" onClick={handleSearchClick}>
                   <Search className="h-4 w-4" />
                 </Button>
               )}
@@ -266,23 +239,10 @@ export default function SidebarComponent({ loadMoreVisits, hasLoadedAll }: Sideb
                   <SidebarMenu>
                     {visits.map((visit) => (
                       <SidebarMenuItem key={visit.visit_id} className={`group/item ${visit.visit_id === selectedVisit?.visit_id ? "bg-accent" : ""}`} onClick={visit.status !== "RECORDING" ? () => selectVisit(visit) : undefined}>
-                        <SidebarMenuButton
-                          asChild
-                          className={`${
-                            visit.status === "RECORDING"
-                              ? "cursor-not-allowed bg-transparent hover:bg-transparent active:bg-transparent focus:bg-transparent"
-                              : visit.visit_id === selectedVisit?.visit_id
-                              ? "bg-primary/10 hover:bg-primary/10 group-hover/item:bg-primary/10"
-                              : "hover:bg-primary/5 group-hover/item:bg-primary/5"
-                          }`}
-                        >
+                        <SidebarMenuButton asChild className={`${visit.status === "RECORDING" ? "cursor-not-allowed bg-transparent hover:bg-transparent active:bg-transparent focus:bg-transparent" : visit.visit_id === selectedVisit?.visit_id ? "bg-primary/10 hover:bg-primary/10 group-hover/item:bg-primary/10" : "hover:bg-primary/5 group-hover/item:bg-primary/5"}`}>
                           <span className="flex w-full justify-between items-center">
                             <span className="truncate flex-1 min-w-0">{visit.name || "New Visit"}</span>
-                            {visit.status !== "RECORDING" && (
-                              <span className="text-muted-foreground text-xs font-normal whitespace-nowrap pl-2 flex-shrink-0 transition-all duration-200 group-hover/item:hidden">
-                                {visit.created_at ? formatLocalTime(visit.created_at) : "00:00 AM"}
-                              </span>
-                            )}
+                            {visit.status !== "RECORDING" && <span className="text-muted-foreground text-xs font-normal whitespace-nowrap pl-2 flex-shrink-0 transition-all duration-200 group-hover/item:hidden">{visit.created_at ? formatLocalTime(visit.created_at) : "00:00 AM"}</span>}
                           </span>
                         </SidebarMenuButton>
 
