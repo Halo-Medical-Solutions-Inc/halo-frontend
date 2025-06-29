@@ -305,7 +305,7 @@ CRITICAL FORMATTING REQUIREMENTS:
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <div className="flex-1 text-center">
-              <h1 className="text-md font-semibold">Chat with AI ✨</h1>
+              <h1 className="text-md font-semibold">Chat with AI</h1>
               <p className="text-sm text-muted-foreground">{connected ? "Ask me anything about the app" : "Connecting..."}</p>
             </div>
             <div className="w-8"></div>
@@ -327,7 +327,7 @@ CRITICAL FORMATTING REQUIREMENTS:
       default:
         return (
           <>
-            <h1 className="text-md font-semibold">How to use Halo ✨</h1>
+            <h1 className="text-md font-semibold">How to use Halo</h1>
             <p className="text-sm text-muted-foreground">Quick start guide in under 2 minutes</p>
           </>
         );
