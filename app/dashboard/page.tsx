@@ -43,14 +43,14 @@ export default function Page() {
 
     try {
       const moreVisits = await apiGetUserVisits(session.session_id, false, loadedVisitsCount, 20);
-      
+
       if (moreVisits.length < 20) {
         setHasLoadedAll(true);
       }
-      
+
       if (moreVisits.length > 0) {
-        const existingVisitIds = new Set(visits.map(v => v.visit_id));
-        const newVisits = moreVisits.filter(v => !existingVisitIds.has(v.visit_id));
+        const existingVisitIds = new Set(visits.map((v) => v.visit_id));
+        const newVisits = moreVisits.filter((v) => !existingVisitIds.has(v.visit_id));
         dispatch(setVisits([...visits, ...newVisits]));
         setLoadedVisitsCount(loadedVisitsCount + newVisits.length);
       }

@@ -365,7 +365,7 @@ export default function TemplateComponent() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Select value={fontSize} onValueChange={handleFontSizeChange}>
-                      <SelectTrigger className="w-24">
+                      <SelectTrigger className="w-fit">
                         <SelectValue placeholder="Select Size" />
                       </SelectTrigger>
                       <SelectContent>
@@ -389,7 +389,7 @@ export default function TemplateComponent() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Select value={fontFamily} onValueChange={handleFontFamilyChange}>
-                      <SelectTrigger className="w-24">
+                      <SelectTrigger className="w-fit">
                         <SelectValue placeholder="Select Font" />
                       </SelectTrigger>
                       <SelectContent>

@@ -90,6 +90,18 @@ export default function NoteComponent() {
     });
   };
 
+  const additionalContextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    dispatch(setSelectedVisit({ ...selectedVisit, additional_context: e.target.value }));
+    debouncedSend({
+      type: "update_visit",
+      session_id: session.session_id,
+      data: {
+        visit_id: selectedVisit?.visit_id,
+        additional_context: e.target.value,
+      },
+    });
+  };
+
   const selectTemplate = (value: string) => {
     if (value === "transcript") {
       setTranscriptView(true);
@@ -375,14 +387,16 @@ export default function NoteComponent() {
               <div className="flex items-center gap-2">
                 <Select value={transcriptView ? "transcript" : selectedVisit?.template_id} onValueChange={selectTemplate}>
                   <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
-                    <SelectValue placeholder="Select a template" />
+                    <SelectValue placeholder="Select a template" className="font-normal" />
                   </SelectTrigger>
                   <SelectContent align="end">
                     <SelectGroup>
                       <SelectLabel>Templates</SelectLabel>
-                      <SelectItem value="transcript">Transcript</SelectItem>
+                      <SelectItem value="transcript">
+                        Transcript
+                      </SelectItem>
                       {templates.map((template) => (
-                        <SelectItem key={template.template_id} value={template.template_id || ""}>
+                        <SelectItem key={template.template_id} value={template.template_id || ""} className={template.template_id === selectedVisit?.template_id ? "font-semibold" : ""}>
                           {template.name || "Unnamed Template"}
                         </SelectItem>
                       ))}
@@ -444,7 +458,7 @@ export default function NoteComponent() {
                     </div>
                   </div>
                   <div className="relative group mt-2">
-                    <ExpandingTextarea id={`additional-context`} minHeight={0} maxHeight={10000} value={selectedVisit?.additional_context} disabled={true} className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" />
+                    <ExpandingTextarea id={`additional-context`} minHeight={0} maxHeight={10000} value={selectedVisit?.additional_context} onChange={additionalContextChange} className="w-full text-muted-foreground text-sm flex-1 resize-none border-none p-0 leading-relaxed focus:ring-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground rounded-none" />
                   </div>
                 </div>
               </>
