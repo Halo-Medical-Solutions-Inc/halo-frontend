@@ -392,9 +392,7 @@ export default function NoteComponent() {
                   <SelectContent align="end">
                     <SelectGroup>
                       <SelectLabel>Templates</SelectLabel>
-                      <SelectItem value="transcript">
-                        Transcript
-                      </SelectItem>
+                      <SelectItem value="transcript">Transcript</SelectItem>
                       {templates.map((template) => (
                         <SelectItem key={template.template_id} value={template.template_id || ""} className={template.template_id === selectedVisit?.template_id ? "font-semibold" : ""}>
                           {template.name || "Unnamed Template"}
