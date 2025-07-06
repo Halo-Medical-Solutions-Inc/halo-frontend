@@ -524,26 +524,63 @@ export default function NoteComponent() {
               <AlertDialogTitle>Select Patient</AlertDialogTitle>
               <AlertDialogDescription>Choose a patient from the list below or manually enter a patient ID.</AlertDialogDescription>
             </AlertDialogHeader>
-            <div className="h-[300px] w-full overflow-y-auto scrollbar-hide">
+            <div className="space-y-4">
               <div className="space-y-2">
-                {patients.map((patient) => (
-                  <div
-                    key={patient.patient_id}
-                    onClick={() => {
-                      setSelectedPatientId(patient.patient_id);
-                      setManualPatientId("");
-                    }}
-                    className={`p-3 rounded-md cursor-pointer transition-all ${selectedPatientId === patient.patient_id && !manualPatientId.trim() ? "border-2 border-primary bg-primary/5" : "border-2 border-transparent hover:bg-muted"}`}
-                  >
-                    <div className="flex justify-between items-center gap-3">
-                      <div className="flex flex-col gap-1 flex-1">
-                        <span className="text-sm font-medium">{patient.patient_name}</span>
-                        <span className="text-xs text-muted-foreground">{patient.patient_details}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground font-mono">{patient.patient_id}</span>
+                <label htmlFor="manual-patient-id" className="text-sm font-medium">
+                  Patient ID
+                </label>
+                <Input
+                  id="manual-patient-id"
+                  placeholder="Enter patient ID manually"
+                  value={manualPatientId}
+                  onChange={(e) => {
+                    setManualPatientId(e.target.value);
+                    if (e.target.value.trim()) {
+                      setSelectedPatientId("");
+                    }
+                  }}
+                  className="w-full"
+                />
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">Or select from list</span>
+                </div>
+              </div>
+              <div className="h-[250px] w-full overflow-y-auto scrollbar-hide">
+                <div className="space-y-2">
+                  {isLoadingPatients ? (
+                    <div className="flex items-center justify-center h-full">
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                     </div>
-                  </div>
-                ))}
+                  ) : patients.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                      No patients found
+                    </div>
+                  ) : (
+                    patients.map((patient) => (
+                      <div
+                        key={patient.patient_id}
+                        onClick={() => {
+                          setSelectedPatientId(patient.patient_id);
+                          setManualPatientId("");
+                        }}
+                        className={`p-3 rounded-md cursor-pointer transition-all ${selectedPatientId === patient.patient_id && !manualPatientId.trim() ? "border-2 border-primary bg-primary/5" : "border-2 border-transparent hover:bg-muted"}`}
+                      >
+                        <div className="flex justify-between items-center gap-3">
+                          <div className="flex flex-col gap-1 flex-1">
+                            <span className="text-sm font-medium">{patient.patient_name}</span>
+                            <span className="text-xs text-muted-foreground">{patient.patient_details}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground font-mono">{patient.patient_id}</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
             <AlertDialogFooter>
