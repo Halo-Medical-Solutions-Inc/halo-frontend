@@ -251,28 +251,14 @@ export default function AccountComponent() {
 
                 {selectedEMR === user?.emr_integration?.emr && isVerifiedEMR ? (
                   <div className="flex items-center gap-2">
-                    <Button 
-                      onClick={handleVerifyEMR} 
-                      disabled={
-                        isSavingEMR || 
-                        (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) ||
-                        (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))
-                      }
-                    >
+                    <Button onClick={handleVerifyEMR} disabled={isSavingEMR || (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) || (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))}>
                       {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
                     </Button>
                     <div className="text-sm text-success">✓ This EMR integration is verified</div>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <Button 
-                      onClick={handleVerifyEMR} 
-                      disabled={
-                        isSavingEMR || 
-                        (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) ||
-                        (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))
-                      }
-                    >
+                    <Button onClick={handleVerifyEMR} disabled={isSavingEMR || (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) || (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))}>
                       {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
                     </Button>
                     <div className="text-sm text-destructive">✗ This EMR integration is not verified</div>

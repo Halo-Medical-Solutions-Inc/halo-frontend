@@ -221,6 +221,11 @@ export default function Page() {
     Promise.all([
       apiGetUser(session.session_id).then((user) => {
         dispatch(setUser(user));
+
+        if (user.status === "UNVERIFIED") {
+          window.location.href = `/verify-email?session_id=${session.session_id}`;
+          return;
+        }
       }),
       apiGetUserTemplates(session.session_id).then((templates) => {
         dispatch(setTemplates(templates));

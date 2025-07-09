@@ -2,7 +2,7 @@ interface User {
   user_id?: string;
   created_at?: string;
   modified_at?: string;
-  status?: "ACTIVE" | "INACTIVE";
+  status?: "ACTIVE" | "INACTIVE" | "UNVERIFIED";
   name?: string;
   email?: string;
   password?: string;
@@ -55,6 +55,7 @@ interface Session {
   session_id?: string;
   user_id?: string;
   expiration_date?: string;
+  verification_needed?: boolean;
 }
 
 export type { User, Visit, Template, Session };

@@ -52,22 +52,26 @@ export default function Page() {
         const session = await apiSignupUser(name, email, password);
 
         if (session) {
-          dispatch(setSession(session));
-          localStorage.setItem("session", JSON.stringify(session));
-          if (session.session_id) {
-            apiGetUser(session.session_id).then((user) => {
-              dispatch(setUser(user));
-            });
+          if (session.verification_needed) {
+            router.push(`/verify-email?session_id=${session.session_id}`);
+          } else {
+            dispatch(setSession(session));
+            localStorage.setItem("session", JSON.stringify(session));
+            if (session.session_id) {
+              apiGetUser(session.session_id).then((user) => {
+                dispatch(setUser(user));
+              });
 
-            apiGetUserTemplates(session.session_id).then((templates) => {
-              dispatch(setTemplates(templates));
-            });
+              apiGetUserTemplates(session.session_id).then((templates) => {
+                dispatch(setTemplates(templates));
+              });
 
-            apiGetUserVisits(session.session_id).then((visits) => {
-              dispatch(setVisits(visits));
-            });
+              apiGetUserVisits(session.session_id).then((visits) => {
+                dispatch(setVisits(visits));
+              });
+            }
+            router.push("/dashboard");
           }
-          router.push("/dashboard");
         }
       } catch (err: any) {
         setValidationErrors({
