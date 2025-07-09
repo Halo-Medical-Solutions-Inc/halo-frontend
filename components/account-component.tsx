@@ -58,6 +58,8 @@ export default function AccountComponent() {
     }
   };
 
+  console.log(user);
+
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setUser({ ...user, name: e.target.value }));
     debouncedSend({
@@ -203,23 +205,13 @@ export default function AccountComponent() {
               <h2 className="text-xl md:text-xl font-bold">Subscription Status</h2>
               <p className="text-sm text-muted-foreground">Your current subscription information.</p>
             </div>
-            
+
             <div className="flex items-center gap-2">
-              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                user?.subscription_status === 'ACTIVE' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                {user?.subscription_status === 'ACTIVE' ? '✓ Active' : 'Inactive'}
-              </div>
-              {user?.subscription_status === 'ACTIVE' && user?.subscription_plan && (
+              <div className={`px-3 py-1 rounded-full text-sm font-medium border ${user?.subscription_status === "ACTIVE" ? "border-success bg-success-foreground text-success" : "border-destructive bg-destructive-foreground text-destructive"}`}>{user?.subscription_status === "ACTIVE" ? "✓ Active" : "Inactive"}</div>
+              {user?.subscription_status === "ACTIVE" && user?.subscription_plan && (
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium">
-                    {user.subscription_plan === 'MONTHLY' ? '$250/month' : '$200/year'}
-                  </p>
-                  <span className="text-xs text-muted-foreground">
-                    ({user.subscription_plan === 'MONTHLY' ? 'Monthly' : 'Yearly'} Plan)
-                  </span>
+                  <p className="text-sm">{user.subscription_plan === "MONTHLY" ? "$250/month" : "$200/year"}</p>
+                  <span className="text-xs text-muted-foreground">({user.subscription_plan === "MONTHLY" ? "Monthly" : "Yearly"} Plan)</span>
                 </div>
               )}
             </div>

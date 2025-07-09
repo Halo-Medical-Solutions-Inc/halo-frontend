@@ -67,7 +67,7 @@ export default function Page() {
 
               // Check if user has active subscription
               const { has_active_subscription } = await apiCheckSubscription(user.user_id!);
-              
+
               if (!has_active_subscription) {
                 // Redirect to payment page
                 router.push("/payment-required");

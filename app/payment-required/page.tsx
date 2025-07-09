@@ -27,10 +27,10 @@ export default function Page() {
     try {
       // Get user info to get user_id
       const user = await apiGetUser(session.session_id);
-      
+
       // Create checkout session
       const { checkout_url } = await apiCreateCheckoutSession(user.user_id!, planType);
-      
+
       // Redirect to Stripe checkout
       window.location.href = checkout_url;
     } catch (err: any) {
@@ -47,11 +47,7 @@ export default function Page() {
         <div className="text-center flex flex-col items-center gap-6">
           <div className="flex flex-col gap-2">
             <h2 className="text-xl md:text-2xl font-bold">Choose Your Subscription</h2>
-            <p className="text-sm text-muted-foreground">
-              {cancelled 
-                ? "Uh-oh! You need to complete payment to access the dashboard." 
-                : "To access your dashboard, please select a subscription plan."}
-            </p>
+            <p className="text-sm text-muted-foreground">{cancelled ? "Uh-oh! You need to complete payment to access the dashboard." : "To access your dashboard, please select a subscription plan."}</p>
           </div>
         </div>
 
@@ -67,17 +63,14 @@ export default function Page() {
             <div className="border rounded-lg p-6 space-y-4 hover:border-primary transition-colors">
               <div className="text-center space-y-2">
                 <h3 className="text-lg font-semibold">Monthly Plan</h3>
-                <div className="text-3xl font-bold">$250<span className="text-lg font-normal text-muted-foreground">/month</span></div>
+                <div className="text-3xl font-bold">
+                  $250<span className="text-lg font-normal text-muted-foreground">/month</span>
+                </div>
                 <p className="text-sm text-muted-foreground">Billed monthly</p>
               </div>
-              
-              <Button 
-                onClick={() => handlePayment('monthly')} 
-                className="w-full" 
-                disabled={isLoading !== null}
-                size="lg"
-              >
-                {isLoading === 'monthly' ? (
+
+              <Button onClick={() => handlePayment("monthly")} className="w-full" disabled={isLoading !== null} size="lg">
+                {isLoading === "monthly" ? (
                   <>
                     <Loader2 className="animate-spin" />
                     Processing...
@@ -91,26 +84,20 @@ export default function Page() {
             {/* Yearly Plan */}
             <div className="border rounded-lg p-6 space-y-4 hover:border-primary transition-colors relative">
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-medium">
-                  Best Value
-                </span>
+                <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-medium">Best Value</span>
               </div>
-              
+
               <div className="text-center space-y-2">
                 <h3 className="text-lg font-semibold">Yearly Plan</h3>
-                <div className="text-3xl font-bold">$200<span className="text-lg font-normal text-muted-foreground">/year</span></div>
+                <div className="text-3xl font-bold">
+                  $200<span className="text-lg font-normal text-muted-foreground">/year</span>
+                </div>
                 <p className="text-sm text-muted-foreground">Billed annually</p>
                 <p className="text-xs text-green-600 font-medium">Save $2,800 per year!</p>
               </div>
-              
-              <Button 
-                onClick={() => handlePayment('yearly')} 
-                className="w-full" 
-                disabled={isLoading !== null}
-                size="lg"
-                variant="default"
-              >
-                {isLoading === 'yearly' ? (
+
+              <Button onClick={() => handlePayment("yearly")} className="w-full" disabled={isLoading !== null} size="lg" variant="default">
+                {isLoading === "yearly" ? (
                   <>
                     <Loader2 className="animate-spin" />
                     Processing...
@@ -131,4 +118,4 @@ export default function Page() {
       </div>
     </div>
   );
-} 
+}

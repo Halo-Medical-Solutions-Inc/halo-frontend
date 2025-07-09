@@ -79,7 +79,7 @@ export default function Page() {
 
         // Check if user has active subscription
         const { has_active_subscription } = await apiCheckSubscription(user.user_id!);
-        
+
         if (!has_active_subscription) {
           // Redirect to payment page
           router.push("/payment-required");
@@ -166,13 +166,7 @@ export default function Page() {
 
             <div className="text-center space-y-2">
               <p className="text-sm text-muted-foreground">Didn't receive the code?</p>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleResendCode}
-                disabled={isResending || timeLeft > 3540}
-                className="w-full"
-              >
+              <Button type="button" variant="outline" onClick={handleResendCode} disabled={isResending || timeLeft > 3540} className="w-full">
                 {isResending ? (
                   <>
                     <Loader2 className="animate-spin" />

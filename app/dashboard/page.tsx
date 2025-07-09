@@ -46,7 +46,7 @@ export default function Page() {
     if (payment === "success") {
       setShowPaymentSuccess(true);
       setTimeout(() => setShowPaymentSuccess(false), 5000);
-      
+
       // Clean up the URL
       window.history.replaceState({}, document.title, "/dashboard");
     }
@@ -280,13 +280,13 @@ export default function Page() {
           </div>
         </div>
       )}
-      
+
       {showPaymentSuccess && (
         <div className="fixed top-4 right-4 z-50 bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg">
           <p className="text-sm text-green-800">✓ Payment successful! Welcome to your dashboard.</p>
         </div>
       )}
-      
+
       <Application>
         <SidebarComponent loadMoreVisits={loadMoreVisits} hasLoadedAll={hasLoadedAll} />
         {screen === "ACCOUNT" && <AccountComponent />}
