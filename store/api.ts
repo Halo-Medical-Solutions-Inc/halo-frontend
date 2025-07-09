@@ -190,3 +190,25 @@ export async function apiResetPassword(email: string, code: string, newPassword:
   if (!response.ok) throw new Error("Failed to reset password");
   return response.json();
 }
+
+export async function apiCreateCheckoutSession(userId: string): Promise<{ checkout_url: string }> {
+  const response = await fetch(`${API_URL}/stripe/create-checkout-session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId }),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to create checkout session");
+  return response.json();
+}
+
+export async function apiCheckSubscription(userId: string): Promise<{ has_active_subscription: boolean; subscription_status: string }> {
+  const response = await fetch(`${API_URL}/stripe/check-subscription`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId }),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to check subscription");
+  return response.json();
+}

@@ -200,6 +200,28 @@ export default function AccountComponent() {
 
           <div className="space-y-4">
             <div className="flex flex-col gap-2">
+              <h2 className="text-xl md:text-xl font-bold">Subscription Status</h2>
+              <p className="text-sm text-muted-foreground">Your current subscription information.</p>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                user?.subscription_status === 'ACTIVE' 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {user?.subscription_status === 'ACTIVE' ? '✓ Active' : 'Inactive'}
+              </div>
+              {user?.subscription_status === 'ACTIVE' && (
+                <p className="text-sm text-muted-foreground">$20.00/month</p>
+              )}
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-4">
+            <div className="flex flex-col gap-2">
               <h2 className="text-xl md:text-xl font-bold">EMR Integration</h2>
               <p className="text-sm text-muted-foreground">Configure your EMR integration.</p>
             </div>

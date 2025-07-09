@@ -18,6 +18,9 @@ interface User {
       [key: string]: string | undefined;
     };
   };
+  subscription_status?: "ACTIVE" | "INACTIVE" | "CANCELLED";
+  stripe_customer_id?: string;
+  stripe_subscription_id?: string;
 }
 
 interface Visit {

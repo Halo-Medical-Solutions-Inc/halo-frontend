@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { apiVerifyEmail, apiResendVerification, apiGetUser, apiGetUserTemplates, apiGetUserVisits } from "@/store/api";
+import { apiVerifyEmail, apiResendVerification, apiGetUser, apiGetUserTemplates, apiGetUserVisits, apiCheckSubscription } from "@/store/api";
 import { useAppDispatch } from "@/store/hooks";
 import { setSession } from "@/store/slices/sessionSlice";
 import { setTemplates } from "@/store/slices/templateSlice";
@@ -76,6 +76,15 @@ export default function Page() {
 
         const user = await apiGetUser(sessionId);
         dispatch(setUser(user));
+
+        // Check if user has active subscription
+        const { has_active_subscription } = await apiCheckSubscription(user.user_id!);
+        
+        if (!has_active_subscription) {
+          // Redirect to payment page
+          router.push("/payment-required");
+          return;
+        }
 
         const templates = await apiGetUserTemplates(sessionId);
         dispatch(setTemplates(templates));
