@@ -191,11 +191,11 @@ export async function apiResetPassword(email: string, code: string, newPassword:
   return response.json();
 }
 
-export async function apiCreateCheckoutSession(userId: string): Promise<{ checkout_url: string }> {
+export async function apiCreateCheckoutSession(userId: string, planType: string): Promise<{ checkout_url: string }> {
   const response = await fetch(`${API_URL}/stripe/create-checkout-session`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id: userId }),
+    body: JSON.stringify({ user_id: userId, plan_type: planType }),
     credentials: "include",
   });
   if (!response.ok) throw new Error("Failed to create checkout session");

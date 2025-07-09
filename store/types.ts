@@ -21,6 +21,7 @@ interface User {
   subscription_status?: "ACTIVE" | "INACTIVE" | "CANCELLED";
   stripe_customer_id?: string;
   stripe_subscription_id?: string;
+  subscription_plan?: "MONTHLY" | "YEARLY" | "FREE";
 }
 
 interface Visit {

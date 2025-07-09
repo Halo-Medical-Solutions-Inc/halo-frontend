@@ -11,17 +11,17 @@ import { RootState } from "@/store/store";
 export default function Page() {
   const searchParams = useSearchParams();
   const session = useSelector((state: RootState) => state.session.session);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
   const cancelled = searchParams.get("cancelled") === "true";
 
-  const handlePayment = async () => {
+  const handlePayment = async (planType: string) => {
     if (!session?.session_id) {
       setError("No active session. Please sign in again.");
       return;
     }
 
-    setIsLoading(true);
+    setIsLoading(planType);
     setError("");
 
     try {
@@ -29,7 +29,7 @@ export default function Page() {
       const user = await apiGetUser(session.session_id);
       
       // Create checkout session
-      const { checkout_url } = await apiCreateCheckoutSession(user.user_id!);
+      const { checkout_url } = await apiCreateCheckoutSession(user.user_id!, planType);
       
       // Redirect to Stripe checkout
       window.location.href = checkout_url;
@@ -37,20 +37,20 @@ export default function Page() {
       setError("Failed to create payment session. Please try again.");
       console.error("Payment error:", err);
     } finally {
-      setIsLoading(false);
+      setIsLoading(null);
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
-      <div className="w-full max-w-md p-8 space-y-8">
+      <div className="w-full max-w-2xl p-8 space-y-8">
         <div className="text-center flex flex-col items-center gap-6">
           <div className="flex flex-col gap-2">
-            <h2 className="text-xl md:text-2xl font-bold">Subscription Required</h2>
+            <h2 className="text-xl md:text-2xl font-bold">Choose Your Subscription</h2>
             <p className="text-sm text-muted-foreground">
               {cancelled 
                 ? "Uh-oh! You need to complete payment to access the dashboard." 
-                : "To access your dashboard, please complete your subscription."}
+                : "To access your dashboard, please select a subscription plan."}
             </p>
           </div>
         </div>
@@ -62,27 +62,70 @@ export default function Page() {
             </div>
           )}
 
-          <div className="text-center space-y-4">
-            <Button 
-              onClick={handlePayment} 
-              className="w-full" 
-              disabled={isLoading}
-              size="lg"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                "Subscribe Now"
-              )}
-            </Button>
-
-            <div className="text-sm text-muted-foreground">
-              <p className="font-semibold">$20.00/month</p>
-              <p>Cancel anytime</p>
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Monthly Plan */}
+            <div className="border rounded-lg p-6 space-y-4 hover:border-primary transition-colors">
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-semibold">Monthly Plan</h3>
+                <div className="text-3xl font-bold">$250<span className="text-lg font-normal text-muted-foreground">/month</span></div>
+                <p className="text-sm text-muted-foreground">Billed monthly</p>
+              </div>
+              
+              <Button 
+                onClick={() => handlePayment('monthly')} 
+                className="w-full" 
+                disabled={isLoading !== null}
+                size="lg"
+              >
+                {isLoading === 'monthly' ? (
+                  <>
+                    <Loader2 className="animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  "Choose Monthly"
+                )}
+              </Button>
             </div>
+
+            {/* Yearly Plan */}
+            <div className="border rounded-lg p-6 space-y-4 hover:border-primary transition-colors relative">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-medium">
+                  Best Value
+                </span>
+              </div>
+              
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-semibold">Yearly Plan</h3>
+                <div className="text-3xl font-bold">$200<span className="text-lg font-normal text-muted-foreground">/year</span></div>
+                <p className="text-sm text-muted-foreground">Billed annually</p>
+                <p className="text-xs text-green-600 font-medium">Save $2,800 per year!</p>
+              </div>
+              
+              <Button 
+                onClick={() => handlePayment('yearly')} 
+                className="w-full" 
+                disabled={isLoading !== null}
+                size="lg"
+                variant="default"
+              >
+                {isLoading === 'yearly' ? (
+                  <>
+                    <Loader2 className="animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  "Choose Yearly"
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <div className="text-center text-sm text-muted-foreground space-y-1">
+            <p>✓ Cancel anytime</p>
+            <p>✓ Full access to all features</p>
+            <p>✓ 24/7 customer support</p>
           </div>
         </div>
       </div>

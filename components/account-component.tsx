@@ -212,8 +212,15 @@ export default function AccountComponent() {
               }`}>
                 {user?.subscription_status === 'ACTIVE' ? '✓ Active' : 'Inactive'}
               </div>
-              {user?.subscription_status === 'ACTIVE' && (
-                <p className="text-sm text-muted-foreground">$20.00/month</p>
+              {user?.subscription_status === 'ACTIVE' && user?.subscription_plan && (
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium">
+                    {user.subscription_plan === 'MONTHLY' ? '$250/month' : '$200/year'}
+                  </p>
+                  <span className="text-xs text-muted-foreground">
+                    ({user.subscription_plan === 'MONTHLY' ? 'Monthly' : 'Yearly'} Plan)
+                  </span>
+                </div>
               )}
             </div>
           </div>
