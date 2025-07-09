@@ -18,10 +18,12 @@ interface User {
       [key: string]: string | undefined;
     };
   };
-  subscription_status?: "ACTIVE" | "INACTIVE" | "CANCELLED";
+  subscription_status?: "ACTIVE" | "INACTIVE" | "CANCELLED" | "FREE_TRIAL";
   stripe_customer_id?: string;
   stripe_subscription_id?: string;
   subscription_plan?: "MONTHLY" | "YEARLY" | "FREE";
+  free_trial_used?: boolean;
+  free_trial_expiration_date?: string;
 }
 
 interface Visit {

@@ -202,7 +202,23 @@ export async function apiCreateCheckoutSession(userId: string, planType: string)
   return response.json();
 }
 
-export async function apiCheckSubscription(userId: string): Promise<{ has_active_subscription: boolean; subscription_status: string }> {
+export async function apiStartFreeTrial(userId: string): Promise<{ message: string; user: User }> {
+  const response = await fetch(`${API_URL}/stripe/start-free-trial`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId }),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to start free trial");
+  return response.json();
+}
+
+export async function apiCheckSubscription(userId: string): Promise<{
+  has_active_subscription: boolean;
+  subscription_status: string;
+  free_trial_used: boolean;
+  free_trial_expiration_date?: string;
+}> {
   const response = await fetch(`${API_URL}/stripe/check-subscription`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
