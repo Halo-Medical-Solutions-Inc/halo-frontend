@@ -112,8 +112,12 @@ export default function AccountComponent() {
     setIsSavingEMR(true);
     try {
       const updatedUser = await apiVerifyEMRIntegration(session.session_id, selectedEMR, emrCredentials);
-      dispatch(setUser({ ...user, emr_integration: updatedUser.emr_integration }));
-      setIsVerifiedEMR(true);
+      if (updatedUser?.emr_integration?.verified) {
+        dispatch(setUser({ ...user, emr_integration: updatedUser.emr_integration }));
+        setIsVerifiedEMR(true);
+      } else {
+        setIsVerifiedEMR(false);
+      }
     } catch (error) {
       console.error("EMR verification failed:", error);
       setIsVerifiedEMR(false);
@@ -227,22 +231,48 @@ export default function AccountComponent() {
                 {selectedEMR === "ADVANCEMD" && (
                   <>
                     <div className="space-y-2">
-                      <Label>API Key</Label>
-                      <Input type="text" placeholder="Enter your AdvanceMD API key" value={emrCredentials.api_key || ""} onChange={(e) => updateCredential("api_key", e.target.value)} />
+                      <Label>Username</Label>
+                      <Input type="text" placeholder="Enter your username" value={emrCredentials.username || ""} onChange={(e) => updateCredential("username", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Password</Label>
+                      <Input type="password" placeholder="Enter your password" value={emrCredentials.password || ""} onChange={(e) => updateCredential("password", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Office Key</Label>
+                      <Input type="text" placeholder="Enter your office key" value={emrCredentials.office_key || ""} onChange={(e) => updateCredential("office_key", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>App Name</Label>
+                      <Input type="text" placeholder="Enter your app name" value={emrCredentials.app_name || ""} onChange={(e) => updateCredential("app_name", e.target.value)} />
                     </div>
                   </>
                 )}
 
                 {selectedEMR === user?.emr_integration?.emr && isVerifiedEMR ? (
                   <div className="flex items-center gap-2">
-                    <Button onClick={handleVerifyEMR} disabled={isSavingEMR || !emrCredentials.username || !emrCredentials.password}>
+                    <Button 
+                      onClick={handleVerifyEMR} 
+                      disabled={
+                        isSavingEMR || 
+                        (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) ||
+                        (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))
+                      }
+                    >
                       {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
                     </Button>
                     <div className="text-sm text-success">✓ This EMR integration is verified</div>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <Button onClick={handleVerifyEMR} disabled={isSavingEMR || !emrCredentials.username || !emrCredentials.password}>
+                    <Button 
+                      onClick={handleVerifyEMR} 
+                      disabled={
+                        isSavingEMR || 
+                        (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) ||
+                        (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))
+                      }
+                    >
                       {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
                     </Button>
                     <div className="text-sm text-destructive">✗ This EMR integration is not verified</div>

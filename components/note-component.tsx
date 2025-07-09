@@ -557,9 +557,7 @@ export default function NoteComponent() {
                       <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                     </div>
                   ) : patients.length === 0 ? (
-                    <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                      No patients found
-                    </div>
+                    <div className="flex items-center justify-center h-full text-muted-foreground text-sm">No patients found</div>
                   ) : (
                     patients.map((patient) => (
                       <div
