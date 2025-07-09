@@ -60,8 +60,8 @@ export default function Page() {
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Monthly Plan */}
-            <div className="border rounded-lg p-6 space-y-4 hover:border-primary transition-colors">
-              <div className="text-center space-y-2">
+            <div className="border rounded-lg p-6 space-y-4 hover:border-primary transition-colors flex flex-col cursor-pointer">
+              <div className="text-center space-y-2 flex-1">
                 <h3 className="text-lg font-semibold">Monthly Plan</h3>
                 <div className="text-3xl font-bold">
                   $250<span className="text-lg font-normal text-muted-foreground">/month</span>
@@ -69,7 +69,7 @@ export default function Page() {
                 <p className="text-sm text-muted-foreground">Billed monthly</p>
               </div>
 
-              <Button onClick={() => handlePayment("monthly")} className="w-full" disabled={isLoading !== null} size="lg">
+              <Button onClick={() => handlePayment("monthly")} className="w-full mt-auto" disabled={isLoading !== null}>
                 {isLoading === "monthly" ? (
                   <>
                     <Loader2 className="animate-spin" />
@@ -82,21 +82,21 @@ export default function Page() {
             </div>
 
             {/* Yearly Plan */}
-            <div className="border rounded-lg p-6 space-y-4 hover:border-primary transition-colors relative">
+            <div className="border rounded-lg p-6 space-y-4 hover:border-primary transition-colors relative flex flex-col cursor-pointer">
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                 <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-medium">Best Value</span>
               </div>
 
-              <div className="text-center space-y-2">
+              <div className="text-center space-y-2 flex-1">
                 <h3 className="text-lg font-semibold">Yearly Plan</h3>
                 <div className="text-3xl font-bold">
                   $200<span className="text-lg font-normal text-muted-foreground">/year</span>
                 </div>
                 <p className="text-sm text-muted-foreground">Billed annually</p>
-                <p className="text-xs text-green-600 font-medium">Save $2,800 per year!</p>
+                <p className="text-xs text-success">Save $600 per year!</p>
               </div>
 
-              <Button onClick={() => handlePayment("yearly")} className="w-full" disabled={isLoading !== null} size="lg" variant="default">
+              <Button onClick={() => handlePayment("yearly")} className="w-full mt-auto" disabled={isLoading !== null} variant="default">
                 {isLoading === "yearly" ? (
                   <>
                     <Loader2 className="animate-spin" />
