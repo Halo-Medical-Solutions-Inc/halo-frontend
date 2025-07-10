@@ -207,9 +207,7 @@ export default function AccountComponent() {
             </div>
 
             <div className="flex items-center gap-2">
-              <div className={`px-3 py-1 rounded-full text-sm font-medium border ${user?.subscription?.plan === "MONTHLY" || user?.subscription?.plan === "YEARLY" || user?.subscription?.plan === "CUSTOM" ? "border-success bg-success-foreground text-success" : user?.subscription?.plan === "FREE" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-destructive bg-destructive-foreground text-destructive"}`}>
-                {user?.subscription?.plan === "MONTHLY" || user?.subscription?.plan === "YEARLY" || user?.subscription?.plan === "CUSTOM" ? "✓ Active" : user?.subscription?.plan === "FREE" ? "Free Trial" : "Inactive"}
-              </div>
+              <div className={`px-3 py-1 rounded-full text-sm font-medium border ${user?.subscription?.plan === "MONTHLY" || user?.subscription?.plan === "YEARLY" || user?.subscription?.plan === "CUSTOM" ? "border-success bg-success-foreground text-success" : user?.subscription?.plan === "FREE" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-destructive bg-destructive-foreground text-destructive"}`}>{user?.subscription?.plan === "MONTHLY" || user?.subscription?.plan === "YEARLY" || user?.subscription?.plan === "CUSTOM" ? "✓ Active" : user?.subscription?.plan === "FREE" ? "Free Trial" : "Inactive"}</div>
 
               {(user?.subscription?.plan === "MONTHLY" || user?.subscription?.plan === "YEARLY") && (
                 <div className="flex items-center gap-2">
