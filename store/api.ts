@@ -215,9 +215,11 @@ export async function apiStartFreeTrial(userId: string): Promise<{ message: stri
 
 export async function apiCheckSubscription(userId: string): Promise<{
   has_active_subscription: boolean;
-  subscription_status: string;
-  free_trial_used: boolean;
-  free_trial_expiration_date?: string;
+  subscription: {
+    plan: string;
+    free_trial_used: boolean;
+    free_trial_expiration_date?: string;
+  };
 }> {
   const response = await fetch(`${API_URL}/stripe/check-subscription`, {
     method: "POST",

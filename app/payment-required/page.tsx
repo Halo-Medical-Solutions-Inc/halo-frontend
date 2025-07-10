@@ -22,7 +22,7 @@ export default function Page() {
 
       try {
         const user = await apiGetUser(session.session_id);
-        setShowFreeTrial(!user.free_trial_used);
+        setShowFreeTrial(!user.subscription?.free_trial_used);
       } catch (err) {
         console.error("Failed to check trial eligibility:", err);
       }

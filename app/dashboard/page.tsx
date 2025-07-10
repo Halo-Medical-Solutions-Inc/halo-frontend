@@ -242,8 +242,9 @@ export default function Page() {
         }
 
         // Check subscription status
-        const { has_active_subscription } = await apiCheckSubscription(user.user_id!);
-        if (!has_active_subscription) {
+        const subscriptionResponse = await apiCheckSubscription(user.user_id!);
+        const { has_active_subscription } = subscriptionResponse;
+        if (!has_active_subscription && user.subscription?.plan !== "CUSTOM") {
           window.location.href = "/payment-required";
           return;
         }

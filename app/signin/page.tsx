@@ -66,10 +66,11 @@ export default function Page() {
               dispatch(setUser(user));
 
               // Check if user has active subscription
-              const { has_active_subscription } = await apiCheckSubscription(user.user_id!);
+              const subscriptionResponse = await apiCheckSubscription(user.user_id!);
+              const { has_active_subscription } = subscriptionResponse;
 
-              if (!has_active_subscription) {
-                // Redirect to payment page
+              if (!has_active_subscription && user.subscription?.plan !== "CUSTOM") {
+                // Redirect to payment page (skip for CUSTOM plan users)
                 router.push("/payment-required");
                 return;
               }

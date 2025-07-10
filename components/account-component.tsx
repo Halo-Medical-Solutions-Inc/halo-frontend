@@ -207,18 +207,27 @@ export default function AccountComponent() {
             </div>
 
             <div className="flex items-center gap-2">
-              <div className={`px-3 py-1 rounded-full text-sm font-medium border ${user?.subscription_status === "ACTIVE" ? "border-success bg-success-foreground text-success" : user?.subscription_status === "FREE_TRIAL" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-destructive bg-destructive-foreground text-destructive"}`}>{user?.subscription_status === "ACTIVE" ? "✓ Active" : user?.subscription_status === "FREE_TRIAL" ? "Free Trial" : "Inactive"}</div>
+              <div className={`px-3 py-1 rounded-full text-sm font-medium border ${user?.subscription?.plan === "MONTHLY" || user?.subscription?.plan === "YEARLY" || user?.subscription?.plan === "CUSTOM" ? "border-success bg-success-foreground text-success" : user?.subscription?.plan === "FREE" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-destructive bg-destructive-foreground text-destructive"}`}>
+                {user?.subscription?.plan === "MONTHLY" || user?.subscription?.plan === "YEARLY" || user?.subscription?.plan === "CUSTOM" ? "✓ Active" : user?.subscription?.plan === "FREE" ? "Free Trial" : "Inactive"}
+              </div>
 
-              {user?.subscription_status === "ACTIVE" && user?.subscription_plan && (
+              {(user?.subscription?.plan === "MONTHLY" || user?.subscription?.plan === "YEARLY") && (
                 <div className="flex items-center gap-2">
-                  <p className="text-sm">{user.subscription_plan === "MONTHLY" ? "$250/month" : "$200/year"}</p>
-                  <span className="text-xs text-muted-foreground">({user.subscription_plan === "MONTHLY" ? "Monthly" : "Yearly"} Plan)</span>
+                  <p className="text-sm">{user.subscription.plan === "MONTHLY" ? "$250/month" : "$200/year"}</p>
+                  <span className="text-xs text-muted-foreground">({user.subscription.plan === "MONTHLY" ? "Monthly" : "Yearly"} Plan)</span>
                 </div>
               )}
 
-              {user?.subscription_status === "FREE_TRIAL" && user?.free_trial_expiration_date && (
+              {user?.subscription?.plan === "CUSTOM" && (
                 <div className="flex items-center gap-2">
-                  <p className="text-sm">Expires: {new Date(user.free_trial_expiration_date).toLocaleDateString()}</p>
+                  <p className="text-sm">Custom Plan</p>
+                  <span className="text-xs text-muted-foreground">(Custom Pricing)</span>
+                </div>
+              )}
+
+              {user?.subscription?.plan === "FREE" && user?.subscription?.free_trial_expiration_date && (
+                <div className="flex items-center gap-2">
+                  <p className="text-sm">Expires: {new Date(user.subscription.free_trial_expiration_date).toLocaleDateString()}</p>
                 </div>
               )}
             </div>
