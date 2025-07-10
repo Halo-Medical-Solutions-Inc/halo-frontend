@@ -135,3 +135,98 @@ export async function apiAskChat(sessionId: string, message: string): Promise<st
   if (!response.ok) throw new Error("Failed to ask chat");
   return response.json();
 }
+
+export async function apiVerifyEmail(sessionId: string, code: string): Promise<{ message: string }> {
+  const response = await fetch(`${API_URL}/user/verify-email`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId, code: code }),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to verify email");
+  return response.json();
+}
+
+export async function apiResendVerification(sessionId: string): Promise<{ message: string }> {
+  const response = await fetch(`${API_URL}/user/resend-verification`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId }),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to resend verification");
+  return response.json();
+}
+
+export async function apiRequestPasswordReset(email: string): Promise<{ message: string }> {
+  const response = await fetch(`${API_URL}/user/request-password-reset`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email }),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to request password reset");
+  return response.json();
+}
+
+export async function apiVerifyResetCode(email: string, code: string): Promise<{ message: string; valid: boolean }> {
+  const response = await fetch(`${API_URL}/user/verify-reset-code`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email, code: code }),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to verify reset code");
+  return response.json();
+}
+
+export async function apiResetPassword(email: string, code: string, newPassword: string): Promise<{ message: string }> {
+  const response = await fetch(`${API_URL}/user/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email, code: code, new_password: newPassword }),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to reset password");
+  return response.json();
+}
+
+export async function apiCreateCheckoutSession(userId: string, planType: string): Promise<{ checkout_url: string }> {
+  const response = await fetch(`${API_URL}/stripe/create-checkout-session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId, plan_type: planType }),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to create checkout session");
+  return response.json();
+}
+
+export async function apiStartFreeTrial(userId: string): Promise<{ message: string; user: User }> {
+  const response = await fetch(`${API_URL}/stripe/start-free-trial`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId }),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to start free trial");
+  return response.json();
+}
+
+export async function apiCheckSubscription(userId: string): Promise<{
+  has_active_subscription: boolean;
+  subscription: {
+    plan: string;
+    free_trial_used: boolean;
+    free_trial_expiration_date?: string;
+  };
+}> {
+  const response = await fetch(`${API_URL}/stripe/check-subscription`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId }),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to check subscription");
+  return response.json();
+}

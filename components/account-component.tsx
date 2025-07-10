@@ -58,6 +58,8 @@ export default function AccountComponent() {
     }
   };
 
+  console.log(user);
+
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setUser({ ...user, name: e.target.value }));
     debouncedSend({
@@ -200,6 +202,39 @@ export default function AccountComponent() {
 
           <div className="space-y-4">
             <div className="flex flex-col gap-2">
+              <h2 className="text-xl md:text-xl font-bold">Subscription Status</h2>
+              <p className="text-sm text-muted-foreground">Your current subscription information.</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className={`px-3 py-1 rounded-full text-sm font-medium border ${user?.subscription?.plan === "MONTHLY" || user?.subscription?.plan === "YEARLY" || user?.subscription?.plan === "CUSTOM" ? "border-success bg-success-foreground text-success" : user?.subscription?.plan === "FREE" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-destructive bg-destructive-foreground text-destructive"}`}>{user?.subscription?.plan === "MONTHLY" || user?.subscription?.plan === "YEARLY" || user?.subscription?.plan === "CUSTOM" ? "✓ Active" : user?.subscription?.plan === "FREE" ? "Free Trial" : "Inactive"}</div>
+
+              {(user?.subscription?.plan === "MONTHLY" || user?.subscription?.plan === "YEARLY") && (
+                <div className="flex items-center gap-2">
+                  <p className="text-sm">{user.subscription.plan === "MONTHLY" ? "$250/month" : "$200/year"}</p>
+                  <span className="text-xs text-muted-foreground">({user.subscription.plan === "MONTHLY" ? "Monthly" : "Yearly"} Plan)</span>
+                </div>
+              )}
+
+              {user?.subscription?.plan === "CUSTOM" && (
+                <div className="flex items-center gap-2">
+                  <p className="text-sm">Custom Plan</p>
+                  <span className="text-xs text-muted-foreground">(Custom Pricing)</span>
+                </div>
+              )}
+
+              {user?.subscription?.plan === "FREE" && user?.subscription?.free_trial_expiration_date && (
+                <div className="flex items-center gap-2">
+                  <p className="text-sm">Expires: {new Date(user.subscription.free_trial_expiration_date).toLocaleDateString()}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-4">
+            <div className="flex flex-col gap-2">
               <h2 className="text-xl md:text-xl font-bold">EMR Integration</h2>
               <p className="text-sm text-muted-foreground">Configure your EMR integration.</p>
             </div>
@@ -251,28 +286,14 @@ export default function AccountComponent() {
 
                 {selectedEMR === user?.emr_integration?.emr && isVerifiedEMR ? (
                   <div className="flex items-center gap-2">
-                    <Button 
-                      onClick={handleVerifyEMR} 
-                      disabled={
-                        isSavingEMR || 
-                        (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) ||
-                        (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))
-                      }
-                    >
+                    <Button onClick={handleVerifyEMR} disabled={isSavingEMR || (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) || (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))}>
                       {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
                     </Button>
                     <div className="text-sm text-success">✓ This EMR integration is verified</div>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <Button 
-                      onClick={handleVerifyEMR} 
-                      disabled={
-                        isSavingEMR || 
-                        (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) ||
-                        (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))
-                      }
-                    >
+                    <Button onClick={handleVerifyEMR} disabled={isSavingEMR || (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) || (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))}>
                       {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
                     </Button>
                     <div className="text-sm text-destructive">✗ This EMR integration is not verified</div>

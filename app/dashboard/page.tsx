@@ -14,17 +14,19 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { RootState } from "@/store/store";
 import useWebSocket, { handle } from "@/lib/websocket";
-import { apiGetUser, apiGetUserTemplates, apiGetUserVisits } from "@/store/api";
+import { apiGetUser, apiGetUserTemplates, apiGetUserVisits, apiCheckSubscription } from "@/store/api";
 import { clearSession, setScreen } from "@/store/slices/sessionSlice";
 import { Loader2 } from "lucide-react";
 import { Template } from "@/store/types";
 import AskAIComponent from "@/components/ask-ai-component";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSearchParams } from "next/navigation";
 
 export default function Page() {
   const isMobile = useIsMobile();
   const dispatch = useDispatch();
   const { connect } = useWebSocket();
+  const searchParams = useSearchParams();
 
   const user = useSelector((state: RootState) => state.user.user);
   const session = useSelector((state: RootState) => state.session.session);
@@ -37,6 +39,18 @@ export default function Page() {
   const [initialLoad, setInitialLoad] = useState(true);
   const [hasLoadedAll, setHasLoadedAll] = useState(false);
   const [loadedVisitsCount, setLoadedVisitsCount] = useState(0);
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+
+  useEffect(() => {
+    const payment = searchParams.get("payment");
+    if (payment === "success") {
+      setShowPaymentSuccess(true);
+      setTimeout(() => setShowPaymentSuccess(false), 5000);
+
+      // Clean up the URL
+      window.history.replaceState({}, document.title, "/dashboard");
+    }
+  }, [searchParams]);
 
   const loadMoreVisits = async () => {
     if (!session || hasLoadedAll) return;
@@ -219,8 +233,21 @@ export default function Page() {
     connect(session.session_id);
 
     Promise.all([
-      apiGetUser(session.session_id).then((user) => {
+      apiGetUser(session.session_id).then(async (user) => {
         dispatch(setUser(user));
+
+        if (user.status === "UNVERIFIED") {
+          window.location.href = `/verify-email?session_id=${session.session_id}`;
+          return;
+        }
+
+        // Check subscription status
+        const subscriptionResponse = await apiCheckSubscription(user.user_id!);
+        const { has_active_subscription } = subscriptionResponse;
+        if (!has_active_subscription && user.subscription?.plan !== "CUSTOM") {
+          window.location.href = "/payment-required";
+          return;
+        }
       }),
       apiGetUserTemplates(session.session_id).then((templates) => {
         dispatch(setTemplates(templates));
@@ -254,6 +281,13 @@ export default function Page() {
           </div>
         </div>
       )}
+
+      {showPaymentSuccess && (
+        <div className="fixed top-4 right-4 z-50 bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg">
+          <p className="text-sm text-green-800">✓ Payment successful! Welcome to your dashboard.</p>
+        </div>
+      )}
+
       <Application>
         <SidebarComponent loadMoreVisits={loadMoreVisits} hasLoadedAll={hasLoadedAll} />
         {screen === "ACCOUNT" && <AccountComponent />}

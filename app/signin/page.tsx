@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { apiGetUser, apiGetUserTemplates, apiGetUserVisits, apiSigninUser } from "@/store/api";
+import { useRouter, useSearchParams } from "next/navigation";
+import { apiGetUser, apiGetUserTemplates, apiGetUserVisits, apiSigninUser, apiCheckSubscription } from "@/store/api";
 import { useAppDispatch } from "@/store/hooks";
 import { setSession } from "@/store/slices/sessionSlice";
 import { setTemplates } from "@/store/slices/templateSlice";
@@ -17,11 +17,20 @@ import { setUser } from "@/store/slices/userSlice";
 export default function Page() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = useState("");
+
+  useEffect(() => {
+    const message = searchParams.get("message");
+    if (message === "password-reset-success") {
+      setSuccessMessage("Password reset successfully! You can now sign in with your new password.");
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,22 +56,35 @@ export default function Page() {
         const session = await apiSigninUser(email, password);
 
         if (session) {
-          dispatch(setSession(session));
-          localStorage.setItem("session", JSON.stringify(session));
-          if (session.session_id) {
-            apiGetUser(session.session_id).then((user) => {
+          if (session.verification_needed) {
+            router.push(`/verify-email?session_id=${session.session_id}`);
+          } else {
+            dispatch(setSession(session));
+            localStorage.setItem("session", JSON.stringify(session));
+            if (session.session_id) {
+              const user = await apiGetUser(session.session_id);
               dispatch(setUser(user));
-            });
 
-            apiGetUserTemplates(session.session_id).then((templates) => {
-              dispatch(setTemplates(templates));
-            });
+              // Check if user has active subscription
+              const subscriptionResponse = await apiCheckSubscription(user.user_id!);
+              const { has_active_subscription } = subscriptionResponse;
 
-            apiGetUserVisits(session.session_id).then((visits) => {
-              dispatch(setVisits(visits));
-            });
+              if (!has_active_subscription && user.subscription?.plan !== "CUSTOM") {
+                // Redirect to payment page (skip for CUSTOM plan users)
+                router.push("/payment-required");
+                return;
+              }
+
+              apiGetUserTemplates(session.session_id).then((templates) => {
+                dispatch(setTemplates(templates));
+              });
+
+              apiGetUserVisits(session.session_id).then((visits) => {
+                dispatch(setVisits(visits));
+              });
+            }
+            router.push("/dashboard");
           }
-          router.push("/dashboard");
         }
       } catch (err: any) {
         setValidationErrors({
@@ -85,6 +107,12 @@ export default function Page() {
             <p className="text-sm text-muted-foreground">Sign in to your account to continue</p>
           </div>
         </div>
+
+        {successMessage && (
+          <div className="p-4 bg-green-50 border border-green-200 rounded-md">
+            <p className="text-sm text-green-800">{successMessage}</p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -114,12 +142,19 @@ export default function Page() {
                 "Sign in"
               )}
             </Button>
-            <p className="text-sm text-center text-muted-foreground">
-              Don't have an account?{" "}
-              <Link href="mailto:usehalohealth@gmail.com" className="text-primary underline">
-                Email us
+
+            <div className="text-center space-y-2">
+              <Link href="/forgot-password" className="text-sm text-primary underline">
+                Forgot your password?
               </Link>
-            </p>
+
+              <p className="text-sm text-muted-foreground">
+                Don't have an account?{" "}
+                <Link href="/signup" className="text-primary underline">
+                  Sign up
+                </Link>
+              </p>
+            </div>
           </div>
         </form>
       </div>

@@ -2,7 +2,7 @@ interface User {
   user_id?: string;
   created_at?: string;
   modified_at?: string;
-  status?: "ACTIVE" | "INACTIVE";
+  status?: "ACTIVE" | "INACTIVE" | "UNVERIFIED";
   name?: string;
   email?: string;
   password?: string;
@@ -17,6 +17,19 @@ interface User {
     credentials?: {
       [key: string]: string | undefined;
     };
+  };
+  subscription?: {
+    plan: "NO_PLAN" | "CANCELLED" | "FREE" | "MONTHLY" | "YEARLY" | "CUSTOM";
+    free_trial_used?: boolean;
+    free_trial_expiration_date?: string;
+    stripe_customer_id?: string;
+    stripe_subscription_id?: string;
+  };
+  miscellaneous?: {
+    verification_code?: string;
+    verification_expires_at?: string;
+    reset_code?: string;
+    reset_expires_at?: string;
   };
 }
 
@@ -55,6 +68,7 @@ interface Session {
   session_id?: string;
   user_id?: string;
   expiration_date?: string;
+  verification_needed?: boolean;
 }
 
 export type { User, Visit, Template, Session };
