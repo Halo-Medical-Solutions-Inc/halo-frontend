@@ -238,7 +238,6 @@ export default function AccountComponent() {
                   </div>
                   <Button
                     variant="destructive"
-                    size="sm"
                     className="w-fit"
                     onClick={() => {
                       const subject = encodeURIComponent("Subscription Cancellation Request");
@@ -349,7 +348,6 @@ ${user?.name || "User"}`
                   </div>
                   <Button
                     variant="default"
-                    size="sm"
                     className="w-fit"
                     onClick={() => {
                       const subject = encodeURIComponent("EMR Integration Request");
