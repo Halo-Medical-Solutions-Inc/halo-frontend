@@ -58,8 +58,6 @@ export default function AccountComponent() {
     }
   };
 
-  console.log(user);
-
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setUser({ ...user, name: e.target.value }));
     debouncedSend({
@@ -229,6 +227,44 @@ export default function AccountComponent() {
                 </div>
               )}
             </div>
+
+            {/* Subscription Management */}
+            {(user?.subscription?.plan === "MONTHLY" || user?.subscription?.plan === "YEARLY" || user?.subscription?.plan === "CUSTOM") && (
+              <div className="mt-4 p-4 border border-destructive/20 bg-destructive/5 rounded-lg">
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1">
+                    <h3 className="text-sm font-medium text-destructive">Cancel Subscription</h3>
+                    <p className="text-xs text-muted-foreground">Need to cancel your subscription? We'll help you get in touch with our team.</p>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="w-fit"
+                    onClick={() => {
+                      const subject = encodeURIComponent("Subscription Cancellation Request");
+                      const body = encodeURIComponent(
+                        `Hello Halo Health Team,
+
+I would like to request the cancellation of my subscription.
+
+Account Details:
+- Name: ${user?.name || "N/A"}
+- Email: ${user?.email || "N/A"}
+- Current Plan: ${user?.subscription?.plan || "N/A"}
+
+Please process this cancellation request and confirm the cancellation date and any final billing information.
+
+Thank you,
+${user?.name || "User"}`
+                      );
+                      window.location.href = `mailto:keshav@halohealth.app?subject=${subject}&body=${body}`;
+                    }}
+                  >
+                    Request Cancellation
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           <Separator />
@@ -239,66 +275,111 @@ export default function AccountComponent() {
               <p className="text-sm text-muted-foreground">Configure your EMR integration.</p>
             </div>
 
-            <div className="flex gap-2 flex-wrap">
-              <Button variant={selectedEMR === "OFFICE_ALLY" ? "default" : "outline"} onClick={() => handleEMRSelection("OFFICE_ALLY")}>
-                Office Ally
-              </Button>
-              <Button variant={selectedEMR === "ADVANCEMD" ? "default" : "outline"} onClick={() => handleEMRSelection("ADVANCEMD")}>
-                AdvanceMD
-              </Button>
-            </div>
+            {user?.subscription?.plan === "CUSTOM" ? (
+              <>
+                <div className="flex gap-2 flex-wrap">
+                  <Button variant={selectedEMR === "OFFICE_ALLY" ? "default" : "outline"} onClick={() => handleEMRSelection("OFFICE_ALLY")}>
+                    Office Ally
+                  </Button>
+                  <Button variant={selectedEMR === "ADVANCEMD" ? "default" : "outline"} onClick={() => handleEMRSelection("ADVANCEMD")}>
+                    AdvanceMD
+                  </Button>
+                </div>
 
-            {selectedEMR && (
-              <div className="space-y-4">
-                {selectedEMR === "OFFICE_ALLY" && (
-                  <>
-                    <div className="space-y-2">
-                      <Label>Username</Label>
-                      <Input type="text" placeholder="Enter your Office Ally username" value={emrCredentials.username || ""} onChange={(e) => updateCredential("username", e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Password</Label>
-                      <Input type="password" placeholder="Enter your Office Ally password" value={emrCredentials.password || ""} onChange={(e) => updateCredential("password", e.target.value)} />
-                    </div>
-                  </>
-                )}
+                {selectedEMR && (
+                  <div className="space-y-4">
+                    {selectedEMR === "OFFICE_ALLY" && (
+                      <>
+                        <div className="space-y-2">
+                          <Label>Username</Label>
+                          <Input type="text" placeholder="Enter your Office Ally username" value={emrCredentials.username || ""} onChange={(e) => updateCredential("username", e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Password</Label>
+                          <Input type="password" placeholder="Enter your Office Ally password" value={emrCredentials.password || ""} onChange={(e) => updateCredential("password", e.target.value)} />
+                        </div>
+                      </>
+                    )}
 
-                {selectedEMR === "ADVANCEMD" && (
-                  <>
-                    <div className="space-y-2">
-                      <Label>Username</Label>
-                      <Input type="text" placeholder="Enter your username" value={emrCredentials.username || ""} onChange={(e) => updateCredential("username", e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Password</Label>
-                      <Input type="password" placeholder="Enter your password" value={emrCredentials.password || ""} onChange={(e) => updateCredential("password", e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Office Key</Label>
-                      <Input type="text" placeholder="Enter your office key" value={emrCredentials.office_key || ""} onChange={(e) => updateCredential("office_key", e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>App Name</Label>
-                      <Input type="text" placeholder="Enter your app name" value={emrCredentials.app_name || ""} onChange={(e) => updateCredential("app_name", e.target.value)} />
-                    </div>
-                  </>
-                )}
+                    {selectedEMR === "ADVANCEMD" && (
+                      <>
+                        <div className="space-y-2">
+                          <Label>Username</Label>
+                          <Input type="text" placeholder="Enter your username" value={emrCredentials.username || ""} onChange={(e) => updateCredential("username", e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Password</Label>
+                          <Input type="password" placeholder="Enter your password" value={emrCredentials.password || ""} onChange={(e) => updateCredential("password", e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Office Key</Label>
+                          <Input type="text" placeholder="Enter your office key" value={emrCredentials.office_key || ""} onChange={(e) => updateCredential("office_key", e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>App Name</Label>
+                          <Input type="text" placeholder="Enter your app name" value={emrCredentials.app_name || ""} onChange={(e) => updateCredential("app_name", e.target.value)} />
+                        </div>
+                      </>
+                    )}
 
-                {selectedEMR === user?.emr_integration?.emr && isVerifiedEMR ? (
-                  <div className="flex items-center gap-2">
-                    <Button onClick={handleVerifyEMR} disabled={isSavingEMR || (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) || (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))}>
-                      {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
-                    </Button>
-                    <div className="text-sm text-success">✓ This EMR integration is verified</div>
+                    {selectedEMR === user?.emr_integration?.emr && isVerifiedEMR ? (
+                      <div className="flex items-center gap-2">
+                        <Button onClick={handleVerifyEMR} disabled={isSavingEMR || (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) || (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))}>
+                          {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
+                        </Button>
+                        <div className="text-sm text-success">✓ This EMR integration is verified</div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Button onClick={handleVerifyEMR} disabled={isSavingEMR || (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) || (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))}>
+                          {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
+                        </Button>
+                        <div className="text-sm text-destructive">✗ This EMR integration is not verified</div>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Button onClick={handleVerifyEMR} disabled={isSavingEMR || (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) || (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))}>
-                      {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
-                    </Button>
-                    <div className="text-sm text-destructive">✗ This EMR integration is not verified</div>
-                  </div>
                 )}
+              </>
+            ) : (
+              <div className="p-4 border bg-muted rounded-md border-border border rounded-lg">
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1">
+                    <h3 className="text-sm font-medium">Request EMR Integration</h3>
+                    <p className="text-xs text-muted-foreground">EMR integrations are available with our custom plans. Contact us to discuss your specific EMR needs and get a tailored solution.</p>
+                  </div>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="w-fit"
+                    onClick={() => {
+                      const subject = encodeURIComponent("EMR Integration Request");
+                      const body = encodeURIComponent(
+                        `Hello Halo Health Team,
+
+I would like to request EMR integration for my account.
+
+Account Details:
+- Name: ${user?.name || "N/A"}
+- Email: ${user?.email || "N/A"}
+- Current Plan: ${user?.subscription?.plan || "N/A"}
+- Specialty: ${specialties.find((s) => s.specialty_id === user?.user_specialty)?.name || "N/A"}
+
+EMR Information:
+- EMR System: [Please specify which EMR system you use]
+- Practice Size: [Please specify number of providers/locations]
+- Integration Requirements: [Please describe your specific integration needs]
+
+Please contact me to discuss custom plan options and EMR integration setup.
+
+Thank you,
+${user?.name || "User"}`
+                      );
+                      window.location.href = `mailto:keshav@halohealth.app?subject=${subject}&body=${body}`;
+                    }}
+                  >
+                    Contact Us for Integration
+                  </Button>
+                </div>
               </div>
             )}
           </div>
