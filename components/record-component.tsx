@@ -13,10 +13,9 @@ import { CheckCircle, Loader2, Mic, MicOff, MoreHorizontal, PauseCircle, PlayCir
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "./ui/input";
 import { AudioVisualizer } from "./ui/audio-visualizer";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { setSelectedVisit } from "@/store/slices/visitSlice";
-import { useDispatch } from "react-redux";
 import useWebSocket, { connected, handle, online, useConnectionStatus } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
 import { useTranscriber } from "@/lib/transcriber";
@@ -34,7 +33,7 @@ export default function RecordComponent() {
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
 
-  const { startTranscriber, stopTranscriber, connected: transcriberConnected, microphone, audioLevel, audioNotDetected } = useTranscriber(selectedVisit?.visit_id);
+  const { startTranscriber, stopTranscriber, connected: transcriberConnected, microphone, audioLevel, audioNotDetected, isBuffering } = useTranscriber(selectedVisit?.visit_id);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -159,21 +158,21 @@ export default function RecordComponent() {
     };
   }, [selectedVisit?.status]);
 
-  useEffect(() => {
-    if (selectedVisit?.status === "RECORDING" && (!connected || !online || !websocketConnected)) {
-      dispatch(setSelectedVisit({ ...selectedVisit, status: "PAUSED" }));
+  // useEffect(() => {
+  //   if (selectedVisit?.status === "RECORDING" && (!connected || !online || !websocketConnected)) {
+  //     dispatch(setSelectedVisit({ ...selectedVisit, status: "PAUSED" }));
 
-      stopTranscriber();
+  //     stopTranscriber();
 
-      send({
-        type: "pause_recording",
-        session_id: session.session_id,
-        data: {
-          visit_id: selectedVisit?.visit_id,
-        },
-      });
-    }
-  }, [connected, selectedVisit?.status]);
+  //     send({
+  //       type: "pause_recording",
+  //       session_id: session.session_id,
+  //       data: {
+  //         visit_id: selectedVisit?.visit_id,
+  //       },
+  //     });
+  //   }
+  // }, [connected, selectedVisit?.status]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -216,6 +215,31 @@ export default function RecordComponent() {
       });
     }
   }, [recordingDuration]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (selectedVisit?.status === "RECORDING") {
+        stopTranscriber();
+
+        // Use sendBeacon with apiPauseRecording endpoint
+        const data = JSON.stringify({
+          session_id: session.session_id,
+          visit_id: selectedVisit.visit_id,
+        });
+
+        navigator.sendBeacon(
+          `${process.env.NEXT_PUBLIC_API_URL}/audio/pause_recording`,
+          new Blob([data], { type: "application/json" })
+        );
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [selectedVisit?.status, selectedVisit?.visit_id, session.session_id, stopTranscriber]);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedVisit({ ...selectedVisit, name: e.target.value }));
@@ -408,7 +432,7 @@ export default function RecordComponent() {
           }
         }}
       />
-      {selectedVisit?.status === "RECORDING" && <div className="fixed inset-0 bg-background/10 backdrop-blur-[4px] z-40" style={{ pointerEvents: "all" }} />}
+      {selectedVisit?.status === "RECORDING" && <div className="fixed top-14 left-0 right-0 bottom-0 bg-background/10 backdrop-blur-[4px] z-40" style={{ pointerEvents: "all" }} />}
       {showConfetti && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={200} gravity={0.3} />}
       <SidebarInset className="overflow-visible h-auto max-h-none">
         <header className={`flex h-14 shrink-0 items-center gap-2 relative ${selectedVisit?.status === "RECORDING" ? "z-30" : "z-50"}`}>
@@ -425,8 +449,25 @@ export default function RecordComponent() {
           </div>
           <div className="ml-auto px-3">
             <div className="flex items-center gap-2 text-sm">
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <span className="font-normal text-muted-foreground md:inline-block">{recordingDuration ? recordingDuration + " seconds" : "Not started"}</span>
+                
+                {selectedVisit?.status === "RECORDING" && (
+                  <>
+                    {isBuffering ? (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-warning/10 border border-warning-border text-warning rounded-md text-xs">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <span>Buffering</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-success/10 border border-success-border text-success rounded-md text-xs">
+                        <div className="h-2 w-2 bg-success rounded-full animate-pulse" />
+                        <span>Streaming</span>
+                      </div>
+                    )}
+                  </>
+                )}
+                
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
@@ -668,13 +709,12 @@ export default function RecordComponent() {
               </div>
             )}
 
-            {!online ||
-              (!websocketConnected && (
+            { !(online && websocketConnected) && (
                 <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
                   <WifiOff className="h-4 w-4 mr-2 flex-shrink-0" />
                   <span>Recording may not be saved due to connectivity issues</span>
                 </div>
-              ))}
+              )}
 
             {!microphone && (
               <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">
