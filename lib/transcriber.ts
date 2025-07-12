@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { apiProcessFile } from "@/store/api"; // Import the API function
+import { apiProcessAudioFile } from "@/store/api"; // Import the API function
 
 interface TranscriberConfig {
   visitId: string;
@@ -310,7 +310,7 @@ class AudioTranscriber {
       const maxRetries = 5;
       while (attempts < maxRetries) {
         try {
-          await apiProcessFile(this.config.visitId, file);
+          await apiProcessAudioFile(this.config.visitId, file);
           console.log(`Offline audio uploaded successfully on attempt ${attempts + 1}`);
           break;
         } catch (error) {
@@ -415,6 +415,8 @@ export function useTranscriber(visitId?: string) {
   const [audioNotDetected, setAudioNotDetected] = useState(false);
   // Add state to track if we should be transcribing (for reconnection logic)
   const [shouldTranscribe, setShouldTranscribe] = useState(false);
+  // Add state to track buffering mode
+  const [isBuffering, setIsBuffering] = useState(false);
 
   useEffect(() => {
     const checkMicrophone = async () => {
@@ -515,9 +517,10 @@ export function useTranscriber(visitId?: string) {
     };
   }, []);
 
-  // Add effect to handle reconnection when internet comes back online
+  // Add effect to monitor online/offline status for buffering indication
   useEffect(() => {
     const handleOnline = async () => {
+      setIsBuffering(false);
       if (shouldTranscribe && !connected) {
         console.log("Internet reconnected, attempting to restart transcriber");
         try {
@@ -534,9 +537,18 @@ export function useTranscriber(visitId?: string) {
       }
     };
 
+    const handleOffline = () => {
+      if (shouldTranscribe) {
+        setIsBuffering(true);
+      }
+    };
+
     window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    
     return () => {
       window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, [shouldTranscribe, connected, startTranscriber]);
 
@@ -548,5 +560,6 @@ export function useTranscriber(visitId?: string) {
     audioLevel,
     audioNotDetected,
     requestMicPermissions,
+    isBuffering,
   };
 }

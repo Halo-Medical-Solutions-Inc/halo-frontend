@@ -57,10 +57,23 @@ export async function apiGetUserVisits(sessionId: string, subset: boolean = true
   return response.json();
 }
 
-export async function apiProcessFile(visitId: string, file: File): Promise<boolean> {
+export async function apiProcessFile(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${API_URL}/process_file`, {
+    method: "POST",
+    body: formData,
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to process file");
+  return response.json();
+}
+
+export async function apiProcessAudioFile(visitId: string, audioFile: File): Promise<boolean> {
   const formData = new FormData();
   formData.append("visit_id", visitId);
-  formData.append("audio_file", file);
+  formData.append("audio_file", audioFile);
 
   const response = await fetch(`${API_URL}/audio/process_audio_file`, {
     method: "POST",
