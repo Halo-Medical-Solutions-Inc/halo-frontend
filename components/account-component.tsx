@@ -228,21 +228,13 @@ export default function AccountComponent() {
               )}
             </div>
 
-            {/* Subscription Management */}
             {(user?.subscription?.plan === "MONTHLY" || user?.subscription?.plan === "YEARLY" || user?.subscription?.plan === "CUSTOM") && (
-              <div className="mt-4 p-4 border border-destructive/20 bg-destructive/5 rounded-lg">
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col gap-1">
-                    <h3 className="text-sm font-medium text-destructive">Cancel Subscription</h3>
-                    <p className="text-xs text-muted-foreground">Need to cancel your subscription? We'll help you get in touch with our team.</p>
-                  </div>
-                  <Button
-                    variant="destructive"
-                    className="w-fit"
-                    onClick={() => {
-                      const subject = encodeURIComponent("Subscription Cancellation Request");
-                      const body = encodeURIComponent(
-                        `Hello Halo Health Team,
+              <p 
+                className="text-sm underline cursor-pointer text-muted-foreground hover:text-muted-foreground"
+                onClick={() => {
+                  const subject = encodeURIComponent("Subscription Cancellation Request");
+                  const body = encodeURIComponent(
+                    `Hello Halo Health Team,
 
 I would like to request the cancellation of my subscription.
 
@@ -255,14 +247,12 @@ Please process this cancellation request and confirm the cancellation date and a
 
 Thank you,
 ${user?.name || "User"}`
-                      );
-                      window.location.href = `mailto:keshav@halohealth.app?subject=${subject}&body=${body}`;
-                    }}
-                  >
-                    Request Cancellation
-                  </Button>
-                </div>
-              </div>
+                  );
+                  window.location.href = `mailto:keshav@halohealth.app?subject=${subject}&body=${body}`;
+                }}
+              >
+                Request Cancellation
+              </p>
             )}
           </div>
 
