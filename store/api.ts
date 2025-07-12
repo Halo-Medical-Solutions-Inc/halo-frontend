@@ -57,22 +57,12 @@ export async function apiGetUserVisits(sessionId: string, subset: boolean = true
   return response.json();
 }
 
-export async function processAudioBuffer(sessionId: string, visitId: string, audioBuffer: ArrayBuffer): Promise<string> {
-  const response = await fetch(`${API_URL}/audio/process_audio_buffer`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ session_id: sessionId, visit_id: visitId, audio_buffer: audioBuffer }),
-    credentials: "include",
-  });
-  if (!response.ok) throw new Error("Failed to process audio buffer");
-  return response.json();
-}
-
-export async function apiProcessFile(file: File): Promise<string> {
+export async function apiProcessFile(visitId: string, file: File): Promise<boolean> {
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append("visit_id", visitId);
+  formData.append("audio_file", file);
 
-  const response = await fetch(`${API_URL}/audio/process_file`, {
+  const response = await fetch(`${API_URL}/audio/process_audio_file`, {
     method: "POST",
     body: formData,
     credentials: "include",
@@ -80,16 +70,10 @@ export async function apiProcessFile(file: File): Promise<string> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Failed to process file: ${errorText}`);
+    throw new Error(`Failed to process audio file: ${errorText}`);
   }
 
-  const contentType = response.headers.get("content-type");
-  if (contentType?.includes("application/json")) {
-    const data = await response.json();
-    return typeof data === "string" ? data : JSON.stringify(data);
-  }
-
-  return response.text();
+  return response.json();
 }
 
 export async function apiVerifyEMRIntegration(sessionId: string, emr: string, credentials: Record<string, string>): Promise<User> {

@@ -13,10 +13,9 @@ import { CheckCircle, Loader2, Mic, MicOff, MoreHorizontal, PauseCircle, PlayCir
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "./ui/input";
 import { AudioVisualizer } from "./ui/audio-visualizer";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { setSelectedVisit } from "@/store/slices/visitSlice";
-import { useDispatch } from "react-redux";
 import useWebSocket, { connected, handle, online, useConnectionStatus } from "@/lib/websocket";
 import { useDebouncedSend } from "@/lib/utils";
 import { useTranscriber } from "@/lib/transcriber";
@@ -159,21 +158,21 @@ export default function RecordComponent() {
     };
   }, [selectedVisit?.status]);
 
-  useEffect(() => {
-    if (selectedVisit?.status === "RECORDING" && (!connected || !online || !websocketConnected)) {
-      dispatch(setSelectedVisit({ ...selectedVisit, status: "PAUSED" }));
+  // useEffect(() => {
+  //   if (selectedVisit?.status === "RECORDING" && (!connected || !online || !websocketConnected)) {
+  //     dispatch(setSelectedVisit({ ...selectedVisit, status: "PAUSED" }));
 
-      stopTranscriber();
+  //     stopTranscriber();
 
-      send({
-        type: "pause_recording",
-        session_id: session.session_id,
-        data: {
-          visit_id: selectedVisit?.visit_id,
-        },
-      });
-    }
-  }, [connected, selectedVisit?.status]);
+  //     send({
+  //       type: "pause_recording",
+  //       session_id: session.session_id,
+  //       data: {
+  //         visit_id: selectedVisit?.visit_id,
+  //       },
+  //     });
+  //   }
+  // }, [connected, selectedVisit?.status]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -216,6 +215,31 @@ export default function RecordComponent() {
       });
     }
   }, [recordingDuration]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (selectedVisit?.status === "RECORDING") {
+        stopTranscriber();
+
+        // Use sendBeacon with apiPauseRecording endpoint
+        const data = JSON.stringify({
+          session_id: session.session_id,
+          visit_id: selectedVisit.visit_id,
+        });
+
+        navigator.sendBeacon(
+          `${process.env.NEXT_PUBLIC_API_URL}/audio/pause_recording`,
+          new Blob([data], { type: "application/json" })
+        );
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [selectedVisit?.status, selectedVisit?.visit_id, session.session_id, stopTranscriber]);
 
   const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSelectedVisit({ ...selectedVisit, name: e.target.value }));
@@ -668,13 +692,12 @@ export default function RecordComponent() {
               </div>
             )}
 
-            {!online ||
-              (!websocketConnected && (
+            { !(online && websocketConnected) && (
                 <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
                   <WifiOff className="h-4 w-4 mr-2 flex-shrink-0" />
                   <span>Recording may not be saved due to connectivity issues</span>
                 </div>
-              ))}
+              )}
 
             {!microphone && (
               <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">
