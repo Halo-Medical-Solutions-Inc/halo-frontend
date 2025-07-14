@@ -706,12 +706,12 @@ export default function RecordComponent() {
               </div>
             )}
 
-            {!(online && websocketConnected) && (
+            {/* {!(online && websocketConnected) && (
               <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
                 <WifiOff className="h-4 w-4 mr-2 flex-shrink-0" />
                 <span>Recording may not be saved due to connectivity issues</span>
               </div>
-            )}
+            )} */}
 
             {!microphone && (
               <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">
