@@ -4,12 +4,16 @@ export interface SessionState {
   screen: "ACCOUNT" | "BILLING" | "NOTE" | "RECORD" | "TEMPLATE" | "TEMPLATES";
   session: any | null;
   isAuthenticated: boolean;
+  patientList: Array<{ patient_id: string; patient_name: string; patient_details: string }> | null;
+  isLoadingPatients: boolean;
 }
 
 const initialState: SessionState = {
   screen: "ACCOUNT",
   session: null,
   isAuthenticated: false,
+  patientList: null,
+  isLoadingPatients: false,
 };
 
 if (typeof window !== "undefined") {
@@ -42,8 +46,14 @@ const sessionSlice = createSlice({
         localStorage.removeItem("session");
       }
     },
+    setPatientList: (state: SessionState, action: PayloadAction<Array<{ patient_id: string; patient_name: string; patient_details: string }> | null>) => {
+      state.patientList = action.payload;
+    },
+    setIsLoadingPatients: (state: SessionState, action: PayloadAction<boolean>) => {
+      state.isLoadingPatients = action.payload;
+    },
   },
 });
 
-export const { setSession, clearSession, setScreen } = sessionSlice.actions;
+export const { setSession, clearSession, setScreen, setPatientList, setIsLoadingPatients } = sessionSlice.actions;
 export default sessionSlice.reducer;

@@ -22,6 +22,8 @@ import { useTranscriber } from "@/lib/transcriber";
 import { useNextStep } from "nextstepjs";
 import Confetti from "react-confetti";
 import { apiProcessFile } from "@/store/api";
+import { setPatientList, setIsLoadingPatients } from "@/store/slices/sessionSlice";
+import { apiGetPatientsEMRIntegration } from "@/store/api";
 
 export default function RecordComponent() {
   const dispatch = useDispatch();
@@ -32,6 +34,9 @@ export default function RecordComponent() {
   const session = useSelector((state: RootState) => state.session.session);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
+  const user = useSelector((state: RootState) => state.user.user);
+  const hasVerifiedEmr = user?.emr_integration?.verified || false;
+  const isLoadingPatients = useSelector((state: RootState) => state.session.isLoadingPatients);
 
   const { startTranscriber, stopTranscriber, connected: transcriberConnected, microphone, audioLevel, audioNotDetected, isBuffering } = useTranscriber(selectedVisit?.visit_id);
 
@@ -362,6 +367,19 @@ export default function RecordComponent() {
   const finishRecording = () => {
     setFinishRecordingLoading(true);
 
+    if (hasVerifiedEmr) {
+      dispatch(setIsLoadingPatients(true));
+      apiGetPatientsEMRIntegration(session.session_id)
+        .then((data) => {
+          dispatch(setPatientList(data));
+          dispatch(setIsLoadingPatients(false));
+        })
+        .catch((error) => {
+          console.error("Error fetching patients:", error);
+          dispatch(setIsLoadingPatients(false));
+        });
+    }
+
     if (currentTour === "visit-tour") {
       closeNextStep();
       setShowConfetti(true);
@@ -565,7 +583,6 @@ export default function RecordComponent() {
                     onChange={additionalContextChange}
                     onFocus={() => setIsAdditionalContextFocused(true)}
                     onBlur={(e) => {
-                      // Check if the blur is caused by clicking within the same container
                       const relatedTarget = e.relatedTarget as HTMLElement;
                       if (relatedTarget && e.currentTarget.parentElement?.contains(relatedTarget)) {
                         return;
