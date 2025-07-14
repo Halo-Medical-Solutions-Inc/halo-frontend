@@ -22,6 +22,8 @@ import { useTranscriber } from "@/lib/transcriber";
 import { useNextStep } from "nextstepjs";
 import Confetti from "react-confetti";
 import { apiProcessFile } from "@/store/api";
+import { setPatientList, setIsLoadingPatients } from "@/store/slices/sessionSlice";
+import { apiGetPatientsEMRIntegration } from "@/store/api";
 
 export default function RecordComponent() {
   const dispatch = useDispatch();
@@ -32,6 +34,9 @@ export default function RecordComponent() {
   const session = useSelector((state: RootState) => state.session.session);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
+  const user = useSelector((state: RootState) => state.user.user);
+  const hasVerifiedEmr = user?.emr_integration?.verified || false;
+  const isLoadingPatients = useSelector((state: RootState) => state.session.isLoadingPatients);
 
   const { startTranscriber, stopTranscriber, connected: transcriberConnected, microphone, audioLevel, audioNotDetected, isBuffering } = useTranscriber(selectedVisit?.visit_id);
 
@@ -227,10 +232,7 @@ export default function RecordComponent() {
           visit_id: selectedVisit.visit_id,
         });
 
-        navigator.sendBeacon(
-          `${process.env.NEXT_PUBLIC_API_URL}/audio/pause_recording`,
-          new Blob([data], { type: "application/json" })
-        );
+        navigator.sendBeacon(`${process.env.NEXT_PUBLIC_API_URL}/audio/pause_recording`, new Blob([data], { type: "application/json" }));
       }
     };
 
@@ -365,6 +367,19 @@ export default function RecordComponent() {
   const finishRecording = () => {
     setFinishRecordingLoading(true);
 
+    if (hasVerifiedEmr) {
+      dispatch(setIsLoadingPatients(true));
+      apiGetPatientsEMRIntegration(session.session_id)
+        .then((data) => {
+          dispatch(setPatientList(data));
+          dispatch(setIsLoadingPatients(false));
+        })
+        .catch((error) => {
+          console.error("Error fetching patients:", error);
+          dispatch(setIsLoadingPatients(false));
+        });
+    }
+
     if (currentTour === "visit-tour") {
       closeNextStep();
       setShowConfetti(true);
@@ -450,8 +465,14 @@ export default function RecordComponent() {
           <div className="ml-auto px-3">
             <div className="flex items-center gap-2 text-sm">
               <div className="flex items-center gap-2">
-                <span className="font-normal text-muted-foreground md:inline-block">{recordingDuration ? recordingDuration + " seconds" : "Not started"}</span>
-                
+                <span className="font-normal text-muted-foreground md:inline-block">
+                  {recordingDuration
+                    ? `${Math.floor(recordingDuration / 60)
+                        .toString()
+                        .padStart(2, "0")}:${(recordingDuration % 60).toString().padStart(2, "0")}`
+                    : "Not started"}
+                </span>
+
                 {selectedVisit?.status === "RECORDING" && (
                   <>
                     {isBuffering ? (
@@ -467,7 +488,7 @@ export default function RecordComponent() {
                     )}
                   </>
                 )}
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
@@ -568,7 +589,6 @@ export default function RecordComponent() {
                     onChange={additionalContextChange}
                     onFocus={() => setIsAdditionalContextFocused(true)}
                     onBlur={(e) => {
-                      // Check if the blur is caused by clicking within the same container
                       const relatedTarget = e.relatedTarget as HTMLElement;
                       if (relatedTarget && e.currentTarget.parentElement?.contains(relatedTarget)) {
                         return;
@@ -709,12 +729,12 @@ export default function RecordComponent() {
               </div>
             )}
 
-            { !(online && websocketConnected) && (
-                <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
-                  <WifiOff className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span>Recording may not be saved due to connectivity issues</span>
-                </div>
-              )}
+            {/* {!(online && websocketConnected) && (
+              <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
+                <WifiOff className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span>Recording may not be saved due to connectivity issues</span>
+              </div>
+            )} */}
 
             {!microphone && (
               <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">

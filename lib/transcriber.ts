@@ -19,7 +19,7 @@ class AudioTranscriber {
   private config: TranscriberConfig;
   private audioLevelCheckInterval: NodeJS.Timeout | null = null;
   private lastAudioLevel = 0;
-  
+
   // Add offline buffering properties
   private isOffline = false;
   private offlineAudioBuffer: Int16Array[] = [];
@@ -28,16 +28,16 @@ class AudioTranscriber {
 
   constructor(config: TranscriberConfig) {
     this.config = config;
-    
+
     // Initialize offline state
     this.isOffline = !navigator.onLine;
-    
+
     // Bind event handlers
     this.handleOffline = this.handleOffline.bind(this);
     this.handleOnline = this.handleOnline.bind(this);
-    window.addEventListener('online', this.handleOnline);
-    window.addEventListener('offline', this.handleOffline);
-    
+    window.addEventListener("online", this.handleOnline);
+    window.addEventListener("offline", this.handleOffline);
+
     if (this.isOffline) {
       console.log("Starting in offline mode");
     }
@@ -106,9 +106,9 @@ class AudioTranscriber {
         this.ws.close();
       }
       this.ws = null;
-      
+
       await this.connect();
-      
+
       // Process any existing buffer after successful reconnection
       if (this.offlineAudioBuffer.length > 0) {
         await this.processOfflineBuffer();
@@ -169,19 +169,19 @@ class AudioTranscriber {
               this.offlineStartTime = Date.now();
             }
             this.offlineAudioBuffer.push(new Int16Array(pcmData));
-            
+
             // Periodic logging
             if (this.offlineAudioBuffer.length % 100 === 0) {
               const duration = (this.offlineAudioBuffer.length * 4096) / this.offlineBufferSampleRate;
               console.log(`Buffering audio: ${duration.toFixed(1)} seconds`);
             }
-            
+
             // Limit buffer size to prevent memory issues (e.g., 5 minutes max)
             const maxBufferDuration = 5 * 60; // 5 minutes in seconds
             const samplesPerSecond = this.offlineBufferSampleRate;
             const maxSamples = maxBufferDuration * samplesPerSecond;
             const currentSamples = this.offlineAudioBuffer.reduce((acc, buf) => acc + buf.length, 0);
-            
+
             if (currentSamples > maxSamples) {
               console.warn("Offline buffer limit reached, removing oldest audio");
               // Remove oldest audio to stay within limit
@@ -234,12 +234,12 @@ class AudioTranscriber {
 
   async disconnect(): Promise<void> {
     this.isRecording = false;
-    
+
     // Process any remaining offline buffer before disconnecting
     if (this.offlineAudioBuffer.length > 0 && !this.isOffline) {
       await this.processOfflineBuffer();
     }
-    
+
     this.cleanup();
 
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
@@ -285,7 +285,7 @@ class AudioTranscriber {
   private async handleOnline() {
     console.log("Internet connection restored (online event)");
     this.isOffline = false;
-    
+
     // Process buffered audio if any
     if (this.offlineAudioBuffer.length > 0 && this.isRecording) {
       await this.processOfflineBuffer();
@@ -295,16 +295,16 @@ class AudioTranscriber {
   private async processOfflineBuffer(): Promise<void> {
     try {
       console.log(`Processing offline audio buffer with ${this.offlineAudioBuffer.length} chunks`);
-      
+
       // Convert buffer to WAV file
       const wavBlob = this.createWavFile(this.offlineAudioBuffer);
-      
+
       // Create a File object
       const fileName = `offline_recording_${Date.now()}.wav`;
-      const file = new File([wavBlob], fileName, { type: 'audio/wav' });
-      
+      const file = new File([wavBlob], fileName, { type: "audio/wav" });
+
       console.log(`Sending offline audio file (${(file.size / 1024 / 1024).toFixed(2)} MB) for transcription`);
-      
+
       // Add retry logic
       let attempts = 0;
       const maxRetries = 5;
@@ -320,14 +320,14 @@ class AudioTranscriber {
             throw new Error(`Failed to process offline audio after ${maxRetries} attempts`);
           }
           // Exponential backoff: wait 1s * attempt number
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+          await new Promise((resolve) => setTimeout(resolve, 1000 * attempts));
         }
       }
-      
+
       // Clear the buffer after successful upload
       this.offlineAudioBuffer = [];
       this.offlineStartTime = null;
-      
+
       console.log("Offline audio processed successfully");
     } catch (error) {
       console.error("Error processing offline buffer:", error);
@@ -338,7 +338,7 @@ class AudioTranscriber {
   private createWavFile(audioBuffers: Int16Array[]): Blob {
     // Calculate total length
     const totalLength = audioBuffers.reduce((acc, buffer) => acc + buffer.length, 0);
-    
+
     // Create a single buffer with all audio data
     const fullBuffer = new Int16Array(totalLength);
     let offset = 0;
@@ -346,29 +346,29 @@ class AudioTranscriber {
       fullBuffer.set(buffer, offset);
       offset += buffer.length;
     }
-    
+
     // Create WAV header
     const sampleRate = this.offlineBufferSampleRate;
     const numChannels = 1;
     const bitsPerSample = 16;
-    const byteRate = sampleRate * numChannels * bitsPerSample / 8;
-    const blockAlign = numChannels * bitsPerSample / 8;
+    const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;
+    const blockAlign = (numChannels * bitsPerSample) / 8;
     const dataSize = fullBuffer.length * 2; // 2 bytes per sample
-    
+
     const buffer = new ArrayBuffer(44 + dataSize);
     const view = new DataView(buffer);
-    
+
     // Write WAV header
     const writeString = (offset: number, string: string) => {
       for (let i = 0; i < string.length; i++) {
         view.setUint8(offset + i, string.charCodeAt(i));
       }
     };
-    
-    writeString(0, 'RIFF');
+
+    writeString(0, "RIFF");
     view.setUint32(4, 36 + dataSize, true);
-    writeString(8, 'WAVE');
-    writeString(12, 'fmt ');
+    writeString(8, "WAVE");
+    writeString(12, "fmt ");
     view.setUint32(16, 16, true); // fmt chunk size
     view.setUint16(20, 1, true); // PCM format
     view.setUint16(22, numChannels, true);
@@ -376,27 +376,27 @@ class AudioTranscriber {
     view.setUint32(28, byteRate, true);
     view.setUint16(32, blockAlign, true);
     view.setUint16(34, bitsPerSample, true);
-    writeString(36, 'data');
+    writeString(36, "data");
     view.setUint32(40, dataSize, true);
-    
+
     // Write audio data
     let dataOffset = 44;
     for (let i = 0; i < fullBuffer.length; i++) {
       view.setInt16(dataOffset, fullBuffer[i], true);
       dataOffset += 2;
     }
-    
-    return new Blob([buffer], { type: 'audio/wav' });
+
+    return new Blob([buffer], { type: "audio/wav" });
   }
 
   private cleanup(): void {
     this.stopAudioProcessing();
     this.ws = null;
-    
+
     // Clean up event listeners
-    window.removeEventListener('online', this.handleOnline);
-    window.removeEventListener('offline', this.handleOffline);
-    
+    window.removeEventListener("online", this.handleOnline);
+    window.removeEventListener("offline", this.handleOffline);
+
     // Clear offline buffer
     this.offlineAudioBuffer = [];
     this.offlineStartTime = null;
@@ -545,7 +545,7 @@ export function useTranscriber(visitId?: string) {
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-    
+
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
