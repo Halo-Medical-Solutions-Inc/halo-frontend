@@ -229,7 +229,7 @@ export default function AccountComponent() {
             </div>
 
             {(user?.subscription?.plan === "MONTHLY" || user?.subscription?.plan === "YEARLY" || user?.subscription?.plan === "CUSTOM") && (
-              <p 
+              <p
                 className="text-sm underline cursor-pointer text-muted-foreground hover:text-muted-foreground"
                 onClick={() => {
                   const subject = encodeURIComponent("Subscription Cancellation Request");

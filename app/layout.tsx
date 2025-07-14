@@ -7,6 +7,7 @@ import { store, persistor } from "@/store/store";
 import { PersistGate } from "redux-persist/integration/react";
 import { NextStepProvider, NextStep } from "nextstepjs";
 import CustomCard from "@/components/ui/custom-card";
+import { Toaster } from "@/components/ui/sonner"
 
 const steps = [
   {
@@ -156,6 +157,7 @@ export default function RootLayout({
             </NextStepProvider>
           </PersistGate>
         </Provider>
+        <Toaster />
       </body>
     </html>
   );

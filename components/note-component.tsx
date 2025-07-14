@@ -19,6 +19,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { FormattedTextarea } from "@/components/ui/formatted-textarea";
 import { apiCreateNoteEMRIntegration, apiGetPatientsEMRIntegration } from "@/store/api";
 import { JsonView } from "@/components/ui/json-view";
+import { toast } from "sonner"
 
 export default function NoteComponent() {
   const isMobile = useIsMobile();
@@ -29,6 +30,7 @@ export default function NoteComponent() {
   const session = useSelector((state: RootState) => state.session.session);
   const selectedVisit = useSelector((state: RootState) => state.visit.selectedVisit);
   const templates = useSelector((state: RootState) => state.template.templates);
+  const user = useSelector((state: RootState) => state.user.user);
 
   const [transcriptView, setTranscriptView] = useState(false);
   const [isDeletingVisit, setIsDeletingVisit] = useState(false);
@@ -41,6 +43,7 @@ export default function NoteComponent() {
   const [isLoadingPatients, setIsLoadingPatients] = useState(false);
   const [isSendingToEmr, setIsSendingToEmr] = useState(false);
 
+  const hasVerifiedEmr = user?.emr_integration?.verified || false;
   const isEmrTemplate = templates.find((t) => t.template_id === selectedVisit?.template_id)?.status === "EMR";
 
   useEffect(() => {
@@ -223,16 +226,21 @@ export default function NoteComponent() {
   const handlePatientConfirm = (patientId: string) => {
     const finalPatientId = manualPatientId.trim() || selectedPatientId;
     setIsSendingToEmr(true);
+    
+    const toastId = toast.loading("Sending note to EMR...");
+    
     apiCreateNoteEMRIntegration(session.session_id, finalPatientId, selectedVisit?.visit_id || "")
       .then((data) => {
         setIsSendingToEmr(false);
         setIsPatientDialogOpen(false);
         setSelectedPatientId("");
         setManualPatientId("");
+        toast.success("Note sent to EMR successfully", { id: toastId });
       })
       .catch((error) => {
         console.error("Error sending note to EMR:", error);
         setIsSendingToEmr(false);
+        toast.error("Failed to send note to EMR", { id: toastId });
       });
   };
 
@@ -367,13 +375,13 @@ export default function NoteComponent() {
                       </Select>
                     </div>
                   </Button>
-                  {isEmrTemplate ? (
+                  {/* Mobile view buttons */}
+                  <Button variant="default" size="icon" onClick={copyAllNote}>
+                    {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                  {hasVerifiedEmr && (
                     <Button variant="default" size="icon" onClick={sendToEmr} disabled={isLoadingPatients}>
                       {isLoadingPatients ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    </Button>
-                  ) : (
-                    <Button variant="default" size="icon" onClick={copyAllNote}>
-                      {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     </Button>
                   )}
                 </div>
@@ -401,7 +409,11 @@ export default function NoteComponent() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-                {isEmrTemplate ? (
+                {/* Desktop view buttons */}
+                <Button variant="outline" size="icon" onClick={copyAllNote}>
+                  {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+                {hasVerifiedEmr && (
                   <Button onClick={sendToEmr} disabled={isLoadingPatients}>
                     {isLoadingPatients ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -410,11 +422,6 @@ export default function NoteComponent() {
                         <Send className="h-4 w-4" /> Send to EMR
                       </>
                     )}
-                  </Button>
-                ) : (
-                  <Button onClick={copyAllNote}>
-                    {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    Copy all
                   </Button>
                 )}
               </div>
@@ -507,7 +514,7 @@ export default function NoteComponent() {
         </div>
       </div>
 
-      {isEmrTemplate && (
+      {hasVerifiedEmr && (
         <AlertDialog
           open={isPatientDialogOpen}
           onOpenChange={(open) => {

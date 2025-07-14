@@ -227,10 +227,7 @@ export default function RecordComponent() {
           visit_id: selectedVisit.visit_id,
         });
 
-        navigator.sendBeacon(
-          `${process.env.NEXT_PUBLIC_API_URL}/audio/pause_recording`,
-          new Blob([data], { type: "application/json" })
-        );
+        navigator.sendBeacon(`${process.env.NEXT_PUBLIC_API_URL}/audio/pause_recording`, new Blob([data], { type: "application/json" }));
       }
     };
 
@@ -451,7 +448,7 @@ export default function RecordComponent() {
             <div className="flex items-center gap-2 text-sm">
               <div className="flex items-center gap-2">
                 <span className="font-normal text-muted-foreground md:inline-block">{recordingDuration ? recordingDuration + " seconds" : "Not started"}</span>
-                
+
                 {selectedVisit?.status === "RECORDING" && (
                   <>
                     {isBuffering ? (
@@ -467,7 +464,7 @@ export default function RecordComponent() {
                     )}
                   </>
                 )}
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
@@ -709,12 +706,12 @@ export default function RecordComponent() {
               </div>
             )}
 
-            { !(online && websocketConnected) && (
-                <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
-                  <WifiOff className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span>Recording may not be saved due to connectivity issues</span>
-                </div>
-              )}
+            {!(online && websocketConnected) && (
+              <div className="flex items-center justify-center w-full mt-3 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
+                <WifiOff className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span>Recording may not be saved due to connectivity issues</span>
+              </div>
+            )}
 
             {!microphone && (
               <div className="flex items-center justify-center w-full mt-3 p-3 bg-warning/10 text-warning rounded-md text-sm">
