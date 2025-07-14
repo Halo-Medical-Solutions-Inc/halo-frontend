@@ -465,7 +465,13 @@ export default function RecordComponent() {
           <div className="ml-auto px-3">
             <div className="flex items-center gap-2 text-sm">
               <div className="flex items-center gap-2">
-                <span className="font-normal text-muted-foreground md:inline-block">{recordingDuration ? recordingDuration + " seconds" : "Not started"}</span>
+                <span className="font-normal text-muted-foreground md:inline-block">
+                  {recordingDuration
+                    ? `${Math.floor(recordingDuration / 60)
+                        .toString()
+                        .padStart(2, "0")}:${(recordingDuration % 60).toString().padStart(2, "0")}`
+                    : "Not started"}
+                </span>
 
                 {selectedVisit?.status === "RECORDING" && (
                   <>
