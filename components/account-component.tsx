@@ -94,6 +94,18 @@ export default function AccountComponent() {
     });
   };
 
+  const selectNoteGenerationQuality = (value: string) => {
+    dispatch(setUser({ ...user, note_generation_quality: value }));
+    send({
+      type: "update_user",
+      session_id: session.session_id,
+      data: {
+        user_id: user?.user_id,
+        note_generation_quality: value,
+      },
+    });
+  };
+
   const selectDefaultLanguage = (value: string) => {
     dispatch(setUser({ ...user, default_language: value }));
     send({
@@ -191,6 +203,21 @@ export default function AccountComponent() {
                       {template.name}
                     </SelectItem>
                   ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+
+            <Label>Note generation quality</Label>
+            <Select value={user?.note_generation_quality || "BASIC"} onValueChange={(value) => selectNoteGenerationQuality(value)}>
+              <SelectTrigger className="min-w-[50px] max-w-[240px] w-auto">
+                <SelectValue placeholder="Select quality" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Quality Options</SelectLabel>
+                  <SelectItem value="BASIC">Basic</SelectItem>
+                  <SelectItem value="PRO">Pro</SelectItem>
+                  <SelectItem value="PREMIUM">Premium</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>

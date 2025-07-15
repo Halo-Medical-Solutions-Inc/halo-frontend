@@ -19,7 +19,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { FormattedTextarea } from "@/components/ui/formatted-textarea";
 import { apiCreateNoteEMRIntegration, apiGetPatientsEMRIntegration } from "@/store/api";
 import { JsonView } from "@/components/ui/json-view";
-import { toast } from "sonner"
+import { toast } from "sonner";
 import { setPatientList, setIsLoadingPatients } from "@/store/slices/sessionSlice";
 
 export default function NoteComponent() {
@@ -251,9 +251,9 @@ export default function NoteComponent() {
   const handlePatientConfirm = (patientId: string) => {
     const finalPatientId = manualPatientId.trim() || selectedPatientId;
     setIsSendingToEmr(true);
-    
+
     const toastId = toast.loading("Sending note to EMR...");
-    
+
     apiCreateNoteEMRIntegration(session.session_id, finalPatientId, selectedVisit?.visit_id || "")
       .then((data) => {
         setIsSendingToEmr(false);
@@ -406,7 +406,7 @@ export default function NoteComponent() {
                   </Button>
                   {hasVerifiedEmr && (
                     <Button variant="default" size="icon" onClick={sendToEmr} disabled={isLoadingPatients || isLoadingPatientsFromStore}>
-                      {(isLoadingPatients || isLoadingPatientsFromStore) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                      {isLoadingPatients || isLoadingPatientsFromStore ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     </Button>
                   )}
                 </div>
@@ -440,7 +440,7 @@ export default function NoteComponent() {
                 </Button>
                 {hasVerifiedEmr && (
                   <Button onClick={sendToEmr} disabled={isLoadingPatients || isLoadingPatientsFromStore}>
-                    {(isLoadingPatients || isLoadingPatientsFromStore) ? (
+                    {isLoadingPatients || isLoadingPatientsFromStore ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <>
@@ -614,17 +614,8 @@ export default function NoteComponent() {
               </div>
             </div>
             <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
-              <Button
-                variant="outline"
-                onClick={refreshPatients}
-                disabled={isRefreshingPatients || isSendingToEmr}
-                className="w-full sm:w-auto"
-              >
-                {isRefreshingPatients ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
+              <Button variant="outline" onClick={refreshPatients} disabled={isRefreshingPatients || isSendingToEmr} className="w-full sm:w-auto">
+                {isRefreshingPatients ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                 Refresh
               </Button>
               <div className="flex gap-2 w-full sm:w-auto">
@@ -637,10 +628,7 @@ export default function NoteComponent() {
                 >
                   Cancel
                 </AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={() => handlePatientConfirm(manualPatientId.trim() || selectedPatientId)} 
-                  disabled={(!selectedPatientId && !manualPatientId.trim()) || isSendingToEmr}
-                >
+                <AlertDialogAction onClick={() => handlePatientConfirm(manualPatientId.trim() || selectedPatientId)} disabled={(!selectedPatientId && !manualPatientId.trim()) || isSendingToEmr}>
                   {isSendingToEmr ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
