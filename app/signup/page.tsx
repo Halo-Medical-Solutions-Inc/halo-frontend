@@ -18,28 +18,28 @@ const carouselItems = [
   {
     gif: "/gif1.gif",
     title: "Create an Encounter",
-    subtitle: "Select from a variety of pre-built or custom templates. Halo supports 99+ languages."
+    subtitle: "Select from a variety of pre-built or custom templates. Halo supports 99+ languages.",
   },
   {
     gif: "/gif2.gif",
     title: "Generate Chart Note",
-    subtitle: "Generate comprehensive notes in under 60 seconds."
+    subtitle: "Generate comprehensive notes in under 60 seconds.",
   },
   {
     gif: "/gif3.gif",
     title: "Send to Your EMR",
-    subtitle: "Easily transfer the note to your EMR system."
+    subtitle: "Easily transfer the note to your EMR system.",
   },
   {
     gif: "/gif4.webp",
     title: "Instant Coding for Faster Billing",
-    subtitle: "Automated ICD-10 and CPT suggestions help doctors bill accurately and get paid faster."
+    subtitle: "Automated ICD-10 and CPT suggestions help doctors bill accurately and get paid faster.",
   },
   {
     gif: "/gif5.webp",
     title: "Custom Templates Tailored to Your EMR",
-    subtitle: "Import existing templates or create new ones that match your workflow."
-  }
+    subtitle: "Import existing templates or create new ones that match your workflow.",
+  },
 ];
 
 export default function Page() {
@@ -180,10 +180,10 @@ export default function Page() {
           <div className="relative w-full">
             {/* Left Fade */}
             <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-muted to-transparent z-10 pointer-events-none" />
-            
+
             {/* Right Fade */}
             <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-muted to-transparent z-10 pointer-events-none" />
-            
+
             {/* Scrollable Container */}
             <div className="overflow-x-auto px-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               <div className="flex gap-8 px-24">
@@ -192,20 +192,9 @@ export default function Page() {
                     <div className="space-y-4">
                       {/* Image with Border */}
                       <div className="aspect-[4/3] bg-background rounded-2xl overflow-hidden border-[10px] border-black">
-                        <img 
-                          src={item.gif} 
-                          alt={item.title}
-                          className={`w-full h-full ${
-                            index === 0 ? "object-contain -translate-y-[6px]" :
-                            index === 1 ? "object-contain -translate-y-[10px] scale-110" :
-                            index === 2 ? "h-full w-auto object-cover object-left" :
-                            index === 3 ? "object-contain -translate-y-[18px]" :
-                            index === 4 ? "object-contain" :
-                            "object-contain"
-                          }`}
-                        />
+                        <img src={item.gif} alt={item.title} className={`w-full h-full ${index === 0 ? "object-contain -translate-y-[6px]" : index === 1 ? "object-contain -translate-y-[10px] scale-110" : index === 2 ? "h-full w-auto object-cover object-left" : index === 3 ? "object-contain -translate-y-[18px]" : index === 4 ? "object-contain" : "object-contain"}`} />
                       </div>
-                      
+
                       {/* Title and Subtitle */}
                       <div className="text-center space-y-2">
                         <h3 className="text-xl font-semibold">{item.title}</h3>
@@ -221,18 +210,14 @@ export default function Page() {
       </div>
 
       {/* Mobile Carousel */}
-      <div 
-        className={`lg:hidden bg-muted transition-all duration-500 ease-in-out overflow-hidden ${
-          showMobileCarousel ? 'max-h-screen' : 'max-h-0'
-        }`}
-      >
+      <div className={`lg:hidden bg-muted transition-all duration-500 ease-in-out overflow-hidden ${showMobileCarousel ? "max-h-screen" : "max-h-0"}`}>
         <div className="relative h-full">
           {/* Top Fade */}
           <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-muted to-transparent z-10 pointer-events-none" />
-          
+
           {/* Bottom Fade */}
           <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-muted to-transparent z-10 pointer-events-none" />
-          
+
           {/* Scrollable Container */}
           <div className="overflow-y-auto h-screen py-16 px-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <div className="flex flex-col gap-12">
@@ -241,20 +226,9 @@ export default function Page() {
                   <div className="space-y-4">
                     {/* Image with Border */}
                     <div className="aspect-[4/3] bg-background rounded-2xl overflow-hidden border-[8px] border-black">
-                      <img 
-                        src={item.gif} 
-                        alt={item.title}
-                        className={`w-full h-full ${
-                          index === 0 ? "object-contain -translate-y-[6px]" :
-                          index === 1 ? "object-contain -translate-y-[10px] scale-110" :
-                          index === 2 ? "h-full w-auto object-cover object-left" :
-                          index === 3 ? "object-contain -translate-y-[18px]" :
-                          index === 4 ? "object-contain" :
-                          "object-contain"
-                        }`}
-                      />
+                      <img src={item.gif} alt={item.title} className={`w-full h-full ${index === 0 ? "object-contain -translate-y-[6px]" : index === 1 ? "object-contain -translate-y-[10px] scale-110" : index === 2 ? "h-full w-auto object-cover object-left" : index === 3 ? "object-contain -translate-y-[18px]" : index === 4 ? "object-contain" : "object-contain"}`} />
                     </div>
-                    
+
                     {/* Title and Subtitle */}
                     <div className="text-center space-y-2">
                       <h3 className="text-lg font-semibold">{item.title}</h3>
@@ -269,17 +243,9 @@ export default function Page() {
       </div>
 
       {/* Mobile "Learn More" Button - Fixed at bottom of screen */}
-      <button
-        onClick={() => setShowMobileCarousel(!showMobileCarousel)}
-        className="lg:hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-full shadow-lg animate-pulse hover:animate-none transition-all duration-300 hover:scale-105 z-50"
-        aria-label={showMobileCarousel ? "Hide features" : "Learn more about features"}
-      >
+      <button onClick={() => setShowMobileCarousel(!showMobileCarousel)} className="lg:hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-full shadow-lg animate-pulse hover:animate-none transition-all duration-300 hover:scale-105 z-50" aria-label={showMobileCarousel ? "Hide features" : "Learn more about features"}>
         <span className="text-xs font-medium">Learn more</span>
-        <ChevronDown 
-          className={`h-3 w-3 transition-transform duration-300 ${
-            showMobileCarousel ? 'rotate-180' : ''
-          }`} 
-        />
+        <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${showMobileCarousel ? "rotate-180" : ""}`} />
       </button>
     </div>
   );
