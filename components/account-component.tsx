@@ -30,6 +30,12 @@ export default function AccountComponent() {
   const [selectedEMR, setSelectedEMR] = useState<string | null>(null);
   const [emrCredentials, setEmrCredentials] = useState<Record<string, string>>({});
 
+  // Dr. Chrono OAuth configuration - replace with your actual credentials
+  const DR_CHRONO_CLIENT_ID = "YOUR_CLIENT_ID_HERE";
+  const DR_CHRONO_CLIENT_SECRET = "YOUR_CLIENT_SECRET_HERE";
+  const DR_CHRONO_REDIRECT_URI = "http://localhost:3000/dashboard";
+  const DR_CHRONO_SCOPES = "patients:summary:read patients:summary:write clinical:read clinical:write";
+
   useEffect(() => {
     if (user?.emr_integration?.emr) {
       setSelectedEMR(user.emr_integration.emr);
@@ -140,6 +146,19 @@ export default function AccountComponent() {
 
   const updateCredential = (key: string, value: string) => {
     setEmrCredentials({ ...emrCredentials, [key]: value });
+  };
+
+  const handleDrChronoConnect = () => {
+    // Build OAuth authorization URL
+    const params = new URLSearchParams({
+      redirect_uri: DR_CHRONO_REDIRECT_URI + "?screen=ACCOUNT&emr=DR_CHRONO",
+      response_type: "code",
+      client_id: DR_CHRONO_CLIENT_ID,
+      scope: DR_CHRONO_SCOPES
+    });
+    
+    const authUrl = `https://drchrono.com/o/authorize/?${params.toString()}`;
+    window.location.href = authUrl;
   };
 
   return (
@@ -300,6 +319,9 @@ ${user?.name || "User"}`
                   <Button variant={selectedEMR === "ADVANCEMD" ? "default" : "outline"} onClick={() => handleEMRSelection("ADVANCEMD")}>
                     AdvanceMD
                   </Button>
+                  <Button variant={selectedEMR === "DR_CHRONO" ? "default" : "outline"} onClick={() => handleEMRSelection("DR_CHRONO")}>
+                    Dr. Chrono
+                  </Button>
                 </div>
 
                 {selectedEMR && (
@@ -338,20 +360,44 @@ ${user?.name || "User"}`
                       </>
                     )}
 
-                    {selectedEMR === user?.emr_integration?.emr && isVerifiedEMR ? (
-                      <div className="flex items-center gap-2">
-                        <Button onClick={handleVerifyEMR} disabled={isSavingEMR || (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) || (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))}>
-                          {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
-                        </Button>
-                        <div className="text-sm text-success">✓ This EMR integration is verified</div>
+                    {selectedEMR === "DR_CHRONO" && (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-muted rounded-lg">
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Dr. Chrono uses OAuth authentication. Click the button below to connect your Dr. Chrono account.
+                          </p>
+                          {user?.emr_integration?.emr === "DR_CHRONO" && isVerifiedEMR ? (
+                            <div className="space-y-2">
+                              <div className="text-sm text-success">✓ Dr. Chrono integration is connected</div>
+                              <Button variant="outline" onClick={handleDrChronoConnect}>
+                                Reconnect Dr. Chrono
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button onClick={handleDrChronoConnect}>
+                              Connect to Dr. Chrono
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Button onClick={handleVerifyEMR} disabled={isSavingEMR || (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) || (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))}>
-                          {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
-                        </Button>
-                        <div className="text-sm text-destructive">✗ This EMR integration is not verified</div>
-                      </div>
+                    )}
+
+                    {selectedEMR !== "DR_CHRONO" && (
+                      selectedEMR === user?.emr_integration?.emr && isVerifiedEMR ? (
+                        <div className="flex items-center gap-2">
+                          <Button onClick={handleVerifyEMR} disabled={isSavingEMR || (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) || (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))}>
+                            {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
+                          </Button>
+                          <div className="text-sm text-success">✓ This EMR integration is verified</div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Button onClick={handleVerifyEMR} disabled={isSavingEMR || (selectedEMR === "OFFICE_ALLY" && (!emrCredentials.username || !emrCredentials.password)) || (selectedEMR === "ADVANCEMD" && (!emrCredentials.username || !emrCredentials.password || !emrCredentials.office_key || !emrCredentials.app_name))}>
+                            {isSavingEMR ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
+                          </Button>
+                          <div className="text-sm text-destructive">✗ This EMR integration is not verified</div>
+                        </div>
+                      )
                     )}
                   </div>
                 )}

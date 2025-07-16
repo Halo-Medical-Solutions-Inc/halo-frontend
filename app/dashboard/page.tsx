@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { RootState } from "@/store/store";
 import useWebSocket, { handle } from "@/lib/websocket";
-import { apiGetUser, apiGetUserTemplates, apiGetUserVisits, apiCheckSubscription } from "@/store/api";
+import { apiGetUser, apiGetUserTemplates, apiGetUserVisits, apiCheckSubscription, exchangeDrChronoCode, apiVerifyEMRIntegration } from "@/store/api";
 import { clearSession, setScreen } from "@/store/slices/sessionSlice";
 import { Loader2 } from "lucide-react";
 import { Template } from "@/store/types";
@@ -40,6 +40,12 @@ export default function Page() {
   const [hasLoadedAll, setHasLoadedAll] = useState(false);
   const [loadedVisitsCount, setLoadedVisitsCount] = useState(0);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [isProcessingOAuth, setIsProcessingOAuth] = useState(false);
+
+  // Dr. Chrono OAuth configuration - should match the values in account-component.tsx
+  const DR_CHRONO_CLIENT_ID = "YOUR_CLIENT_ID_HERE";
+  const DR_CHRONO_CLIENT_SECRET = "YOUR_CLIENT_SECRET_HERE";
+  const DR_CHRONO_REDIRECT_URI = "http://localhost:3000/dashboard";
 
   useEffect(() => {
     const payment = searchParams.get("payment");
@@ -50,7 +56,55 @@ export default function Page() {
       // Clean up the URL
       window.history.replaceState({}, document.title, "/dashboard");
     }
-  }, [searchParams]);
+
+    // Handle Dr. Chrono OAuth callback
+    const handleDrChronoCallback = async () => {
+      const code = searchParams.get("code");
+      const screenParam = searchParams.get("screen");
+      const emrParam = searchParams.get("emr");
+
+      if (code && emrParam === "DR_CHRONO" && session && !isProcessingOAuth) {
+        setIsProcessingOAuth(true);
+        try {
+          // Exchange code for tokens
+          const tokenResponse = await exchangeDrChronoCode(
+            code,
+            DR_CHRONO_CLIENT_ID,
+            DR_CHRONO_CLIENT_SECRET,
+            DR_CHRONO_REDIRECT_URI + "?screen=ACCOUNT&emr=DR_CHRONO"
+          );
+
+          // Calculate expiration date
+          const expiresAt = new Date();
+          expiresAt.setSeconds(expiresAt.getSeconds() + tokenResponse.expires_in);
+
+          // Store tokens in backend
+          const credentials = {
+            access_token: tokenResponse.access_token,
+            refresh_token: tokenResponse.refresh_token,
+            expires_at: expiresAt.toISOString()
+          };
+
+          const updatedUser = await apiVerifyEMRIntegration(session.session_id, "DR_CHRONO", credentials);
+          dispatch(setUser(updatedUser));
+
+          // Navigate to the specified screen
+          if (screenParam === "ACCOUNT") {
+            dispatch(setScreen("ACCOUNT"));
+          }
+
+          // Clean up URL
+          window.history.replaceState({}, document.title, "/dashboard");
+        } catch (error) {
+          console.error("Dr. Chrono OAuth error:", error);
+        } finally {
+          setIsProcessingOAuth(false);
+        }
+      }
+    };
+
+    handleDrChronoCallback();
+  }, [searchParams, session, isProcessingOAuth]);
 
   const loadMoreVisits = async () => {
     if (!session || hasLoadedAll) return;
@@ -274,10 +328,11 @@ export default function Page() {
 
   return (
     <>
-      {initialLoad && (
+      {(initialLoad || isProcessingOAuth) && (
         <div className="fixed inset-0 bg-background/10 backdrop-blur-[4px] z-40 flex items-center justify-center">
           <div className="flex flex-col items-center justify-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            {isProcessingOAuth && <p className="text-sm text-muted-foreground">Connecting to Dr. Chrono...</p>}
           </div>
         </div>
       )}

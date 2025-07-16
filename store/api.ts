@@ -227,3 +227,30 @@ export async function apiCheckSubscription(userId: string): Promise<{
   if (!response.ok) throw new Error("Failed to check subscription");
   return response.json();
 }
+
+export async function exchangeDrChronoCode(code: string, clientId: string, clientSecret: string, redirectUri: string): Promise<{
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}> {
+  const response = await fetch("https://drchrono.com/o/token/", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      code: code,
+      grant_type: "authorization_code",
+      redirect_uri: redirectUri,
+      client_id: clientId,
+      client_secret: clientSecret,
+    }).toString(),
+  });
+  
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to exchange Dr. Chrono code: ${error}`);
+  }
+  
+  return response.json();
+}
