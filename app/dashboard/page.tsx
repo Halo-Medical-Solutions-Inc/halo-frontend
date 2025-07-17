@@ -43,8 +43,8 @@ export default function Page() {
   const [isProcessingOAuth, setIsProcessingOAuth] = useState(false);
 
   // Dr. Chrono OAuth configuration - should match the values in account-component.tsx
-  const DR_CHRONO_CLIENT_ID = "YOUR_CLIENT_ID_HERE";
-  const DR_CHRONO_CLIENT_SECRET = "YOUR_CLIENT_SECRET_HERE";
+  const DR_CHRONO_CLIENT_ID = "3wlyTRtbshv4JaNgkSoRqEngrjquyy2Foptd26ek";
+  const DR_CHRONO_CLIENT_SECRET = "f17KuCmvO9Wuw4zaIB4MAUHtSEckVFBrsKav0Ua2bbG5m4bqQb3W8pECQjBnHmBZGebwhTecJSkvSLeS7HXtbh8Pqf4Hf0XLSFJ7ZWVxRTbmnXCJv98pDChxNgbLBZX4";
   const DR_CHRONO_REDIRECT_URI = "http://localhost:3000/dashboard";
 
   useEffect(() => {
