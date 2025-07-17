@@ -437,7 +437,7 @@ export default function RecordComponent() {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".txt,.pdf,.docx,.wav,.mp3,.mp4,.m4a"
+        accept=".txt,.pdf,.docx,.wav,.mp3,.mp4,.m4a,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.webp"
         style={{ display: "none" }}
         onChange={async (e) => {
           const file = e.target.files?.[0];

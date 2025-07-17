@@ -61,7 +61,7 @@ export async function apiProcessFile(file: File): Promise<string> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${API_URL}/process_file`, {
+  const response = await fetch(`${API_URL}/audio/process_file`, {
     method: "POST",
     body: formData,
     credentials: "include",
