@@ -9,7 +9,6 @@ interface User {
   user_specialty?: string;
   default_template_id?: string;
   default_language?: string;
-  note_generation_quality?: string;
   template_ids?: string[];
   visit_ids?: string[];
   emr_integration?: {
@@ -63,6 +62,7 @@ interface Template {
   print?: string;
   header?: string;
   footer?: string;
+  note_generation_quality?: string;
 }
 
 interface Session {

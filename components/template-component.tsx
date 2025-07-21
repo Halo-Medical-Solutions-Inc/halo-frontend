@@ -235,6 +235,18 @@ export default function TemplateComponent() {
     });
   };
 
+  const handleNoteQualityChange = (value: string) => {
+    dispatch(setSelectedTemplate({ ...selectedTemplate, note_generation_quality: value }));
+    debouncedSend({
+      type: "update_template",
+      session_id: session.session_id,
+      data: {
+        template_id: selectedTemplate?.template_id,
+        note_generation_quality: value,
+      },
+    });
+  };
+
   return (
     <>
       {showConfetti && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={200} gravity={0.3} />}
@@ -355,6 +367,27 @@ export default function TemplateComponent() {
               />
             ) : activeTab === "printer" ? (
               <div className="space-y-8">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-medium">Note Quality</h3>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Info className="h-3 w-3" />
+                      <span>Set the AI quality for note generation.</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Select value={selectedTemplate?.note_generation_quality || "BASIC"} onValueChange={handleNoteQualityChange}>
+                      <SelectTrigger className="w-fit">
+                        <SelectValue placeholder="Select Quality" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="BASIC">Basic</SelectItem>
+                        <SelectItem value="PRO">Pro</SelectItem>
+                        <SelectItem value="PREMIUM">Premium</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-medium">Font Size</h3>
