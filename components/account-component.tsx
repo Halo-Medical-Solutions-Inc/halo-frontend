@@ -94,8 +94,6 @@ export default function AccountComponent() {
     });
   };
 
-
-
   const selectDefaultLanguage = (value: string) => {
     dispatch(setUser({ ...user, default_language: value }));
     send({
